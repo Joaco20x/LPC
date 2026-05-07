@@ -1,65 +1,128 @@
-import Image from "next/image";
+// Página principal — Landing de LPC
+// Punto de entrada a todas las funciones de autenticación
 
-export default function Home() {
+import Link from 'next/link';
+import './landing.css';
+
+export default function PaginaInicio() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="landing-raiz">
+
+      {/* ── Navegación superior ── */}
+      <nav className="landing-nav">
+        <span className="landing-nav__marca">LPC</span>
+        <div className="landing-nav__acciones">
+          <Link href="/iniciar-sesion" className="landing-nav__link">
+            Ingresar
+          </Link>
+          <Link href="/registro" className="landing-nav__cta">
+            Crear cuenta
+          </Link>
+        </div>
+      </nav>
+
+      {/* ── Hero ── */}
+      <section className="landing-hero">
+        <div className="landing-hero__contenido">
+          <p className="landing-hero__etiqueta">Gestión de gastos de viaje</p>
+          <h1 className="landing-hero__titulo">
+            Viaja juntos.<br />
+            <em>Divide fácil.</em>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="landing-hero__descripcion">
+            Registra gastos, divide costos y liquida deudas con tu grupo
+            sin hojas de cálculo ni discusiones.
           </p>
+          <div className="landing-hero__botones">
+            <Link href="/registro" className="boton-solido">
+              Comenzar gratis
+            </Link>
+            <Link href="/login" className="boton-fantasma">
+              Ya tengo cuenta
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+
+        {/* Espacio para imagen hero */}
+        <div className="landing-hero__imagen" aria-hidden="true">
+          {/*
+            ESPACIO PARA IMAGEN HERO
+            Dimensiones sugeridas: 1200x900px, formato landscape
+            Reemplaza con:
+
             <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+              src="/hero.jpg"
+              alt="Grupo de viajeros"
+              fill
+              className="object-cover"
+              priority
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          */}
+          <div className="landing-hero__imagen-placeholder" />
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* ── Características ── */}
+      <section className="landing-features">
+        <div className="landing-features__grid">
+
+          <article className="landing-feature">
+            <span className="landing-feature__numero">01</span>
+            <h2 className="landing-feature__titulo">Registra</h2>
+            <p className="landing-feature__texto">
+              Agrega gastos en segundos con monto, categoría y foto de boleta.
+              Sin formularios interminables.
+            </p>
+          </article>
+
+          <article className="landing-feature">
+            <span className="landing-feature__numero">02</span>
+            <h2 className="landing-feature__titulo">Divide</h2>
+            <p className="landing-feature__texto">
+              Reparte de forma equitativa, porcentual o manual.
+              Excluye integrantes cuando corresponda.
+            </p>
+          </article>
+
+          <article className="landing-feature">
+            <span className="landing-feature__numero">03</span>
+            <h2 className="landing-feature__titulo">Liquida</h2>
+            <p className="landing-feature__texto">
+              Ve exactamente quién le debe a quién y cuánto.
+              Sin cálculos, sin confusión.
+            </p>
+          </article>
+
+        </div>
+      </section>
+
+      {/* ── CTA final ── */}
+      <section className="landing-cta">
+        <div className="landing-cta__contenido">
+          {/*
+            ESPACIO PARA IMAGEN SECUNDARIA
+            Dimensiones sugeridas: 600x400px
+            <Image src="/viaje.jpg" alt="Viajeros" width={600} height={400} />
+          */}
+          <p className="landing-cta__texto">
+            Tu próximo viaje,<br />sin las cuentas pendientes.
+          </p>
+          <Link href="/registro" className="boton-solido">
+            Empezar ahora
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="landing-footer">
+        <span className="landing-footer__marca">LPC</span>
+        <div className="landing-footer__links">
+          <Link href="/login">Ingresar</Link>
+          <Link href="/registro">Registro</Link>
+          <Link href="/recuperar-contrasena">Recuperar contraseña</Link>
+        </div>
+      </footer>
+
+    </main>
   );
 }
