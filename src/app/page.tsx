@@ -12,7 +12,7 @@ export default function PaginaInicio() {
       <nav className="landing-nav">
         <span className="landing-nav__marca">LPC</span>
         <div className="landing-nav__acciones">
-          <Link href="/iniciar-sesion" className="landing-nav__link">
+          <Link href="/login" className="landing-nav__link">
             Ingresar
           </Link>
           <Link href="/registro" className="landing-nav__cta">

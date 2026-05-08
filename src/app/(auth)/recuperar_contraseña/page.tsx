@@ -1,17 +1,15 @@
 'use client';
 
 // Página de recuperación de contraseña — FR-01
-// Flujo en dos pasos: ingreso de correo → confirmación de envío
 
 import Link from 'next/link';
 import { useFormulario } from '@/lib/validaciones/useFormulario';
 import { validarRecuperacion } from '@/lib/validaciones/autenticacion';
+import { recuperarContrasena } from '@/lib/validaciones/servicioAuth';
 import CampoEntrada from '@/components/autenticacion/CampoEntrada';
 import type { DatosRecuperacion } from '@/types/autenticacion';
 
-const VALORES_INICIALES: DatosRecuperacion = {
-  correo: '',
-};
+const VALORES_INICIALES: DatosRecuperacion = { correo: '' };
 
 export default function PaginaRecuperarContrasena() {
   const [estado, acciones] = useFormulario<DatosRecuperacion>(VALORES_INICIALES);
@@ -29,15 +27,17 @@ export default function PaginaRecuperarContrasena() {
     acciones.establecerCargando(true);
 
     try {
-      // TODO: Conectar con API route /api/auth/recuperar-contrasena
-      await new Promise((res) => setTimeout(res, 1000)); // Simulación
+      // El servidor siempre responde con éxito (no revela si el correo existe)
+      await recuperarContrasena(datos);
+      acciones.establecerEnviado(true);
+    } catch {
+      // Mostramos confirmación igualmente para no filtrar existencia del correo
       acciones.establecerEnviado(true);
     } finally {
       acciones.establecerCargando(false);
     }
   };
 
-  // Estado: correo enviado con éxito
   if (enviado) {
     return (
       <div className="auth-confirmacion">
@@ -73,13 +73,10 @@ export default function PaginaRecuperarContrasena() {
     <>
       <header className="auth-encabezado">
         <span className="auth-marca-movil">LPC</span>
-
-        {/* Indicador de progreso de dos pasos */}
         <div className="auth-pasos" aria-label="Paso 1 de 2">
           <span className="auth-paso auth-paso--activo" />
           <span className="auth-paso" />
         </div>
-
         <h1 className="auth-titulo">Recupera tu acceso</h1>
         <p className="auth-subtitulo">
           Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
