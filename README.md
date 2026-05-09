@@ -1,231 +1,171 @@
-# LPC — Guía de Configuración del Entorno
+LPC — Plataforma de Gestión de Gastos de Viaje
 
-> **Plataforma de Gestión de Gastos de Viaje**  
-> Universidad Católica de Temuco · Diseño de Software · 2025  
-> Equipo: Joaquín Valenzuela, Martin López, Vicente Santin, Deris Aránguiz, Bastián Liempi
+Universidad Católica de Temuco · Diseño de Software · 2025
+Equipo: Joaquín Valenzuela, Martin López, Vicente Santin, Deris Aránguiz, Bastián Liempi
 
----
 
-## Requisitos previos
+Índice
 
-Antes de comenzar asegúrate de tener instalado:
+Descripción
+Requisitos previos
+Instalación
+Base de datos
+Prisma ORM
+Variables de entorno
+Arquitectura del proyecto
+Estructura de carpetas
+Rutas disponibles
+Problemas frecuentes
 
-- [Node.js](https://nodejs.org/) v18 o superior
-- [PostgreSQL](https://www.postgresql.org/download/) v14 o superior
-- [Git](https://git-scm.com/)
-- [VS Code](https://code.visualstudio.com/) (recomendado)
 
----
+1. Descripción
+LPC es una plataforma centralizada que integra el registro de gastos, la división automática de costos y el seguimiento de deudas para grupos de viaje.
 
-## 1. Clonar el repositorio
+2. Requisitos previos
+HerramientaVersión mínimaNode.jsv18PostgreSQLv14GitcualquieraVS Codecualquiera
 
-```bash
-git clone <url-del-repositorio>
+3. Instalación
+bashgit clone <url-del-repositorio>
 cd eatryp
-```
-
----
-
-## 2. Instalar dependencias
-
-```bash
 npm install
-```
-
----
-
-## 3. Configurar la base de datos local
-
-Cada integrante debe crear su propia base de datos local. Esto permite trabajar de forma independiente sin afectar el entorno de los demás.
-
-### 3.1 Conectarse a PostgreSQL
-
-Abre una terminal y ejecuta:
-
-```bash
-psql -U postgres
-```
-
-Te pedirá la contraseña de tu usuario `postgres` (la que definiste al instalar PostgreSQL).
-
-### 3.2 Crear la base de datos
-
-Una vez dentro de `psql`:
-
-```sql
-CREATE DATABASE lpc_db;
-```
-
-Verifica que se creó correctamente:
-
-```bash
-\l
-```
-
-Deberías ver `lpc_db` en la lista. Luego sal:
-
-```bash
-\q
-```
-
-### 3.3 Crear las tablas
-
-Desde la raíz del proyecto ejecuta:
-
-```bash
-psql -U postgres -d lpc_db -f lpc_tablas.sql
-```
-
-Al finalizar verás la lista de tablas creadas:
-
-```
-invitaciones
-deudas
-divisiones_gasto
-gastos
-grupos
-miembros_grupo
-notificaciones
-sesiones
-tokens_recuperacion
-usuarios
-```
-
----
-
-## 4. Variables de entorno
-
-Crea un archivo `.env.local` en la raíz del proyecto con el siguiente contenido:
-
-```env
-# Base de datos
-DATABASE_URL=postgresql://postgres:TU_CONTRASEÑA@localhost:5432/lpc_db
-
-# JWT
-JWT_SECRET=una_clave_secreta_larga_y_aleatoria
-JWT_EXPIRACION=1h
-JWT_REFRESH_EXPIRACION=7d
-
-# App
-NEXT_PUBLIC_URL=http://localhost:3000
-```
-
-> ⚠️ **Importante:** Reemplaza `TU_CONTRASEÑA` con la contraseña de tu usuario `postgres`.  
-> ⚠️ **Nunca subas `.env.local` al repositorio.** Ya está incluido en `.gitignore`.
-
----
-
-## 5. Iniciar el servidor de desarrollo
-
-```bash
 npm run dev
-```
 
-Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
+4. Base de datos
+Cada integrante crea su propia base de datos local.
+Crear la base de datos
+bashpsql -U postgres
+Dentro de psql:
+sqlCREATE DATABASE lpc_db;
+\q
+Crear las tablas
+bashpsql -U postgres -d lpc_db -f lpc_tablas.sql
+Tablas del sistema
+TablaDescripciónusuariosDatos de usuarios registradostokens_recuperacionTokens para restablecer contraseñasesionesRefresh tokens JWT activosgruposGrupos de viajemiembros_grupoRelación usuario-grupo con rolgastosGastos dentro de un grupodivisiones_gastoDivisión de cada gastodeudasDeudas entre integrantesnotificacionesNotificaciones del sistemainvitacionesInvitaciones a grupos
 
----
+5. Prisma ORM
+Generar el cliente (obligatorio después de clonar):
+bashnpx prisma generate
+Verificar conexión:
+bashnpx prisma db pull
+Explorador visual:
+bashnpx prisma studio
 
-## 6. Rutas disponibles
+IMPORTANTE: Nunca ejecutes npx prisma migrate ni npx prisma db push sin coordinarlo con el equipo. Las tablas ya existen en la BD creadas con lpc_tablas.sql.
 
-| Ruta | Descripción |
-|------|-------------|
-| `localhost:3000/` | Página principal |
-| `localhost:3000/iniciar-sesion` | Inicio de sesión |
-| `localhost:3000/registro` | Crear cuenta |
-| `localhost:3000/recuperar-contrasena` | Recuperar contraseña |
 
----
+6. Variables de entorno
+Crea un archivo .env en la raíz:
+envDATABASE_URL="postgresql://postgres:TU_CONTRASENA@localhost:5432/lpc_db"
+JWT_SECRET="clave_secreta_minimo_32_caracteres"
+JWT_EXPIRACION="1h"
+JWT_REFRESH_EXPIRACION="7d"
+NEXT_PUBLIC_URL="http://localhost:3000"
 
-## 7. Estructura del proyecto
+Nunca subas .env al repositorio. Ya está en .gitignore.
 
-```
+
+7. Arquitectura del proyecto
+El proyecto usa una Arquitectura en Capas separando responsabilidades en tres niveles:
+Petición HTTP
+      |
+      v
+ API Route              app/api_dor/[feature]/route.ts
+      |                  Recibe la petición y delega al controlador.
+      |                  Sin lógica de negocio.
+      |
+      v
+ Controlador            src/backend/controllers/
+      |                  Valida la petición HTTP.
+      |                  Maneja cookies y sesiones.
+      |                  Retorna respuesta al cliente.
+      |                  NO accede directo a la base de datos.
+      |
+      v
+ Servicio               src/backend/services/[feature]/
+      |                  Contiene toda la lógica de negocio.
+      |                  Realiza consultas a PostgreSQL via Prisma.
+      |                  NO conoce HTTP ni cookies.
+      |
+      v
+ PostgreSQL              src/backend/db/ (Prisma singleton)
+Reglas por capa
+CapaResponsabilidadProhibidoAPI RouteRecibir petición, llamar al controladorLógica de negocio, acceso a BDControladorValidar HTTP, manejar cookies, responderAcceso directo a PrismaServicioLógica de negocio, consultas PrismaManejar Request/Response, cookies
+Ejemplo de flujo — Login
+POST /api_dor/auth/login
+        |
+        v
+LoginController (backend/controllers/)
+  - valida los campos de la petición
+  - llama a LoginService
+  - guarda cookie con el accessToken
+  - retorna respuesta HTTP
+        |
+        v
+LoginService (backend/services/login/)
+  - busca usuario en BD con Prisma
+  - verifica contraseña (backend/auth/contraseña.ts)
+  - genera JWT (backend/auth/jwt.ts)
+  - guarda sesión en BD
+
+8. Estructura de carpetas
 eatryp/
+├── prisma/
+│   └── schema.prisma
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx                    # Layout raíz (html + body)
-│   │   ├── page.tsx                      # Landing principal
-│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── global.css
 │   │   ├── landing.css
-│   │   └── (auth)/                       # Grupo de rutas de autenticación
-│   │       ├── layout.tsx                # Layout del módulo auth
-│   │       ├── auth.css
-│   │       ├── iniciar-sesion/
-│   │       │   └── page.tsx
-│   │       ├── registro/
-│   │       │   └── page.tsx
-│   │       └── recuperar-contrasena/
-│   │           └── page.tsx
-│   ├── components/
-│   │   └── autenticacion/
-│   │       ├── CampoEntrada.tsx          # Input reutilizable
-│   │       ├── BotonOAuth.tsx            # Botones Google / Apple
-│   │       └── Separador.tsx             # Divisor visual
-│   ├── lib/
-│   │   └── validaciones/
-│   │       ├── autenticacion.ts          # Funciones de validación
-│   │       └── useFormulario.ts          # Hook genérico de formularios
-│   └── types/
-│       └── autenticacion.ts              # Interfaces TypeScript
-├── lpc_tablas.sql                        # Script de creación de tablas
-├── SETUP.md                              # Esta guía
-└── .env.local                            # Variables de entorno (no subir al repo)
-```
+│   │   ├── (auth)/
+│   │   │   ├── layout.tsx
+│   │   │   ├── auth.css
+│   │   │   ├── login/page.tsx
+│   │   │   ├── registro/page.tsx
+│   │   │   ├── recuperar-contrasena/page.tsx
+│   │   │   └── nueva-contrasena/page.tsx
+│   │   └── api_dor/
+│   │       └── auth/
+│   │           ├── login/route.ts
+│   │           ├── logout/route.ts
+│   │           ├── registro/route.ts
+│   │           ├── recuperar-contrasena/route.ts
+│   │           └── nueva-contrasena/route.ts
+│   ├── backend/
+│   │   ├── auth/
+│   │   │   ├── contraseña.ts
+│   │   │   └── jwt.ts
+│   │   ├── controllers/
+│   │   ├── db/
+│   │   └── services/
+│   │       ├── login/
+│   │       ├── logout/
+│   │       ├── nueva-contrasena/
+│   │       ├── recuperar-contrasena/
+│   │       └── registro/
+│   ├── frontend/
+│   │   └── components/
+│   │       └── autenticacion/
+│   └── shared/
+│       ├── types/
+│       └── validaciones/
+├── lpc_tablas.sql
+├── README.md
+└── .env
 
----
+9. Rutas disponibles
+RutaDescripciónlocalhost:3000/Landing principallocalhost:3000/loginInicio de sesiónlocalhost:3000/registroCrear cuentalocalhost:3000/recuperar-contrasenaRecuperar contraseña (paso 1)localhost:3000/nueva-contrasena?token=...Nueva contraseña (paso 2)
 
-## 8. Tablas de la base de datos
-
-| Tabla | Descripción |
-|-------|-------------|
-| `usuarios` | Datos de usuarios registrados |
-| `tokens_recuperacion` | Tokens para restablecer contraseña |
-| `sesiones` | Refresh tokens de sesión JWT |
-| `grupos` | Grupos de viaje |
-| `miembros_grupo` | Relación usuario–grupo con rol (admin/miembro) |
-| `gastos` | Gastos registrados dentro de un grupo |
-| `divisiones_gasto` | Cómo se divide cada gasto entre integrantes |
-| `deudas` | Deudas calculadas entre integrantes |
-| `notificaciones` | Notificaciones del sistema (JSONB) |
-| `invitaciones` | Invitaciones a grupos por correo o token |
-
----
-
-## 9. Tecnologías utilizadas
-
-| Tecnología | Uso |
-|------------|-----|
-| Next.js 16 + TypeScript | Framework principal (SSR + App Router) |
-| React 19 | Interfaz de usuario |
-| PostgreSQL | Base de datos relacional |
-| bcrypt | Encriptación de contraseñas |
-| JWT | Autenticación con tokens |
-| Tailwind CSS v4 | Estilos utilitarios |
-
----
-
-## 10. Problemas frecuentes
-
-**Error: `psql` no se reconoce como comando**  
-Agrega PostgreSQL al PATH de Windows. Busca la carpeta `bin` de tu instalación (ej: `C:\Program Files\PostgreSQL\16\bin`) y agrégala a las variables de entorno.
-
-**Error al conectar a la base de datos**  
-Verifica que el servicio de PostgreSQL esté corriendo. En Windows: `Servicios → postgresql-x64-XX → Iniciar`.
-
-**Las rutas dan 404**  
-Asegúrate de que la carpeta se llame `(auth)` con paréntesis, no `auth`. Renómbrala desde el Explorador de Windows si la terminal da error.
-
-**Líneas rojas en los imports `@/...`**  
-Abre VS Code, presiona `Ctrl + Shift + P` y ejecuta `TypeScript: Restart TS Server`.
-
-**Error `Router action dispatched before initialization`**  
-Detén el servidor, borra la caché y reinicia:
-```bash
-rm -rf .next
-npm run dev
-```
-
----
-
-## Contacto del equipo
-
-Cualquier duda coordinar por el canal del grupo antes de hacer cambios en `main`.
+10. Problemas frecuentes
+psql no se reconoce
+Agrega C:\Program Files\PostgreSQL\16\bin al PATH de Windows.
+Error de conexión a la BD
+Windows → Servicios → postgresql-x64-XX → Iniciar.
+Rutas dan 404
+La carpeta debe llamarse (auth) con paréntesis. Renómbrala desde el Explorador de Windows.
+Líneas rojas en @/...
+Ctrl + Shift + P → TypeScript: Restart TS Server
+Error Router action dispatched before initialization
+bashrm -rf .next && npm run dev
+Prisma no encuentra los modelos
+bashnpx prisma generate
