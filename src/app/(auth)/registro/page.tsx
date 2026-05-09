@@ -2,14 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useFormulario } from '@/lib/validaciones/useFormulario';
-import { validarRegistro } from '@/lib/validaciones/autenticacion';
-import { registrar } from '@/lib/validaciones/servicioAuth';
-import CampoEntrada from '@/components/autenticacion/CampoEntrada';
-import BotonOAuth from '@/components/autenticacion/BotonOAuth';
-import Separador from '@/components/autenticacion/Separador';
-import type { DatosRegistro, ProveedorOAuth } from '@/types/autenticacion';
-
+import { useFormulario } from '@/shared/validaciones/useFormulario';
+import { validarRegistro } from '@/shared/validaciones/autenticacion';
+import { registrar } from '@/shared/validaciones/servicioAuth';
+import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
+import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
+import Separador from '@/frontend/components/autenticacion/Separador';
+import type { DatosRegistro, ProveedorOAuth } from '@/shared/types/autenticacion';
 const VALORES_INICIALES: DatosRegistro = {
   nombre: '',
   correo: '',

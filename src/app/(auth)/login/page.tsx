@@ -6,13 +6,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useFormulario } from '@/lib/validaciones/useFormulario';
-import { validarInicioSesion } from '@/lib/validaciones/autenticacion';
-import { iniciarSesion } from '@/lib/validaciones/servicioAuth';
-import CampoEntrada from '@/components/autenticacion/CampoEntrada';
-import BotonOAuth from '@/components/autenticacion/BotonOAuth';
-import Separador from '@/components/autenticacion/Separador';
-import type { DatosInicioSesion, ProveedorOAuth } from '@/types/autenticacion';
+import { useFormulario } from '@/shared/validaciones/useFormulario';
+import { validarInicioSesion } from '@/shared/validaciones/autenticacion';
+import { iniciarSesion } from '@/shared/validaciones/servicioAuth';
+import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
+import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
+import Separador from '@/frontend/components/autenticacion/Separador';
+import type { DatosInicioSesion, ProveedorOAuth } from '@/shared/types/autenticacion';
 import '@/app/(auth)/auth.css';
 // Almacenamiento en memoria: no persiste al recargar (seguro contra XSS)
 // Para persistencia entre recargas usa un contexto global o un store Zustand
