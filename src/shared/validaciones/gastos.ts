@@ -6,24 +6,21 @@ import type {
   DivisionIntegrante,
   ErrorCampoGasto,
   TipoDivision,
-} from '@/types/gastos';
+} from '@/shared/types/gastos';
 
 const DESCRIPCION_MIN = 3;
 const DESCRIPCION_MAX = 255;
-const MONTO_MIN = 1;
 
 export function validarMonto(monto: number): string | null {
   if (!monto || isNaN(monto)) return 'El monto es obligatorio';
-  if (monto < MONTO_MIN) return 'El monto debe ser mayor a 0';
+  if (monto <= 0) return 'El monto debe ser mayor a 0';
   return null;
 }
 
 export function validarDescripcion(descripcion: string): string | null {
   if (!descripcion.trim()) return 'La descripción es obligatoria';
-  if (descripcion.trim().length < DESCRIPCION_MIN)
-    return `Mínimo ${DESCRIPCION_MIN} caracteres`;
-  if (descripcion.length > DESCRIPCION_MAX)
-    return `Máximo ${DESCRIPCION_MAX} caracteres`;
+  if (descripcion.trim().length < DESCRIPCION_MIN) return `Mínimo ${DESCRIPCION_MIN} caracteres`;
+  if (descripcion.length > DESCRIPCION_MAX) return `Máximo ${DESCRIPCION_MAX} caracteres`;
   return null;
 }
 
@@ -55,13 +52,12 @@ export function validarDivisiones(
   if (tipo === 'manual') {
     const sumaMontos = divisiones.reduce((s, d) => s + d.montoAsignado, 0);
     if (Math.round(sumaMontos) !== Math.round(monto))
-      return `La suma manual (${sumaMontos}) no coincide con el monto total (${monto})`;
+      return `La suma manual (${sumaMontos}) no coincide con el total (${monto})`;
   }
 
   return null;
 }
 
-// Validación completa del formulario — retorna lista de errores por campo
 export function validarRegistroGasto(datos: DatosRegistroGasto): ErrorCampoGasto[] {
   const errores: ErrorCampoGasto[] = [];
 
@@ -77,11 +73,7 @@ export function validarRegistroGasto(datos: DatosRegistroGasto): ErrorCampoGasto
   const errorPagador = validarPagador(datos.idPagador);
   if (errorPagador) errores.push({ campo: 'idPagador', mensaje: errorPagador });
 
-  const errorDivisiones = validarDivisiones(
-    datos.divisiones,
-    datos.monto,
-    datos.tipoDivision
-  );
+  const errorDivisiones = validarDivisiones(datos.divisiones, datos.monto, datos.tipoDivision);
   if (errorDivisiones) errores.push({ campo: 'divisiones', mensaje: errorDivisiones });
 
   return errores;
