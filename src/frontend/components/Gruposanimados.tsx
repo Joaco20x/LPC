@@ -78,6 +78,14 @@ interface Grupo {
   typingFrames: number;  // frames de "···" antes de mostrar texto
 }
 
+// Rect de zona prohibida (en coordenadas canvas)
+interface ZonaRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
 const GRUPOS_INICIALES: Omit<Grupo, 'x'|'y'|'vx'|'vy'|'burbujaActual'|'timerBurbuja'|'angulo'|'escala'|'escalaTarget'|'rastros'|'typingFrames'>[] = [
@@ -274,6 +282,39 @@ function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
 }
 
+// Comprueba si un punto (px, py) está dentro de la zona prohibida con margen extra
+function enZonaProhibida(px: number, py: number, zona: ZonaRect, margen = 0): boolean {
+  return (
+    px >= zona.x - margen &&
+    px <= zona.x + zona.w + margen &&
+    py >= zona.y - margen &&
+    py <= zona.y + zona.h + margen
+  );
+}
+
+// Desplaza un punto de control bezier fuera de la zona prohibida
+function esquivarZona(px: number, py: number, zona: ZonaRect, margen: number): { x: number; y: number } {
+  if (!enZonaProhibida(px, py, zona, margen)) return { x: px, y: py };
+
+  // Calcular el centro de la zona
+  const cx = zona.x + zona.w / 2;
+  const cy = zona.y + zona.h / 2;
+
+  // Empujar el punto hacia afuera de la zona en la dirección más corta
+  const dx = px - cx;
+  const dy = py - cy;
+  const distX = zona.w / 2 + margen - Math.abs(dx);
+  const distY = zona.h / 2 + margen - Math.abs(dy);
+
+  if (distX < distY) {
+    // Empujar horizontalmente
+    return { x: px + (dx >= 0 ? distX : -distX), y: py };
+  } else {
+    // Empujar verticalmente
+    return { x: px, y: py + (dy >= 0 ? distY : -distY) };
+  }
+}
+
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 export default function GruposAnimados() {
@@ -284,6 +325,8 @@ export default function GruposAnimados() {
   const transferenciaRef = useRef<Transferencia | null>(null);
   const cooldownRef = useRef<number>(0);
   const avionRef = useRef<EstadoAvion | null>(null);
+  // Zona del texto hero (se actualiza con ResizeObserver del elemento DOM)
+  const zonaTextoRef = useRef<ZonaRect>({ x: 0, y: 0, w: 0, h: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -319,14 +362,40 @@ export default function GruposAnimados() {
       if (!parent) return;
       canvas.width = parent.clientWidth;
       canvas.height = parent.clientHeight;
+      actualizarZonaTexto();
     };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(canvas.parentElement!);
 
+    // ── Rastrear la zona del contenido de texto hero ──────────────────────
+    // Busca el elemento .landing-hero__contenido relativo al canvas
+    function actualizarZonaTexto() {
+      const textoEl = document.querySelector('.landing-hero__contenido') as HTMLElement | null;
+      if (!textoEl || !canvas) return;
+      const canvasRect = canvas.getBoundingClientRect();
+      const textoRect = textoEl.getBoundingClientRect();
+
+      // Coordenadas relativas al canvas
+      zonaTextoRef.current = {
+        x: textoRect.left - canvasRect.left,
+        y: textoRect.top - canvasRect.top,
+        w: textoRect.width,
+        h: textoRect.height,
+      };
+    }
+
+    // Actualizar zona cuando el scroll o resize cambie
+    const roTexto = new ResizeObserver(actualizarZonaTexto);
+    const textoEl = document.querySelector('.landing-hero__contenido') as HTMLElement | null;
+    if (textoEl) roTexto.observe(textoEl);
+    window.addEventListener('scroll', actualizarZonaTexto, { passive: true });
+    window.addEventListener('resize', actualizarZonaTexto, { passive: true });
+    // Pequeño delay para que el layout esté listo
+    setTimeout(actualizarZonaTexto, 100);
+
     // ── Dibujar cara ────────────────────────────────────────────────────────
     function dibujarPersona(ctx: CanvasRenderingContext2D, px: number, py: number, p: Persona) {
-      // Cuerpo
       ctx.beginPath();
       ctx.arc(px, py, PERSONA_R, 0, Math.PI * 2);
       ctx.fillStyle = p.color;
@@ -335,7 +404,6 @@ export default function GruposAnimados() {
       ctx.lineWidth = 1;
       ctx.stroke();
 
-      // Ojos
       ctx.fillStyle = p.stroke;
       ctx.beginPath();
       ctx.arc(px - 3, py - 2, 1.2, 0, Math.PI * 2);
@@ -344,7 +412,6 @@ export default function GruposAnimados() {
       ctx.arc(px + 3, py - 2, 1.2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Sonrisa
       ctx.beginPath();
       ctx.arc(px, py + 1, 3.5, 0.2, Math.PI - 0.2);
       ctx.strokeStyle = p.stroke;
@@ -374,7 +441,6 @@ export default function GruposAnimados() {
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Colita
       ctx.beginPath();
       ctx.moveTo(bx + 12, by + bh);
       ctx.lineTo(bx + 22, by + bh + 10);
@@ -386,7 +452,6 @@ export default function GruposAnimados() {
       ctx.stroke();
 
       if (typing) {
-        // Puntos de typing animados
         const dots = ['·', '· ·', '· · ·'];
         const d = dots[Math.floor(Date.now() / 400) % 3];
         ctx.font = '11px system-ui, sans-serif';
@@ -429,10 +494,8 @@ export default function GruposAnimados() {
       ctx.scale(escala, escala);
       ctx.translate(-cx, -cy);
 
-      // Rastros
       dibujarRastros(ctx, g);
 
-      // Tarjeta
       ctx.shadowColor = 'rgba(0,0,0,0.08)';
       ctx.shadowBlur = 10;
       roundRect(ctx, x, y, CARD_W, CARD_H, 12);
@@ -443,7 +506,6 @@ export default function GruposAnimados() {
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Icono + etiqueta
       ctx.font = '12px system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(g.icono, x + CARD_W / 2, y + 15);
@@ -451,7 +513,6 @@ export default function GruposAnimados() {
       ctx.fillStyle = '#6b7a6b';
       ctx.fillText(g.etiqueta, x + CARD_W / 2, y + 27);
 
-      // Personas con caras
       g.personas.forEach((p) => {
         const bobY = Math.sin(frame * 0.04 + p.bobOffset) * 2.5;
         const px = x + p.offsetX;
@@ -494,7 +555,6 @@ export default function GruposAnimados() {
         : progress > 0.85 ? (1 - progress) / 0.15
         : 1;
 
-      // Línea punteada entre grupos
       ctx.save();
       ctx.globalAlpha = alpha * 0.35;
       ctx.setLineDash([5, 5]);
@@ -507,22 +567,17 @@ export default function GruposAnimados() {
       ctx.setLineDash([]);
       ctx.restore();
 
-      // Moneda viajando a lo largo de la línea con arco
-      const t = progress;
+      const tp = progress;
       const midX = (ax + bx) / 2;
       const midY = (ay + by) / 2 - 30;
-      // curva cuadrática
-      const coinX = (1-t)*(1-t)*ax + 2*(1-t)*t*midX + t*t*bx;
-      const coinY = (1-t)*(1-t)*ay + 2*(1-t)*t*midY + t*t*by;
+      const coinX = (1-tp)*(1-tp)*ax + 2*(1-tp)*tp*midX + tp*tp*bx;
+      const coinY = (1-tp)*(1-tp)*ay + 2*(1-tp)*tp*midY + tp*tp*by;
 
       ctx.save();
       ctx.globalAlpha = alpha;
-
-      // Sombra de la moneda
       ctx.shadowColor = 'rgba(0,0,0,0.15)';
       ctx.shadowBlur = 6;
 
-      // Moneda
       ctx.beginPath();
       ctx.arc(coinX, coinY, 12, 0, Math.PI * 2);
       ctx.fillStyle = '#4CAF50';
@@ -532,13 +587,11 @@ export default function GruposAnimados() {
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Símbolo $
       ctx.font = '500 11px system-ui, sans-serif';
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
       ctx.fillText('$', coinX, coinY + 4);
 
-      // Monto flotante
       ctx.font = '500 8px system-ui, sans-serif';
       ctx.fillStyle = '#2e7d32';
       ctx.fillText(tr.montoText, coinX, coinY - 17);
@@ -571,13 +624,19 @@ export default function GruposAnimados() {
 
     // ── Avión ────────────────────────────────────────────────────────────────
 
-    // Genera una ruta bezier cúbica de un borde al opuesto con curvas variadas
+    /**
+     * Genera una ruta bezier cúbica que EVITA la zona prohibida.
+     * Los puntos de control se desplazan hacia afuera de la zona si caen dentro.
+     */
     function generarRuta(W: number, H: number, desdeDerecha: boolean): RutaAvion {
-      const tipo = Math.floor(Math.random() * 4); // 4 tipos de curva
-      const margen = -30; // empieza/termina fuera de pantalla
+      const tipo = Math.floor(Math.random() * 4);
+      const margen = -30;
+      const zona = zonaTextoRef.current;
+      // Margen extra alrededor de la zona prohibida para el avión
+      const zonaPadding = 60;
 
       let x0: number, y0: number, x3: number, y3: number;
-      let x1: number, y1: number, x2: number, y2: number;
+      let x1raw: number, y1raw: number, x2raw: number, y2raw: number;
 
       if (desdeDerecha) {
         x0 = W - margen; y0 = Math.random() * H * 0.8 + H * 0.1;
@@ -587,43 +646,49 @@ export default function GruposAnimados() {
         x3 = W - margen; y3 = Math.random() * H * 0.8 + H * 0.1;
       }
 
-      // Distintos patrones de curva
       switch (tipo) {
-        case 0: // arco suave hacia arriba
-          x1 = x0 + (x3 - x0) * 0.3; y1 = Math.min(y0, y3) - H * 0.25;
-          x2 = x0 + (x3 - x0) * 0.7; y2 = Math.min(y0, y3) - H * 0.15;
+        case 0:
+          x1raw = x0 + (x3 - x0) * 0.3; y1raw = Math.min(y0, y3) - H * 0.25;
+          x2raw = x0 + (x3 - x0) * 0.7; y2raw = Math.min(y0, y3) - H * 0.15;
           break;
-        case 1: // S invertida
-          x1 = x0 + (x3 - x0) * 0.25; y1 = y0 + H * 0.3;
-          x2 = x0 + (x3 - x0) * 0.75; y2 = y3 - H * 0.3;
+        case 1:
+          x1raw = x0 + (x3 - x0) * 0.25; y1raw = y0 + H * 0.3;
+          x2raw = x0 + (x3 - x0) * 0.75; y2raw = y3 - H * 0.3;
           break;
-        case 2: // diagonal pronunciada
-          x1 = x0 + (x3 - x0) * 0.4; y1 = y0 * 0.3;
-          x2 = x0 + (x3 - x0) * 0.6; y2 = y3 * 1.5;
+        case 2:
+          x1raw = x0 + (x3 - x0) * 0.4; y1raw = y0 * 0.3;
+          x2raw = x0 + (x3 - x0) * 0.6; y2raw = y3 * 1.5;
           break;
-        default: // curva amplia hacia abajo
-          x1 = x0 + (x3 - x0) * 0.3; y1 = Math.max(y0, y3) + H * 0.2;
-          x2 = x0 + (x3 - x0) * 0.7; y2 = Math.max(y0, y3) + H * 0.1;
+        default:
+          x1raw = x0 + (x3 - x0) * 0.3; y1raw = Math.max(y0, y3) + H * 0.2;
+          x2raw = x0 + (x3 - x0) * 0.7; y2raw = Math.max(y0, y3) + H * 0.1;
       }
 
-      return { x0, y0, x1, y1, x2, y2, x3, y3, direccionDerecha: desdeDerecha };
+      // Desplazar puntos de control fuera de la zona prohibida
+      const p1 = esquivarZona(x1raw, y1raw, zona, zonaPadding);
+      const p2 = esquivarZona(x2raw, y2raw, zona, zonaPadding);
+
+      return {
+        x0, y0,
+        x1: p1.x, y1: p1.y,
+        x2: p2.x, y2: p2.y,
+        x3, y3,
+        direccionDerecha: desdeDerecha,
+      };
     }
 
-    // Evalúa un punto en la curva bezier cúbica dado t ∈ [0,1]
     function bezier(t: number, p0: number, p1: number, p2: number, p3: number): number {
       const u = 1 - t;
       return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
     }
 
-    // Dibuja un avión comercial tipo 737/A320 rotado según la tangente
     function dibujarAvion(ctx: CanvasRenderingContext2D, x: number, y: number, angulo: number) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(angulo);
 
-      const s = 1.9; // escala global
+      const s = 1.9;
 
-      // ── Fuselaje (tubo alargado) ──
       ctx.beginPath();
       ctx.ellipse(2 * s, 0, 26 * s, 5 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#e8e8e6';
@@ -632,7 +697,6 @@ export default function GruposAnimados() {
       ctx.lineWidth = 0.8;
       ctx.stroke();
 
-      // ── Nariz redondeada ──
       ctx.beginPath();
       ctx.ellipse(26 * s, 0, 6 * s, 4.2 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#d0d0cc';
@@ -641,13 +705,11 @@ export default function GruposAnimados() {
       ctx.lineWidth = 0.8;
       ctx.stroke();
 
-      // ── Franja de color en el fuselaje ──
       ctx.beginPath();
       ctx.rect(-18 * s, -2.5 * s, 42 * s, 2 * s);
       ctx.fillStyle = '#2d4a3e';
       ctx.fill();
 
-      // ── Ventanillas ──
       ctx.fillStyle = '#b8d8f0';
       for (let i = 0; i < 8; i++) {
         ctx.beginPath();
@@ -655,7 +717,6 @@ export default function GruposAnimados() {
         ctx.fill();
       }
 
-      // ── Ala principal izquierda (abajo en canvas = sur) ──
       ctx.beginPath();
       ctx.moveTo(8 * s, 3 * s);
       ctx.lineTo(-2 * s, 28 * s);
@@ -668,7 +729,6 @@ export default function GruposAnimados() {
       ctx.fill();
       ctx.stroke();
 
-      // ── Ala principal derecha (arriba en canvas = norte) ──
       ctx.beginPath();
       ctx.moveTo(8 * s, -3 * s);
       ctx.lineTo(-2 * s, -28 * s);
@@ -681,7 +741,6 @@ export default function GruposAnimados() {
       ctx.fill();
       ctx.stroke();
 
-      // ── Winglets (puntitas de alas) ──
       ctx.beginPath();
       ctx.moveTo(-2 * s, 28 * s);
       ctx.lineTo(-5 * s, 32 * s);
@@ -696,7 +755,6 @@ export default function GruposAnimados() {
       ctx.fillStyle = '#2d4a3e';
       ctx.fill();
 
-      // ── Cola vertical ──
       ctx.beginPath();
       ctx.moveTo(-20 * s, 0);
       ctx.lineTo(-28 * s, -14 * s);
@@ -706,7 +764,6 @@ export default function GruposAnimados() {
       ctx.fillStyle = '#2d4a3e';
       ctx.fill();
 
-      // ── Estabilizadores horizontales ──
       ctx.beginPath();
       ctx.moveTo(-18 * s, 2 * s);
       ctx.lineTo(-26 * s, 13 * s);
@@ -725,8 +782,6 @@ export default function GruposAnimados() {
       ctx.fillStyle = '#c8c8c4';
       ctx.fill();
 
-      // ── Motores (uno por ala) ──
-      // Motor ala derecha
       ctx.beginPath();
       ctx.ellipse(-1 * s, -18 * s, 5.5 * s, 2.8 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#b0b0ac';
@@ -739,7 +794,6 @@ export default function GruposAnimados() {
       ctx.fillStyle = '#606060';
       ctx.fill();
 
-      // Motor ala izquierda
       ctx.beginPath();
       ctx.ellipse(-1 * s, 18 * s, 5.5 * s, 2.8 * s, 0, 0, Math.PI * 2);
       ctx.fillStyle = '#b0b0ac';
@@ -755,7 +809,6 @@ export default function GruposAnimados() {
       ctx.restore();
     }
 
-    // Dibuja la estela de guiones que se desvanecen
     function dibujarEstela(ctx: CanvasRenderingContext2D, estela: PuntoEstela[], ahora: number) {
       const VIDA_MS = 2000;
       for (let i = 2; i < estela.length; i++) {
@@ -763,7 +816,6 @@ export default function GruposAnimados() {
         const edad = ahora - p.creadoEn;
         if (edad > VIDA_MS) continue;
         const alpha = (1 - edad / VIDA_MS) * 0.7;
-        // Guiones cada 4 puntos
         if (i % 4 !== 0) continue;
         const prev = estela[i - 2];
         ctx.save();
@@ -781,7 +833,6 @@ export default function GruposAnimados() {
       }
     }
 
-    // Inicializar el avión
     avionRef.current = {
       progreso: 0,
       ruta: generarRuta(canvas.width || 800, canvas.height || 600, false),
@@ -799,11 +850,11 @@ export default function GruposAnimados() {
 
       ctx.clearRect(0, 0, W, H);
 
-      // Partículas de fondo
       dibujarParticulas(ctx, W, H);
 
       const grupos = gruposRef.current;
       cooldownRef.current = Math.max(0, cooldownRef.current - 1);
+      const zona = zonaTextoRef.current;
 
       // ── Iniciar transferencia ocasional ──────────────────────────────────
       if (!transferenciaRef.current && cooldownRef.current === 0) {
@@ -831,7 +882,6 @@ export default function GruposAnimados() {
         }
       }
 
-      // ── Avanzar transferencia ─────────────────────────────────────────────
       if (transferenciaRef.current) {
         transferenciaRef.current.progreso += 0.008;
         if (transferenciaRef.current.progreso >= 1) {
@@ -842,17 +892,14 @@ export default function GruposAnimados() {
         }
       }
 
-      // ── Actualizar y dibujar grupos ───────────────────────────────────────
+      // ── Actualizar y dibujar grupos con rebote en zona de texto ──────────
       grupos.forEach((g) => {
-        // Pop-in
         g.escala = lerp(g.escala, g.escalaTarget, 0.08);
 
-        // Rastro
         g.rastros.push({ x: g.x, y: g.y, alpha: 0.5 });
         if (g.rastros.length > MAX_RASTROS) g.rastros.shift();
         g.rastros.forEach((r) => { r.alpha *= 0.82; });
 
-        // Ángulo suave según velocidad
         const targetAngulo = Math.atan2(g.vy, g.vx) * 0.04;
         g.angulo = lerp(g.angulo, targetAngulo, 0.05);
 
@@ -860,12 +907,57 @@ export default function GruposAnimados() {
         g.x += g.vx;
         g.y += g.vy;
 
-        // Rebote con variación de velocidad
+        // ── Rebote con bordes del canvas ──
         const topMargin = 75;
         if (g.x < 10) { g.x = 10; g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2); }
         if (g.x + CARD_W > W - 10) { g.x = W - 10 - CARD_W; g.vx = -Math.abs(g.vx) * (0.9 + Math.random() * 0.2); }
         if (g.y < topMargin) { g.y = topMargin; g.vy = Math.abs(g.vy) * (0.9 + Math.random() * 0.2); }
         if (g.y + CARD_H > H - 10) { g.y = H - 10 - CARD_H; g.vy = -Math.abs(g.vy) * (0.9 + Math.random() * 0.2); }
+
+        // ── Rebote con zona del texto hero ──────────────────────────────────
+        // Solo si la zona tiene tamaño válido
+        if (zona.w > 0 && zona.h > 0) {
+          const padding = 12; // margen extra alrededor del texto
+          const zx = zona.x - padding;
+          const zy = zona.y - padding;
+          const zw = zona.w + padding * 2;
+          const zh = zona.h + padding * 2;
+
+          // ¿El grupo (incluyendo burbuja sobre él) colisiona con la zona?
+          // Consideramos la burbuja que está encima: ~60px de alto sobre la tarjeta
+          const cardTop = g.y - 60; // tope de la burbuja
+          const cardBottom = g.y + CARD_H;
+          const cardLeft = g.x;
+          const cardRight = g.x + CARD_W;
+
+          const solapax = cardRight > zx && cardLeft < zx + zw;
+          const solapay = cardBottom > zy && cardTop < zy + zh;
+
+          if (solapax && solapay) {
+            // Calcular penetración por cada lado para elegir el rebote mínimo
+            const penetLeft   = cardRight - zx;        // cuánto entra por la izquierda de la zona
+            const penetRight  = (zx + zw) - cardLeft;  // cuánto entra por la derecha
+            const penetTop    = cardBottom - zy;        // cuánto entra por arriba de la zona
+            const penetBottom = (zy + zh) - cardTop;   // cuánto entra por abajo
+
+            const minPenet = Math.min(penetLeft, penetRight, penetTop, penetBottom);
+
+            if (minPenet === penetLeft) {
+              // Viene desde la derecha de la zona → empujar a la derecha
+              g.x = zx + zw;
+              g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2);
+            } else if (minPenet === penetRight) {
+              g.x = zx - CARD_W;
+              g.vx = -Math.abs(g.vx) * (0.9 + Math.random() * 0.2);
+            } else if (minPenet === penetTop) {
+              g.y = zy + zh;
+              g.vy = Math.abs(g.vy) * (0.9 + Math.random() * 0.2);
+            } else {
+              g.y = zy - CARD_H;
+              g.vy = -Math.abs(g.vy) * (0.9 + Math.random() * 0.2);
+            }
+          }
+        }
 
         // Velocidad máxima
         const speed = Math.sqrt(g.vx * g.vx + g.vy * g.vy);
@@ -890,10 +982,9 @@ export default function GruposAnimados() {
       const avion = avionRef.current;
       if (avion) {
         const ahora = Date.now();
-        avion.progreso += 0.0018; // velocidad del avión
+        avion.progreso += 0.0018;
 
         if (avion.progreso >= 1) {
-          // Llegó al otro extremo — limpiar estela vieja y reiniciar desde ese lado
           avion.estela = [];
           avion.ruta = generarRuta(W, H, !avion.ruta.direccionDerecha);
           avion.progreso = 0;
@@ -903,23 +994,16 @@ export default function GruposAnimados() {
           const x = bezier(t, x0, x1, x2, x3);
           const y = bezier(t, y0, y1, y2, y3);
 
-          // Agregar punto a la estela
           avion.estela.push({ x, y, creadoEn: ahora });
-
-          // Limpiar puntos muy viejos (>2.5s para dar margen)
           avion.estela = avion.estela.filter(p => ahora - p.creadoEn < 2500);
 
-          // Calcular ángulo de la tangente (derivada de la bezier)
           const dt = 0.01;
           const t2 = Math.min(t + dt, 1);
           const x2b = bezier(t2, x0, x1, x2, x3);
           const y2b = bezier(t2, y0, y1, y2, y3);
           const angulo = Math.atan2(y2b - y, x2b - x);
 
-          // Dibujar estela primero (debajo del avión)
           dibujarEstela(ctx, avion.estela, ahora);
-
-          // Dibujar avión
           dibujarAvion(ctx, x, y, angulo);
         }
       }
@@ -932,6 +1016,9 @@ export default function GruposAnimados() {
     return () => {
       cancelAnimationFrame(rafRef.current);
       ro.disconnect();
+      roTexto.disconnect();
+      window.removeEventListener('scroll', actualizarZonaTexto);
+      window.removeEventListener('resize', actualizarZonaTexto);
     };
   }, []);
 
