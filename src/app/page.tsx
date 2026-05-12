@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import './landing.css';
-
+import GruposAnimados from "@/frontend/components/Gruposanimados"
 export default function PaginaInicio() {
   return (
     <main className="landing-raiz">
@@ -22,8 +22,9 @@ export default function PaginaInicio() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="landing-hero">
-        <div className="landing-hero__contenido">
+        <section className="landing-hero" style={{ position: 'relative', overflow: 'hidden' }}>
+          <GruposAnimados/>
+        <div className="landing-hero__contenido" style={{ position: 'relative', zIndex: 1 }}>
           <p className="landing-hero__etiqueta">Gestión de gastos de viaje</p>
           <h1 className="landing-hero__titulo">
             Viaja juntos.<br />
@@ -41,24 +42,6 @@ export default function PaginaInicio() {
               Ya tengo cuenta
             </Link>
           </div>
-        </div>
-
-        {/* Espacio para imagen hero */}
-        <div className="landing-hero__imagen" aria-hidden="true">
-          {/*
-            ESPACIO PARA IMAGEN HERO
-            Dimensiones sugeridas: 1200x900px, formato landscape
-            Reemplaza con:
-
-            <Image
-              src="/hero.jpg"
-              alt="Grupo de viajeros"
-              fill
-              className="object-cover"
-              priority
-            />
-          */}
-          <div className="landing-hero__imagen-placeholder" />
         </div>
       </section>
 

@@ -1,6 +1,3 @@
-// Controlador de gastos — SRP: orquesta validación + servicio
-// Sigue el mismo patrón que login.controller.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { procesarRegistroGasto } from '@/backend/services/gastos/gastos.service';
 import { validarRegistroGasto } from '@/shared/validaciones/gastos';

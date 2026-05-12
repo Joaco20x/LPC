@@ -2,7 +2,7 @@
 
 // Hook reutilizable para formularios - Principio DRY + SRP
 import { useState, useCallback } from 'react';
-import type { ErrorCampo } from '@/types/autenticacion';
+import type { ErrorCampo } from '@/shared/types/autenticacion';
 
 interface EstadoFormulario<T> {
   datos: T;

@@ -1,7 +1,7 @@
 'use client';
 
 // Componente de división de gasto — (0b.0.4)
-// SRP: solo renderiza y gestiona estado local del formulario
+// SRP: solo renderiza y gestiona estado local del formulario de división
 
 import { useState, useEffect, useCallback } from 'react';
 import type { TipoDivision, CategoriaGasto, IntegranteUI, DatosRegistroGasto } from '@/shared/types/gastos';
@@ -46,17 +46,17 @@ export default function DivisionGasto({
   integrantes = INTEGRANTES_MOCK,
   onGuardado,
 }: PropsDivisionGasto) {
-  const [monto,        setMonto       ] = useState('');
-  const [descripcion,  setDescripcion ] = useState('');
-  const [categoria,    setCategoria   ] = useState<CategoriaGasto>('comida');
-  const [idPagador,    setIdPagador   ] = useState(integrantes[0]?.id ?? '');
-  const [modo,         setModo        ] = useState<TipoDivision>('equitativa');
-  const [incluidos,    setIncluidos   ] = useState<Set<string>>(new Set(integrantes.map((m) => m.id)));
-  const [porcentajes,  setPorcentajes ] = useState<Record<string, number>>({});
-  const [manuales,     setManuales    ] = useState<Record<string, number>>({});
-  const [guardado,     setGuardado    ] = useState(false);
-  const [cargando,     setCargando    ] = useState(false);
-  const [errorGlobal,  setErrorGlobal ] = useState<string | null>(null);
+  const [monto,       setMonto      ] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [categoria,   setCategoria  ] = useState<CategoriaGasto>('comida');
+  const [idPagador,   setIdPagador  ] = useState(integrantes[0]?.id ?? '');
+  const [modo,        setModo       ] = useState<TipoDivision>('equitativa');
+  const [incluidos,   setIncluidos  ] = useState<Set<string>>(new Set(integrantes.map((m) => m.id)));
+  const [porcentajes, setPorcentajes] = useState<Record<string, number>>({});
+  const [manuales,    setManuales   ] = useState<Record<string, number>>({});
+  const [guardado,    setGuardado   ] = useState(false);
+  const [cargando,    setCargando   ] = useState(false);
+  const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
 
   const total   = parseFloat(monto) || 0;
   const activos = integrantes.filter((m) => incluidos.has(m.id));
@@ -115,7 +115,6 @@ export default function DivisionGasto({
 
   const manejarGuardar = async () => {
     if (!esValido || cargando) return;
-
     const divisiones = calcularDivisiones(total, activos.map((m) => m.id), modo, porcentajes, manuales);
     const datos: DatosRegistroGasto = { idGrupo, idPagador, monto: total, descripcion, categoria, tipoDivision: modo, divisiones };
     const errores = validarRegistroGasto(datos);
@@ -255,7 +254,6 @@ export default function DivisionGasto({
 
       {errorGlobal && <p style={{ fontSize: 13, color: 'var(--color-text-error)', marginBottom: 8, textAlign: 'center' }} role="alert">{errorGlobal}</p>}
 
-      {/* Acciones */}
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={() => { setMonto(''); setDescripcion(''); setIncluidos(new Set(integrantes.map((m) => m.id))); setModo('equitativa'); setErrorGlobal(null); }} style={{ flex: 1, padding: '10px', fontSize: 14, color: 'var(--color-text-secondary)', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent' }}>Limpiar</button>
         <button onClick={manejarGuardar} disabled={!esValido || cargando} style={{ flex: 2, padding: '10px', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 'var(--border-radius-md)', border: guardado ? '0.5px solid var(--color-border-success)' : 'none', cursor: esValido && !cargando ? 'pointer' : 'not-allowed', background: guardado ? 'var(--color-background-success)' : esValido ? 'var(--color-text-primary)' : 'var(--color-border-tertiary)', color: guardado ? 'var(--color-text-success)' : esValido ? 'var(--color-background-primary)' : 'var(--color-text-tertiary)', transition: 'all 0.2s' }}>

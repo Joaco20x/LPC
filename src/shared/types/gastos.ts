@@ -1,5 +1,5 @@
 // Tipos para el módulo de gastos (0b.0.4)
-// Refleja directamente las tablas: gastos + divisiones_gasto
+// OCP: se extiende DatosRegistroGasto sin romper lo existente
 
 export type TipoDivision = 'equitativa' | 'porcentual' | 'manual';
 
@@ -10,12 +10,10 @@ export type CategoriaGasto =
   | 'actividad'
   | 'otro';
 
-// ── Entrada ───────────────────────────────────────────────
-
 export interface DivisionIntegrante {
   idUsuario: string;
   montoAsignado: number;
-  porcentaje?: number; // solo en modo porcentual
+  porcentaje?: number;
 }
 
 export interface DatosRegistroGasto {
@@ -29,22 +27,16 @@ export interface DatosRegistroGasto {
   divisiones: DivisionIntegrante[];
 }
 
-// ── Salida ────────────────────────────────────────────────
-
 export interface RespuestaGasto {
   exito: boolean;
   mensaje: string;
   idGasto?: string;
 }
 
-// ── Validación ────────────────────────────────────────────
-
 export interface ErrorCampoGasto {
   campo: string;
   mensaje: string;
 }
-
-// ── UI ────────────────────────────────────────────────────
 
 export interface IntegranteUI {
   id: string;

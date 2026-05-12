@@ -1,10 +1,8 @@
-// Servicio de gastos — SRP: lógica de negocio pura
-// Responsabilidad: calcular divisiones y persistir en BD via Prisma
+// Servicio de gastos - Principio de Responsabilidad Única (SRP)
+// Responsabilidad: calcular divisiones y persistir en BD
 
 import { prisma } from '@/backend/db/prisma';
 import type { DatosRegistroGasto, DivisionIntegrante, TipoDivision } from '@/shared/types/gastos';
-
-// ── Cálculo de divisiones ─────────────────────────────────
 
 export function calcularDivisiones(
   monto: number,
@@ -39,8 +37,6 @@ export function calcularDivisiones(
     }
   }
 }
-
-// ── Persistencia ──────────────────────────────────────────
 
 export async function procesarRegistroGasto(datos: DatosRegistroGasto): Promise<string> {
   const gasto = await prisma.gasto.create({

@@ -1,7 +1,7 @@
 // Validaciones de autenticación - Principio de Responsabilidad Única (SRP)
 // Cada función valida un único campo o conjunto de datos
 
-import type { DatosInicioSesion, DatosRegistro, DatosRecuperacion, ErrorCampo } from '@/types/autenticacion';
+import type { DatosInicioSesion, DatosRegistro, DatosRecuperacion, ErrorCampo } from '@/shared/types/autenticacion';
 
 const REGEX_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LONGITUD_MINIMA_CONTRASENA = 8;

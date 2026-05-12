@@ -2,7 +2,7 @@
 
 // Componente para botones de OAuth - SRP + OCP (abierto a nuevos proveedores)
 
-import type { ProveedorOAuth } from '@/types/autenticacion';
+import type { ProveedorOAuth } from '@/shared/types/autenticacion';
 
 interface PropsBotonOAuth {
   proveedor: ProveedorOAuth;

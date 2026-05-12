@@ -1,12 +1,7 @@
-// Validaciones del módulo de gastos — SRP
-// Cada función valida un único aspecto del gasto
+// Validaciones del módulo de gastos - Principio de Responsabilidad Única (SRP)
+// Cada función valida un único campo o conjunto de datos
 
-import type {
-  DatosRegistroGasto,
-  DivisionIntegrante,
-  ErrorCampoGasto,
-  TipoDivision,
-} from '@/shared/types/gastos';
+import type { DatosRegistroGasto, DivisionIntegrante, ErrorCampoGasto, TipoDivision } from '@/shared/types/gastos';
 
 const DESCRIPCION_MIN = 3;
 const DESCRIPCION_MAX = 255;
