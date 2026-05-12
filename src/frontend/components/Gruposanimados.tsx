@@ -88,7 +88,7 @@ interface ZonaRect {
 
 // ─── Datos ───────────────────────────────────────────────────────────────────
 
-const GRUPOS_INICIALES: Omit<Grupo, 'x'|'y'|'vx'|'vy'|'burbujaActual'|'timerBurbuja'|'angulo'|'escala'|'escalaTarget'|'rastros'|'typingFrames'>[] = [
+const GRUPOS_INICIALES: Omit<Grupo, 'x' | 'y' | 'vx' | 'vy' | 'burbujaActual' | 'timerBurbuja' | 'angulo' | 'escala' | 'escalaTarget' | 'rastros' | 'typingFrames'>[] = [
   {
     id: 1, etiqueta: 'Cena grupal', icono: '🍽',
     fondoColor: '#f0f4ec', bordeColor: '#b8d4b0',
@@ -335,15 +335,21 @@ export default function GruposAnimados() {
     if (!ctx) return;
 
     // ── Inicializar grupos ──────────────────────────────────────────────────
+    const parent = canvas.parentElement;
+    const initialW = parent ? parent.clientWidth : window.innerWidth;
+    const initialH = parent ? parent.clientHeight : window.innerHeight;
+
     const margin = 20;
-    gruposRef.current = GRUPOS_INICIALES.map((g, i) => {
-      const cols = 4;
-      const col = i % cols;
-      const row = Math.floor(i / cols);
+    // Solo en la mitad derecha
+    const leftBound = initialW * 0.45;
+    const rightBound = initialW - CARD_W - margin;
+    const bottomBound = initialH - CARD_H - margin;
+
+    gruposRef.current = GRUPOS_INICIALES.map((g) => {
       return {
         ...g,
-        x: margin + col * 220 + Math.random() * 60,
-        y: margin + row * 160 + Math.random() * 40,
+        x: leftBound + Math.random() * Math.max(10, rightBound - leftBound),
+        y: margin + Math.random() * Math.max(10, bottomBound - margin),
         vx: (Math.random() * 0.35 + 0.25) * (Math.random() < 0.5 ? 1 : -1),
         vy: (Math.random() * 0.35 + 0.25) * (Math.random() < 0.5 ? 1 : -1),
         burbujaActual: 0,
@@ -553,7 +559,7 @@ export default function GruposAnimados() {
       const progress = tr.progreso;
       const alpha = progress < 0.15 ? progress / 0.15
         : progress > 0.85 ? (1 - progress) / 0.15
-        : 1;
+          : 1;
 
       ctx.save();
       ctx.globalAlpha = alpha * 0.35;
@@ -570,8 +576,8 @@ export default function GruposAnimados() {
       const tp = progress;
       const midX = (ax + bx) / 2;
       const midY = (ay + by) / 2 - 30;
-      const coinX = (1-tp)*(1-tp)*ax + 2*(1-tp)*tp*midX + tp*tp*bx;
-      const coinY = (1-tp)*(1-tp)*ay + 2*(1-tp)*tp*midY + tp*tp*by;
+      const coinX = (1 - tp) * (1 - tp) * ax + 2 * (1 - tp) * tp * midX + tp * tp * bx;
+      const coinY = (1 - tp) * (1 - tp) * ay + 2 * (1 - tp) * tp * midY + tp * tp * by;
 
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -640,9 +646,9 @@ export default function GruposAnimados() {
 
       if (desdeDerecha) {
         x0 = W - margen; y0 = Math.random() * H * 0.8 + H * 0.1;
-        x3 = margen;     y3 = Math.random() * H * 0.8 + H * 0.1;
+        x3 = margen; y3 = Math.random() * H * 0.8 + H * 0.1;
       } else {
-        x0 = margen;     y0 = Math.random() * H * 0.8 + H * 0.1;
+        x0 = margen; y0 = Math.random() * H * 0.8 + H * 0.1;
         x3 = W - margen; y3 = Math.random() * H * 0.8 + H * 0.1;
       }
 
@@ -679,7 +685,7 @@ export default function GruposAnimados() {
 
     function bezier(t: number, p0: number, p1: number, p2: number, p3: number): number {
       const u = 1 - t;
-      return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
+      return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
     }
 
     function dibujarAvion(ctx: CanvasRenderingContext2D, x: number, y: number, angulo: number) {
@@ -909,7 +915,8 @@ export default function GruposAnimados() {
 
         // ── Rebote con bordes del canvas ──
         const topMargin = 75;
-        if (g.x < 10) { g.x = 10; g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2); }
+        const leftBoundary = W * 0.45; // Limitar al lado derecho de la pantalla
+        if (g.x < leftBoundary) { g.x = leftBoundary; g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2); }
         if (g.x + CARD_W > W - 10) { g.x = W - 10 - CARD_W; g.vx = -Math.abs(g.vx) * (0.9 + Math.random() * 0.2); }
         if (g.y < topMargin) { g.y = topMargin; g.vy = Math.abs(g.vy) * (0.9 + Math.random() * 0.2); }
         if (g.y + CARD_H > H - 10) { g.y = H - 10 - CARD_H; g.vy = -Math.abs(g.vy) * (0.9 + Math.random() * 0.2); }
@@ -935,26 +942,29 @@ export default function GruposAnimados() {
 
           if (solapax && solapay) {
             // Calcular penetración por cada lado para elegir el rebote mínimo
-            const penetLeft   = cardRight - zx;        // cuánto entra por la izquierda de la zona
-            const penetRight  = (zx + zw) - cardLeft;  // cuánto entra por la derecha
-            const penetTop    = cardBottom - zy;        // cuánto entra por arriba de la zona
+            const penetLeft = cardRight - zx;        // cuánto entra por la izquierda de la zona
+            const penetRight = (zx + zw) - cardLeft;  // cuánto entra por la derecha
+            const penetTop = cardBottom - zy;        // cuánto entra por arriba de la zona
             const penetBottom = (zy + zh) - cardTop;   // cuánto entra por abajo
 
             const minPenet = Math.min(penetLeft, penetRight, penetTop, penetBottom);
 
             if (minPenet === penetLeft) {
-              // Viene desde la derecha de la zona → empujar a la derecha
-              g.x = zx + zw;
-              g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2);
-            } else if (minPenet === penetRight) {
+              // Choca por la izquierda de la zona -> empujar a la izquierda
               g.x = zx - CARD_W;
               g.vx = -Math.abs(g.vx) * (0.9 + Math.random() * 0.2);
+            } else if (minPenet === penetRight) {
+              // Choca por la derecha de la zona -> empujar a la derecha
+              g.x = zx + zw;
+              g.vx = Math.abs(g.vx) * (0.9 + Math.random() * 0.2);
             } else if (minPenet === penetTop) {
-              g.y = zy + zh;
-              g.vy = Math.abs(g.vy) * (0.9 + Math.random() * 0.2);
-            } else {
+              // Choca por arriba -> empujar hacia arriba
               g.y = zy - CARD_H;
               g.vy = -Math.abs(g.vy) * (0.9 + Math.random() * 0.2);
+            } else {
+              // Choca por abajo -> empujar hacia abajo
+              g.y = zy + zh + 60; // +60 por el alto de la burbuja
+              g.vy = Math.abs(g.vy) * (0.9 + Math.random() * 0.2);
             }
           }
         }
