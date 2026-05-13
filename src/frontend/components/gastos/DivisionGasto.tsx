@@ -1,33 +1,25 @@
 'use client';
 
 // Componente de división de gasto — (0b.0.4)
-// SRP: solo renderiza y gestiona estado local del formulario de división
+// SRP: solo renderiza UI y gestiona estado local
+// La lógica de cálculo vive en useDivisionGasto.ts
 
-import { useState, useEffect, useCallback } from 'react';
-import type { TipoDivision, CategoriaGasto, IntegranteUI, DatosRegistroGasto } from '@/shared/types/gastos';
-import { calcularDivisiones } from '@/backend/services/gastos/gastos.service';
-import { validarRegistroGasto } from '@/shared/validaciones/gastos';
-
-const INTEGRANTES_MOCK: IntegranteUI[] = [
-  { id: 'u1', nombre: 'Valentina Rojas', iniciales: 'VR', color: '#5DCAA5' },
-  { id: 'u2', nombre: 'Matías Herrera',  iniciales: 'MH', color: '#7F77DD' },
-  { id: 'u3', nombre: 'Sofía Méndez',    iniciales: 'SM', color: '#D85A30' },
-  { id: 'u4', nombre: 'Tomás Fuentes',   iniciales: 'TF', color: '#378ADD' },
-  { id: 'u5', nombre: 'Camila Torres',   iniciales: 'CT', color: '#D4537E' },
-];
+import { useState } from 'react';
+import type { TipoDivision, CategoriaGasto, IntegranteUI } from '@/shared/types/gastos';
+import { useDivisionGasto } from './useDivisionGasto';
 
 const CATEGORIAS: { id: CategoriaGasto; etiqueta: string; icono: string }[] = [
   { id: 'alojamiento', etiqueta: 'Alojamiento', icono: '🏨' },
-  { id: 'transporte',  etiqueta: 'Transporte',  icono: '✈️' },
+  { id: 'transporte',  etiqueta: 'Transporte',  icono: '✈️'  },
   { id: 'comida',      etiqueta: 'Comida',       icono: '🍽️' },
   { id: 'actividad',   etiqueta: 'Actividad',    icono: '🎯' },
   { id: 'otro',        etiqueta: 'Otro',          icono: '📦' },
 ];
 
 const MODOS: { id: TipoDivision; etiqueta: string; icono: string }[] = [
-  { id: 'equitativa', etiqueta: 'Equitativo',  icono: 'ti-equal'      },
-  { id: 'porcentual', etiqueta: 'Porcentual',  icono: 'ti-percentage' },
-  { id: 'manual',     etiqueta: 'Manual',      icono: 'ti-pencil'     },
+  { id: 'equitativa', etiqueta: 'Equitativo', icono: 'ti-equal'      },
+  { id: 'porcentual', etiqueta: 'Porcentual', icono: 'ti-percentage' },
+  { id: 'manual',     etiqueta: 'Manual',     icono: 'ti-pencil'     },
 ];
 
 function formatearCLP(n: number): string {
@@ -37,99 +29,32 @@ function formatearCLP(n: number): string {
 
 interface PropsDivisionGasto {
   idGrupo: string;
-  integrantes?: IntegranteUI[];
+  integrantes: IntegranteUI[];
   onGuardado?: (idGasto: string) => void;
 }
 
-export default function DivisionGasto({
-  idGrupo,
-  integrantes = INTEGRANTES_MOCK,
-  onGuardado,
-}: PropsDivisionGasto) {
-  const [monto,       setMonto      ] = useState('');
+export default function DivisionGasto({ idGrupo, integrantes, onGuardado }: PropsDivisionGasto) {
   const [descripcion, setDescripcion] = useState('');
   const [categoria,   setCategoria  ] = useState<CategoriaGasto>('comida');
-  const [idPagador,   setIdPagador  ] = useState(integrantes[0]?.id ?? '');
-  const [modo,        setModo       ] = useState<TipoDivision>('equitativa');
-  const [incluidos,   setIncluidos  ] = useState<Set<string>>(new Set(integrantes.map((m) => m.id)));
-  const [porcentajes, setPorcentajes] = useState<Record<string, number>>({});
-  const [manuales,    setManuales   ] = useState<Record<string, number>>({});
-  const [guardado,    setGuardado   ] = useState(false);
-  const [cargando,    setCargando   ] = useState(false);
-  const [errorGlobal, setErrorGlobal] = useState<string | null>(null);
 
-  const total   = parseFloat(monto) || 0;
-  const activos = integrantes.filter((m) => incluidos.has(m.id));
-
-  useEffect(() => {
-    if (modo !== 'porcentual' || !activos.length) return;
-    const base = Math.floor(100 / activos.length);
-    const resto = 100 - base * activos.length;
-    const sig: Record<string, number> = {};
-    activos.forEach((m, i) => { sig[m.id] = base + (i === 0 ? resto : 0); });
-    setPorcentajes(sig);
-  }, [modo, incluidos]);
-
-  useEffect(() => {
-    if (modo !== 'manual' || !activos.length || !total) return;
-    const base = Math.floor(total / activos.length);
-    const resto = total - base * activos.length;
-    const sig: Record<string, number> = {};
-    activos.forEach((m, i) => { sig[m.id] = base + (i === 0 ? resto : 0); });
-    setManuales(sig);
-  }, [modo, incluidos, total]);
-
-  const toggleIntegrante = (id: string) => {
-    if (id === idPagador) return;
-    setIncluidos((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) { if (next.size <= 1) return prev; next.delete(id); }
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const obtenerMonto = useCallback((id: string): number => {
-    if (!incluidos.has(id)) return 0;
-    const divisiones = calcularDivisiones(total, activos.map((m) => m.id), modo, porcentajes, manuales);
-    return divisiones.find((d) => d.idUsuario === id)?.montoAsignado ?? 0;
-  }, [total, activos, modo, porcentajes, manuales, incluidos]);
-
-  const sumaPct    = activos.reduce((s, m) => s + (porcentajes[m.id] ?? 0), 0);
-  const sumaManual = activos.reduce((s, m) => s + (manuales[m.id] ?? 0), 0);
-  const errorPct    = modo === 'porcentual' && Math.round(sumaPct) !== 100;
-  const errorManual = modo === 'manual' && total > 0 && Math.round(sumaManual) !== Math.round(total);
-
-  const ajustarResto = () => {
-    if (errorPct) {
-      const id = activos[0]?.id;
-      if (id) setPorcentajes((p) => ({ ...p, [id]: (p[id] ?? 0) + (100 - sumaPct) }));
-    }
-    if (errorManual) {
-      const id = activos[0]?.id;
-      if (id) setManuales((m) => ({ ...m, [id]: (m[id] ?? 0) + (total - sumaManual) }));
-    }
-  };
-
-  const esValido = total > 0 && activos.length > 0 && !errorPct && !errorManual;
-
-  const manejarGuardar = async () => {
-    if (!esValido || cargando) return;
-    const divisiones = calcularDivisiones(total, activos.map((m) => m.id), modo, porcentajes, manuales);
-    const datos: DatosRegistroGasto = { idGrupo, idPagador, monto: total, descripcion, categoria, tipoDivision: modo, divisiones };
-    const errores = validarRegistroGasto(datos);
-    if (errores.length) { setErrorGlobal(errores[0].mensaje); return; }
-
-    setCargando(true);
-    setErrorGlobal(null);
-    try {
-      const res  = await fetch('/api_dor/gastos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
-      const json = await res.json();
-      if (json.exito) { setGuardado(true); onGuardado?.(json.idGasto); setTimeout(() => setGuardado(false), 2200); }
-      else setErrorGlobal(json.mensaje);
-    } catch { setErrorGlobal('Error de conexión. Intenta de nuevo.'); }
-    finally { setCargando(false); }
-  };
+  const {
+    monto, setMonto,
+    idPagador, setIdPagador,
+    modo, setModo,
+    incluidos, toggleIntegrante,
+    porcentajes, setPorcentajes,
+    manuales, setManuales,
+    obtenerMonto,
+    sumaPct, sumaManual,
+    errorPct, errorManual,
+    ajustarResto,
+    esValido,
+    guardado, cargando, errorGlobal,
+    manejarGuardar,
+    limpiar,
+    activos,
+    total,
+  } = useDivisionGasto({ idGrupo, integrantes, descripcion, categoria, onGuardado });
 
   return (
     <div style={{ fontFamily: 'var(--font-sans)', padding: '1rem 0', maxWidth: 640, margin: '0 auto' }}>
@@ -156,7 +81,7 @@ export default function DivisionGasto({
           </div>
           <div>
             <label className="lpc-label" htmlFor="pagador">Pagador</label>
-            <select id="pagador" value={idPagador} onChange={(e) => { setIdPagador(e.target.value); setIncluidos((s) => { const n = new Set(s); n.add(e.target.value); return n; }); }} style={{ width: '100%', boxSizing: 'border-box' }}>
+            <select id="pagador" value={idPagador} onChange={(e) => setIdPagador(e.target.value)} style={{ width: '100%', boxSizing: 'border-box' }}>
               {integrantes.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
             </select>
           </div>
@@ -198,7 +123,7 @@ export default function DivisionGasto({
                 </div>
                 {estaIncluido && modo === 'porcentual' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={(e) => e.stopPropagation()}>
-                    <input type="number" min="0" max="100" value={porcentajes[integrante.id] ?? ''} onChange={(e) => setPorcentajes((p) => ({ ...p, [integrante.id]: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) }))} aria-label={`Porcentaje de ${integrante.nombre}`} style={{ width: 52, textAlign: 'right', fontWeight: 500 }} />
+                    <input type="number" min="0" max="100" value={porcentajes[integrante.id] ?? ''} onChange={(e) => setPorcentajes((p) => ({ ...p, [integrante.id]: Math.max(0, Math.min(100, parseInt(e.target.value) || 0)) }))} style={{ width: 52, textAlign: 'right', fontWeight: 500 }} />
                     <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>%</span>
                     <span style={{ fontSize: 12, color: 'var(--color-text-tertiary)', marginLeft: 4 }}>{formatearCLP(montoAsignado)}</span>
                   </div>
@@ -206,7 +131,7 @@ export default function DivisionGasto({
                 {estaIncluido && modo === 'manual' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} onClick={(e) => e.stopPropagation()}>
                     <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>$</span>
-                    <input type="number" min="0" value={manuales[integrante.id] ?? ''} onChange={(e) => setManuales((m) => ({ ...m, [integrante.id]: Math.max(0, parseFloat(e.target.value) || 0) }))} aria-label={`Monto de ${integrante.nombre}`} style={{ width: 80, textAlign: 'right', fontWeight: 500 }} />
+                    <input type="number" min="0" value={manuales[integrante.id] ?? ''} onChange={(e) => setManuales((m) => ({ ...m, [integrante.id]: Math.max(0, parseFloat(e.target.value) || 0) }))} style={{ width: 80, textAlign: 'right', fontWeight: 500 }} />
                   </div>
                 )}
                 {estaIncluido && modo === 'equitativa' && <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)' }}>{formatearCLP(montoAsignado)}</span>}
@@ -254,8 +179,9 @@ export default function DivisionGasto({
 
       {errorGlobal && <p style={{ fontSize: 13, color: 'var(--color-text-error)', marginBottom: 8, textAlign: 'center' }} role="alert">{errorGlobal}</p>}
 
+      {/* Acciones */}
       <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={() => { setMonto(''); setDescripcion(''); setIncluidos(new Set(integrantes.map((m) => m.id))); setModo('equitativa'); setErrorGlobal(null); }} style={{ flex: 1, padding: '10px', fontSize: 14, color: 'var(--color-text-secondary)', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent' }}>Limpiar</button>
+        <button onClick={limpiar} style={{ flex: 1, padding: '10px', fontSize: 14, color: 'var(--color-text-secondary)', border: '0.5px solid var(--color-border-secondary)', borderRadius: 'var(--border-radius-md)', cursor: 'pointer', background: 'transparent' }}>Limpiar</button>
         <button onClick={manejarGuardar} disabled={!esValido || cargando} style={{ flex: 2, padding: '10px', fontSize: 14, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 'var(--border-radius-md)', border: guardado ? '0.5px solid var(--color-border-success)' : 'none', cursor: esValido && !cargando ? 'pointer' : 'not-allowed', background: guardado ? 'var(--color-background-success)' : esValido ? 'var(--color-text-primary)' : 'var(--color-border-tertiary)', color: guardado ? 'var(--color-text-success)' : esValido ? 'var(--color-background-primary)' : 'var(--color-text-tertiary)', transition: 'all 0.2s' }}>
           {cargando && <i className="ti ti-loader-2" style={{ fontSize: 16 }} aria-hidden="true" />}
           {guardado  && <><i className="ti ti-circle-check" style={{ fontSize: 16 }} aria-hidden="true" /> Gasto registrado</>}
