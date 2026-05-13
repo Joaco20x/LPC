@@ -5,7 +5,7 @@
 interface PropsCampoEntrada {
   id: string;
   etiqueta: string;
-  tipo?: 'text' | 'email' | 'password';
+  tipo?: 'text' | 'email' | 'password' | 'date';
   valor: string;
   error?: string;
   placeholder?: string;

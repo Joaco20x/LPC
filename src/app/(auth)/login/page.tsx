@@ -13,11 +13,9 @@ import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
 import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
 import Separador from '@/frontend/components/autenticacion/Separador';
 import type { DatosInicioSesion, ProveedorOAuth } from '@/shared/types/autenticacion';
+import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
 import '@/app/(auth)/auth.css';
-// Almacenamiento en memoria: no persiste al recargar (seguro contra XSS)
-// Para persistencia entre recargas usa un contexto global o un store Zustand
-let accessTokenEnMemoria: string | null = null;
-export const obtenerAccessToken = () => accessTokenEnMemoria;
+
 
 const VALORES_INICIALES: DatosInicioSesion = { correo: '', contrasena: '' };
 
@@ -40,13 +38,16 @@ export default function PaginaInicioSesion() {
     try {
       const respuesta = await iniciarSesion(datos);
 
-      // Guardar accessToken en memoria del módulo
+      // Guardar tokens usando el servicio centralizado
       if (respuesta.datos?.accessToken) {
-        accessTokenEnMemoria = respuesta.datos.accessToken;
+        guardarAccessToken(respuesta.datos.accessToken);
+      }
+      if (respuesta.datos?.usuario) {
+        guardarDatosUsuario(respuesta.datos.usuario);
       }
 
       // Redirigir al dashboard tras login exitoso
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {
       const mensaje = error instanceof Error ? error.message : 'Error al iniciar sesión';
       // Mostrar mensaje genérico para no revelar si el correo existe

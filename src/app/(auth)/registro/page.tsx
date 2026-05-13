@@ -9,6 +9,7 @@ import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
 import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
 import Separador from '@/frontend/components/autenticacion/Separador';
 import type { DatosRegistro, ProveedorOAuth } from '@/shared/types/autenticacion';
+import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
 const VALORES_INICIALES: DatosRegistro = {
   nombre: '',
   correo: '',
@@ -16,8 +17,7 @@ const VALORES_INICIALES: DatosRegistro = {
   confirmarContrasena: '',
 };
 
-let accessTokenEnMemoria: string | null = null;
-export const obtenerAccessToken = () => accessTokenEnMemoria;
+
 
 export default function PaginaRegistro() {
   const router = useRouter();
@@ -39,7 +39,10 @@ export default function PaginaRegistro() {
       const respuesta = await registrar(datos);
 
       if (respuesta.datos?.accessToken) {
-        accessTokenEnMemoria = respuesta.datos.accessToken;
+        guardarAccessToken(respuesta.datos.accessToken);
+      }
+      if (respuesta.datos?.usuario) {
+        guardarDatosUsuario(respuesta.datos.usuario);
       }
 
       acciones.establecerEnviado(true);

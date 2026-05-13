@@ -9,7 +9,7 @@ import type {
   RespuestaAutenticacion,
 } from '@/shared/types/autenticacion';
 
-const BASE_URL = '/api_dor/';
+const BASE_URL = '/api_dor';
 
 async function manejarRespuesta<T>(res: Response): Promise<T> {
   const datos = await res.json();
