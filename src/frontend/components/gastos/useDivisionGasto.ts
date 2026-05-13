@@ -100,7 +100,7 @@ export function useDivisionGasto({ idGrupo, integrantes, descripcion, categoria,
     const divisiones = calcularDivisiones(total, activos.map((m) => m.id), modo, porcentajes, manuales);
     const datos: DatosRegistroGasto = { idGrupo, idPagador, monto: total, descripcion, categoria, tipoDivision: modo, divisiones };
     const errores = validarRegistroGasto(datos);
-    if (errores.length) { setErrorGlobal(errores[0].mensaje); return; }
+    if (errores.length) { setErrorGlobal(errores.map((e) => e.mensaje).join('. ')); return; }
 
     setCargando(true);
     setErrorGlobal(null);
