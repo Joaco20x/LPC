@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { terminarSesion } from '@/backend/services/logout/logout.service';
+import { crearDependencias } from '@/backend/di/crearDependencias';
 
 export async function controladorLogout(req: NextRequest) {
   try {
     const refreshToken = req.cookies.get('refreshToken')?.value;
     if (refreshToken) {
-      await terminarSesion(refreshToken);
+      const { sesionRepo } = crearDependencias();
+      await terminarSesion(refreshToken, sesionRepo);
     }
 
     const respuesta = NextResponse.json({ exito: true, mensaje: 'Sesión cerrada' }, { status: 200 });
-    respuesta.cookies.set('refreshToken', '', { maxAge: 0 });
+    respuesta.cookies.set('refreshToken', '', { httpOnly: true, path: '/', maxAge: 0 });
+
     return respuesta;
-  } catch (error) {
+  } catch {
     return NextResponse.json({ exito: false, mensaje: 'Error al cerrar sesión' }, { status: 500 });
   }
 }

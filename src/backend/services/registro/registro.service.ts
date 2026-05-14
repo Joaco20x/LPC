@@ -1,27 +1,22 @@
-import { prisma } from '@/backend/db/prisma';
 import { hashearContrasena } from '@/backend/auth/contraseña';
 import { generarTokens } from '@/backend/auth/jwt';
+import type { IUsuarioRepository } from '@/shared/repositories/IUsuarioRepository';
+import type { ISesionRepository } from '@/shared/repositories/ISesionRepository';
 
 const DIAS_REFRESH = 7;
 
-interface DatosRegistro {
-  nombre: string;
-  correo: string;
-  contrasena: string;
-}
+export async function crearNuevoUsuario(
+  datos: { nombre: string; correo: string; contrasena: string },
+  usuarioRepo: IUsuarioRepository,
+  sesionRepo: ISesionRepository,
+) {
+  const usuarioExistente = await usuarioRepo.buscarPorCorreo(datos.correo);
+  if (usuarioExistente) throw new Error('Este correo ya está registrado');
 
-export async function crearNuevoUsuario({ nombre, correo, contrasena }: DatosRegistro) {
-  const usuarioExistente = await prisma.usuario.findUnique({ where: { correo } });
-  
-  if (usuarioExistente) {
-    throw new Error('Este correo ya está registrado');
-  }
+  const contrasenaHash = await hashearContrasena(datos.contrasena);
 
-  const contrasenaHash = await hashearContrasena(contrasena);
-
-  const nuevoUsuario = await prisma.usuario.create({
-    data: { nombre, correo, contrasenaHash, verificado: false },
-    select: { id: true, nombre: true, correo: true, verificado: true, creadoEn: true },
+  const nuevoUsuario = await usuarioRepo.crear({
+    nombre: datos.nombre, correo: datos.correo, contrasenaHash, verificado: false,
   });
 
   const tokens = generarTokens({ idUsuario: nuevoUsuario.id, correo: nuevoUsuario.correo });
@@ -29,17 +24,11 @@ export async function crearNuevoUsuario({ nombre, correo, contrasena }: DatosReg
   const expiraEn = new Date();
   expiraEn.setDate(expiraEn.getDate() + DIAS_REFRESH);
 
-  await prisma.sesion.create({
-    data: {
-      idUsuario: nuevoUsuario.id,
-      tokenHash: tokens.refreshToken,
-      expiraEn,
-    },
-  });
+  await sesionRepo.crear({ idUsuario: nuevoUsuario.id, tokenHash: tokens.refreshToken, expiraEn });
 
   return {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
-    usuario: nuevoUsuario,
+    usuario: { id: nuevoUsuario.id, nombre: nuevoUsuario.nombre, correo: nuevoUsuario.correo, verificado: nuevoUsuario.verificado, creadoEn: nuevoUsuario.creadoEn },
   };
 }

@@ -1,38 +1,14 @@
-// src/backend/services/refresh/refresh.service.ts
-
-import { prisma } from '@/backend/db/prisma';
 import { verificarRefreshToken, generarTokens } from '@/backend/auth/jwt';
+import type { ISesionRepository } from '@/shared/repositories/ISesionRepository';
 
-export async function refrescarToken(refreshToken: string) {
-  // Verificar que el token sea válido
+export async function refrescarToken(refreshToken: string, sesionRepo: ISesionRepository) {
   const payload = verificarRefreshToken(refreshToken);
 
-  // Verificar que la sesión exista en BD
-  const sesion = await prisma.sesion.findFirst({
-    where: {
-      tokenHash: refreshToken,
-      expiraEn: { gt: new Date() },
-    },
-  });
+  const sesion = await sesionRepo.buscarPorTokenHash(refreshToken);
+  if (!sesion) throw new Error('Sesión inválida o expirada');
 
-  if (!sesion) {
-    throw new Error('Sesión inválida o expirada');
-  }
+  const tokens = generarTokens({ idUsuario: payload.idUsuario, correo: payload.correo });
+  await sesionRepo.actualizarTokenHash(sesion.id, tokens.refreshToken);
 
-  // Generar nuevos tokens
-  const tokens = generarTokens({
-    idUsuario: payload.idUsuario,
-    correo: payload.correo,
-  });
-
-  // Actualizar sesión en BD
-  await prisma.sesion.update({
-    where: { id: sesion.id },
-    data: { tokenHash: tokens.refreshToken },
-  });
-
-  return {
-    accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken,
-  };
+  return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
 }

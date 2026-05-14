@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cambiarContrasenaConToken } from '@/backend/services/nueva-contrasena/nueva-contrasena.service';
 import { validarContrasena } from '@/shared/validaciones/autenticacion';
+import { crearDependencias } from '@/backend/di/crearDependencias';
 
 export async function controladorNuevaContrasena(req: NextRequest) {
   try {
     const { token, contrasena } = await req.json();
-    
-    if (!token) return NextResponse.json({ mensaje: 'Token requerido' }, { status: 400 });
-    
+
+    if (!token) {
+      return NextResponse.json({ exito: false, mensaje: 'Token requerido' }, { status: 400 });
+    }
+
     const errorContrasena = validarContrasena(contrasena);
-    if (errorContrasena) return NextResponse.json({ mensaje: errorContrasena }, { status: 422 });
+    if (errorContrasena) {
+      return NextResponse.json({ exito: false, mensaje: errorContrasena }, { status: 400 });
+    }
 
-    await cambiarContrasenaConToken(token, contrasena);
+    const { usuarioRepo, sesionRepo, tokenRecuperacionRepo } = crearDependencias();
+    await cambiarContrasenaConToken(token, contrasena, tokenRecuperacionRepo, usuarioRepo, sesionRepo);
 
-    return NextResponse.json({ exito: true, mensaje: 'Contraseña actualizada' });
+    return NextResponse.json({ exito: true, mensaje: 'Contraseña actualizada correctamente' }, { status: 200 });
   } catch (error: any) {
-    return NextResponse.json({ mensaje: error.message }, { status: 400 });
+    return NextResponse.json({ exito: false, mensaje: error.message || 'Error al cambiar la contraseña' }, { status: 400 });
   }
 }

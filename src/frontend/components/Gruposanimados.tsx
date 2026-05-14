@@ -843,6 +843,7 @@ export default function GruposAnimados() {
     // ── Loop principal ────────────────────────────────────────────────────────
     function loop() {
       if (!canvas) return;
+      if (!ctx) return;
       const W = canvas.width;
       const H = canvas.height;
       frameRef.current++;

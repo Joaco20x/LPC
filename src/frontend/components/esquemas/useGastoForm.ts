@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams,useRouter } from 'next/navigation';
 import { obtenerAccessToken } from '@/shared/servicios/almacenamientoTokens';
 
 export interface Opcion {
@@ -34,7 +34,7 @@ const FORMULARIO_VACIO: FormularioGasto = {
 export function useGastoForm() {
   const searchParams = useSearchParams();
   const grupoDesdeUrl = searchParams.get('grupo') || '';
-
+  const Router = useRouter();
   const [grupos, setGrupos]         = useState<Opcion[]>([]);
   const [miembros, setMiembros]     = useState<Opcion[]>([]);
   const [cargando, setCargando]     = useState(true);
@@ -142,6 +142,7 @@ export function useGastoForm() {
 
       if (data.exito) {
         setMensajeExito('¡Gasto registrado correctamente!');
+        setTimeout(() => Router.push('/dashboard'), 2000);
         setFormulario({ ...FORMULARIO_VACIO, idGrupo: formulario.idGrupo });
         setTimeout(() => setMensajeExito(''), 4000);
       } else if (data.errores) {

@@ -61,8 +61,8 @@ export function useCrearGrupo() {
       const usuario = data.datos.usuario;
       
       // Verificar si el usuario encontrado es el mismo que está logueado
-      const datosPropios = obtenerDatosUsuario() ?? {};
-      if (usuario.id === datosPropios.id) {
+      const datosPropios = obtenerDatosUsuario();
+      if (datosPropios && usuario.id === datosPropios.id) {
         throw new Error('No puedes añadirte a ti mismo, ya eres parte del grupo como administrador');
       }
 

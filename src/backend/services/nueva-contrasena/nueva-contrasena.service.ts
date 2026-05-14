@@ -1,32 +1,21 @@
-import { prisma } from '@/backend/db/prisma';
 import { hashearContrasena } from '@/backend/auth/contraseña';
+import type { IUsuarioRepository } from '@/shared/repositories/IUsuarioRepository';
+import type { ITokenRecuperacionRepository } from '@/shared/repositories/ITokenRecuperacionRepository';
+import type { ISesionRepository } from '@/shared/repositories/ISesionRepository';
 
-export async function cambiarContrasenaConToken(token: string, nuevaContrasena: string) {
-  const tokenRecuperacion = await prisma.tokenRecuperacion.findFirst({
-    where: {
-      token,
-      usado: false,
-      expiraEn: { gt: new Date() },
-    },
-  });
+export async function cambiarContrasenaConToken(
+  token: string,
+  contrasena: string,
+  tokenRepo: ITokenRecuperacionRepository,
+  usuarioRepo: IUsuarioRepository,
+  sesionRepo: ISesionRepository,
+) {
+  const tokenValido = await tokenRepo.buscarTokenValido(token);
+  if (!tokenValido) throw new Error('Token inválido o expirado');
 
-  if (!tokenRecuperacion) {
-    throw new Error('Token inválido');
-  }
+  const hash = await hashearContrasena(contrasena);
 
-  const contrasenaHash = await hashearContrasena(nuevaContrasena);
-
-  await prisma.$transaction([
-    prisma.usuario.update({
-      where: { id: tokenRecuperacion.idUsuario },
-      data: { contrasenaHash },
-    }),
-    prisma.tokenRecuperacion.update({
-      where: { id: tokenRecuperacion.id },
-      data: { usado: true },
-    }),
-    prisma.sesion.deleteMany({
-      where: { idUsuario: tokenRecuperacion.idUsuario },
-    }),
-  ]);
+  await usuarioRepo.actualizarContrasena(tokenValido.idUsuario, hash);
+  await tokenRepo.marcarComoUsado(tokenValido.id);
+  await sesionRepo.eliminarPorIdUsuario(tokenValido.idUsuario);
 }

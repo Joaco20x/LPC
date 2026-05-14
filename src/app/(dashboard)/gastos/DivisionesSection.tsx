@@ -1,4 +1,4 @@
-import { Opcion, DivisionFormulario } from './useGastoForm';
+import { Opcion, DivisionFormulario } from '../../../frontend/components/esquemas/useGastoForm';
 
 interface Props {
   divisiones: DivisionFormulario[];
@@ -71,7 +71,7 @@ export function DivisionesSection({ divisiones, miembros, onAgregar, onEliminar,
 
       {errorDivisiones && (
         <span className="error-msg" style={{ display: 'block', marginTop: '0.5rem' }}>
-           {errorDivisiones}
+          {errorDivisiones}
         </span>
       )}
     </div>

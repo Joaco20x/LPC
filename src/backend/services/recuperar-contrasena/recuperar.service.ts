@@ -1,34 +1,23 @@
-import { randomBytes } from 'crypto';
-import { prisma } from '@/backend/db/prisma';
+import crypto from 'crypto';
+import type { IUsuarioRepository } from '@/shared/repositories/IUsuarioRepository';
+import type { ITokenRecuperacionRepository } from '@/shared/repositories/ITokenRecuperacionRepository';
 
-const EXPIRACION_MINUTOS_RECUPERACION = 30;
+export async function iniciarRecuperacion(
+  correo: string,
+  usuarioRepo: IUsuarioRepository,
+  tokenRepo: ITokenRecuperacionRepository,
+) {
+  const usuario = await usuarioRepo.buscarPorCorreo(correo);
+  if (!usuario) return;
 
-export async function iniciarRecuperacion(correo: string) {
-  const usuario = await prisma.usuario.findUnique({ where: { correo } });
+  await tokenRepo.invalidarPorIdUsuario(usuario.id);
 
-  if (!usuario) return; // Retornamos silenciosamente por seguridad
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiraEn = new Date(Date.now() + 30 * 60 * 1000);
 
-  await prisma.tokenRecuperacion.updateMany({
-    where: { idUsuario: usuario.id, usado: false },
-    data: { usado: true },
-  });
+  await tokenRepo.crear({ idUsuario: usuario.id, token, expiraEn });
 
-  const token = randomBytes(32).toString('hex');
-  const expiraEn = new Date();
-  expiraEn.setMinutes(expiraEn.getMinutes() + EXPIRACION_MINUTOS_RECUPERACION);
-
-  await prisma.tokenRecuperacion.create({
-    data: {
-      idUsuario: usuario.id,
-      token,
-      expiraEn,
-    },
-  });
-
-  const urlRecuperacion = `${process.env.NEXT_PUBLIC_URL}/nueva-contrasena?token=${token}`;
-
-  // TODO: Implementar envío de correo real
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[Simulación Correo] Link de recuperación para ${correo}: ${urlRecuperacion}`);
+    console.log(`[DEV] Recuperación: ${process.env.NEXT_PUBLIC_URL}/nueva-contrasena?token=${token}`);
   }
 }
