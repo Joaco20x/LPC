@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
 // Componente atómico de entrada - SRP: solo renderiza un campo de formulario
 
 interface PropsCampoEntrada {
   id: string;
   etiqueta: string;
-  tipo?: 'text' | 'email' | 'password' | 'date';
+  tipo?: "text" | "email" | "password" | "date";
   valor: string;
   error?: string;
   placeholder?: string;
@@ -16,7 +16,7 @@ interface PropsCampoEntrada {
 export default function CampoEntrada({
   id,
   etiqueta,
-  tipo = 'text',
+  tipo = "text",
   valor,
   error,
   placeholder,
@@ -35,7 +35,7 @@ export default function CampoEntrada({
         placeholder={placeholder}
         autoComplete={autoComplete}
         onChange={(e) => onChange(e.target.value)}
-        className={`campo-input${error ? ' campo-input--error' : ''}`}
+        className={`campo-input${error ? " campo-input--error" : ""}`}
         aria-describedby={error ? `${id}-error` : undefined}
         aria-invalid={!!error}
       />

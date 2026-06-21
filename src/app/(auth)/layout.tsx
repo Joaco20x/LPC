@@ -1,13 +1,13 @@
 // Layout para todas las rutas de autenticación
 // Aplica la estructura visual y estilos compartidos del módulo
 
-import type { Metadata } from 'next';
-import Link from 'next/link';
-import '@/app/(auth)/auth.css';
+import type { Metadata } from "next";
+import Link from "next/link";
+import "@/app/(auth)/auth.css";
 
 export const metadata: Metadata = {
-  title: 'LPC — Acceso',
-  description: 'Ingresa o crea tu cuenta en LPC',
+  title: "LPC — Acceso",
+  description: "Ingresa o crea tu cuenta en LPC",
 };
 
 interface PropsLayout {
@@ -36,9 +36,13 @@ export default function LayoutAutenticacion({ children }: PropsLayout) {
         </div>
         <div className="auth-panel-visual__overlay">
           <div className="auth-panel-visual__marca">
-            <Link href="/" className="auth-panel-visual__logo">LPC</Link>
+            <Link href="/" className="auth-panel-visual__logo">
+              LPC
+            </Link>
             <p className="auth-panel-visual__eslogan">
-              Viaja juntos.<br />Divide fácil.
+              Viaja juntos.
+              <br />
+              Divide fácil.
             </p>
           </div>
         </div>
@@ -46,9 +50,7 @@ export default function LayoutAutenticacion({ children }: PropsLayout) {
 
       {/* Panel derecho: formulario */}
       <main className="auth-panel-formulario">
-        <div className="auth-panel-formulario__contenido">
-          {children}
-        </div>
+        <div className="auth-panel-formulario__contenido">{children}</div>
       </main>
     </div>
   );

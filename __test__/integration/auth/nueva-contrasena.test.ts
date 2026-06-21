@@ -1,4 +1,4 @@
-import { cambiarContrasenaConToken } from '@/auth/services/nueva-contrasena.service';
+import { cambiarContrasenaConToken } from "@/auth/services/nueva-contrasena.service";
 
 function crearMocks() {
   const tokenRepo = {
@@ -25,25 +25,42 @@ function crearMocks() {
   return { tokenRepo, usuarioRepo, sesionRepo };
 }
 
-describe('cambiarContrasenaConToken', () => {
-  it('actualiza contraseña, marca token usado y limpia sesiones', async () => {
+describe("cambiarContrasenaConToken", () => {
+  it("actualiza contraseña, marca token usado y limpia sesiones", async () => {
     const { tokenRepo, usuarioRepo, sesionRepo } = crearMocks();
     tokenRepo.buscarTokenValido.mockResolvedValue({
-      id: 'token-1', idUsuario: 'user-1',
+      id: "token-1",
+      idUsuario: "user-1",
     });
 
-    await cambiarContrasenaConToken('token-valido', 'nueva-pass-123', tokenRepo, usuarioRepo, sesionRepo);
+    await cambiarContrasenaConToken(
+      "token-valido",
+      "nueva-pass-123",
+      tokenRepo,
+      usuarioRepo,
+      sesionRepo,
+    );
 
-    expect(usuarioRepo.actualizarContrasena).toHaveBeenCalledWith('user-1', expect.any(String));
-    expect(tokenRepo.marcarComoUsado).toHaveBeenCalledWith('token-1');
-    expect(sesionRepo.eliminarPorIdUsuario).toHaveBeenCalledWith('user-1');
+    expect(usuarioRepo.actualizarContrasena).toHaveBeenCalledWith(
+      "user-1",
+      expect.any(String),
+    );
+    expect(tokenRepo.marcarComoUsado).toHaveBeenCalledWith("token-1");
+    expect(sesionRepo.eliminarPorIdUsuario).toHaveBeenCalledWith("user-1");
   });
 
-  it('lanza error si el token es inválido', async () => {
+  it("lanza error si el token es inválido", async () => {
     const { tokenRepo, usuarioRepo, sesionRepo } = crearMocks();
     tokenRepo.buscarTokenValido.mockResolvedValue(null);
 
-    await expect(cambiarContrasenaConToken('token-invalido', 'nueva-pass', tokenRepo, usuarioRepo, sesionRepo))
-      .rejects.toThrow('Token inválido o expirado');
+    await expect(
+      cambiarContrasenaConToken(
+        "token-invalido",
+        "nueva-pass",
+        tokenRepo,
+        usuarioRepo,
+        sesionRepo,
+      ),
+    ).rejects.toThrow("Token inválido o expirado");
   });
 });

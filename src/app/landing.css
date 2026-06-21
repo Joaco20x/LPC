@@ -3,7 +3,7 @@
    Misma paleta y tipografía que el módulo de autenticación
    ========================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap");
 
 /* ── Variables (espejo de auth.css) ── */
 :root {
@@ -16,8 +16,8 @@
   --color-acento-hover: #1e3329;
   --color-borde: #e4e4e0;
 
-  --fuente-display: 'DM Serif Display', Georgia, serif;
-  --fuente-cuerpo: 'DM Sans', system-ui, sans-serif;
+  --fuente-display: "DM Serif Display", Georgia, serif;
+  --fuente-cuerpo: "DM Sans", system-ui, sans-serif;
 
   --transicion: 220ms cubic-bezier(0.4, 0, 0.2, 1);
   --transicion-lenta: 400ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -27,7 +27,9 @@
 }
 
 /* ── Reset ── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -93,7 +95,9 @@
   padding: 0.5rem 1.125rem;
   border: 1px solid var(--color-acento);
   border-radius: 2px;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition:
+    background-color var(--transicion),
+    color var(--transicion);
 }
 
 .landing-nav__cta:hover {
@@ -184,15 +188,18 @@
 .landing-hero__imagen-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    150deg,
-    #2d4a3e 0%,
-    #1a2e26 50%,
-    #0f1e19 100%
-  );
+  background: linear-gradient(150deg, #2d4a3e 0%, #1a2e26 50%, #0f1e19 100%);
   background-image:
-    radial-gradient(circle at 30% 70%, rgba(255,255,255,0.04) 0%, transparent 60%),
-    radial-gradient(circle at 70% 20%, rgba(255,255,255,0.06) 0%, transparent 50%);
+    radial-gradient(
+      circle at 30% 70%,
+      rgba(255, 255, 255, 0.04) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      circle at 70% 20%,
+      rgba(255, 255, 255, 0.06) 0%,
+      transparent 50%
+    );
 }
 
 /* ── Botones compartidos ── */
@@ -206,7 +213,9 @@
   font-size: 0.9375rem;
   font-weight: 500;
   border-radius: 2px;
-  transition: background-color var(--transicion), transform 80ms ease;
+  transition:
+    background-color var(--transicion),
+    transform 80ms ease;
   letter-spacing: 0.01em;
 }
 
@@ -226,7 +235,9 @@
   font-size: 0.9375rem;
   font-weight: 400;
   border-bottom: 1px solid var(--color-borde);
-  transition: color var(--transicion), border-color var(--transicion);
+  transition:
+    color var(--transicion),
+    border-color var(--transicion);
 }
 
 .boton-fantasma:hover {
@@ -277,7 +288,7 @@
 }
 
 .landing-feature:hover {
-  background-color: rgba(0,0,0,0.015);
+  background-color: rgba(0, 0, 0, 0.015);
 }
 
 .landing-feature__numero {
@@ -384,18 +395,36 @@
 
 /* ── Animaciones ── */
 @keyframes aparecerDesdeArriba {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes aparecerDesdeIzquierda {
-  from { opacity: 0; transform: translateX(-16px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes aparecerDesdeDerecha {
-  from { opacity: 0; transform: translateX(16px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* Fondo crema para que las personitas sean visibles */
@@ -403,7 +432,7 @@
   background-color: #eeecea; /* un tono ligeramente más oscuro que --color-fondo */
   border: 1px solid var(--color-borde);
 }
- 
+
 /* Ya no se usa el placeholder, pero se deja vacío por si acaso */
 .landing-hero__imagen-placeholder {
   display: none;

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Componente atómico separador - SRP
 
@@ -6,7 +6,7 @@ interface PropsSeparador {
   texto?: string;
 }
 
-export default function Separador({ texto = 'o' }: PropsSeparador) {
+export default function Separador({ texto = "o" }: PropsSeparador) {
   return (
     <div className="separador" role="separator" aria-label={texto}>
       <span className="separador__linea" />

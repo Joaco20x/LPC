@@ -3,25 +3,25 @@
 // OCP: agregar campos nuevos no rompe los existentes
 
 export interface UsuarioResumen {
-    id: string;
-    nombre: string;
-    correo: string;
+  id: string;
+  nombre: string;
+  correo: string;
 }
 
 export interface GrupoResumen {
-    id: string;
-    nombre: string;
+  id: string;
+  nombre: string;
 }
 
 export interface DeudaItem {
-    id: string;
-    monto: number;
-    grupo: GrupoResumen;
-    contraparte: UsuarioResumen; // a quién le debo / quién me debe
-    actualizadoEn: Date;
+  id: string;
+  monto: number;
+  grupo: GrupoResumen;
+  contraparte: UsuarioResumen; // a quién le debo / quién me debe
+  actualizadoEn: Date;
 }
 
 export interface DeudasPendientes {
-    debo_a: DeudaItem[];   // yo soy el deudor
-    me_deben: DeudaItem[]; // yo soy el acreedor
+  debo_a: DeudaItem[]; // yo soy el deudor
+  me_deben: DeudaItem[]; // yo soy el acreedor
 }

@@ -136,18 +136,18 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
 ## 6. Rutas disponibles
 
-| Ruta | Descripción |
-|------|-------------|
-| `localhost:3000/` | Página principal |
-| `localhost:3000/login` | Inicio de sesión |
-| `localhost:3000/registro` | Crear cuenta |
-| `localhost:3000/recuperar-contrasena` | Recuperar contraseña |
-| `localhost:3000/nueva-contrasena` | Establecer nueva contraseña |
-| `localhost:3000/dashboard` | Panel principal (requiere sesión) |
-| `localhost:3000/grupos/crear` | Crear grupo de viaje |
-| `localhost:3000/gastos` | Gestión de gastos |
-| `localhost:3000/deudas` | Liquidación de deudas |
-| `localhost:3000/auth/google/callback` | Callback intermedio OAuth Google |
+| Ruta                                  | Descripción                       |
+| ------------------------------------- | --------------------------------- |
+| `localhost:3000/`                     | Página principal                  |
+| `localhost:3000/login`                | Inicio de sesión                  |
+| `localhost:3000/registro`             | Crear cuenta                      |
+| `localhost:3000/recuperar-contrasena` | Recuperar contraseña              |
+| `localhost:3000/nueva-contrasena`     | Establecer nueva contraseña       |
+| `localhost:3000/dashboard`            | Panel principal (requiere sesión) |
+| `localhost:3000/grupos/crear`         | Crear grupo de viaje              |
+| `localhost:3000/gastos`               | Gestión de gastos                 |
+| `localhost:3000/deudas`               | Liquidación de deudas             |
+| `localhost:3000/auth/google/callback` | Callback intermedio OAuth Google  |
 
 ---
 
@@ -320,32 +320,32 @@ eatryp/
 
 Definidas en `prisma/schema.prisma` y gestionadas a través de migraciones Prisma.
 
-| Tabla | Descripción |
-|-------|-------------|
-| `usuarios` | Datos de usuarios registrados |
-| `tokens_recuperacion` | Tokens para restablecer contraseña |
-| `sesiones` | Refresh tokens de sesión JWT |
-| `grupos` | Grupos de viaje |
-| `miembros_grupo` | Relación usuario–grupo con rol (admin/miembro) |
-| `gastos` | Gastos registrados dentro de un grupo |
-| `divisiones_gasto` | Cómo se divide cada gasto entre integrantes |
-| `deudas` | Deudas calculadas entre integrantes |
-| `notificaciones` | Notificaciones del sistema (JSONB) |
-| `invitaciones` | Invitaciones a grupos por correo o token |
+| Tabla                 | Descripción                                    |
+| --------------------- | ---------------------------------------------- |
+| `usuarios`            | Datos de usuarios registrados                  |
+| `tokens_recuperacion` | Tokens para restablecer contraseña             |
+| `sesiones`            | Refresh tokens de sesión JWT                   |
+| `grupos`              | Grupos de viaje                                |
+| `miembros_grupo`      | Relación usuario–grupo con rol (admin/miembro) |
+| `gastos`              | Gastos registrados dentro de un grupo          |
+| `divisiones_gasto`    | Cómo se divide cada gasto entre integrantes    |
+| `deudas`              | Deudas calculadas entre integrantes            |
+| `notificaciones`      | Notificaciones del sistema (JSONB)             |
+| `invitaciones`        | Invitaciones a grupos por correo o token       |
 
 ---
 
 ## 10. Tecnologías utilizadas
 
-| Tecnología | Uso |
-|------------|-----|
-| Next.js 16 + TypeScript | Framework principal (SSR + App Router) |
-| React 19 | Interfaz de usuario |
-| PostgreSQL | Base de datos relacional |
-| Prisma | ORM: migraciones, cliente tipado y consultas |
-| bcrypt | Encriptación de contraseñas |
-| JWT | Autenticación con tokens |
-| Tailwind CSS v4 | Estilos utilitarios |
+| Tecnología              | Uso                                          |
+| ----------------------- | -------------------------------------------- |
+| Next.js 16 + TypeScript | Framework principal (SSR + App Router)       |
+| React 19                | Interfaz de usuario                          |
+| PostgreSQL              | Base de datos relacional                     |
+| Prisma                  | ORM: migraciones, cliente tipado y consultas |
+| bcrypt                  | Encriptación de contraseñas                  |
+| JWT                     | Autenticación con tokens                     |
+| Tailwind CSS v4         | Estilos utilitarios                          |
 
 ---
 
@@ -371,6 +371,7 @@ Abre VS Code, presiona `Ctrl + Shift + P` y ejecuta `TypeScript: Restart TS Serv
 
 **Error `Router action dispatched before initialization`**  
 Detén el servidor, borra la caché y reinicia:
+
 ```bash
 rm -rf .next
 npm run dev

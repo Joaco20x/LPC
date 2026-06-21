@@ -55,6 +55,10 @@ build:
 dev:
 	npx next dev
 
+# Ejecutar todos los tests con cobertura combinada (para SonarQube)
+test-coverage:
+	npx jest --testPathPatterns="__test__" --runInBand --forceExit --coverage --coverageDirectory=coverage
+
 # ─────────────────────────────────────────────
 # CI completo local (mismo orden que el pipeline)
 # ─────────────────────────────────────────────

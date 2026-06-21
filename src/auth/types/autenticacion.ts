@@ -34,7 +34,7 @@ export interface RespuestaAutenticacion {
   };
 }
 
-export type ProveedorOAuth = 'google' | 'apple';
+export type ProveedorOAuth = "google" | "apple";
 
 export interface ErrorCampo {
   campo: string;

@@ -1,4 +1,4 @@
-import { iniciarRecuperacion } from '@/auth/services/recuperar.service';
+import { iniciarRecuperacion } from "@/auth/services/recuperar.service";
 
 function crearMocks() {
   const usuarioRepo = {
@@ -18,24 +18,24 @@ function crearMocks() {
   return { usuarioRepo, tokenRepo };
 }
 
-describe('iniciarRecuperacion', () => {
-  it('genera token de recuperación para usuario existente', async () => {
+describe("iniciarRecuperacion", () => {
+  it("genera token de recuperación para usuario existente", async () => {
     const { usuarioRepo, tokenRepo } = crearMocks();
-    usuarioRepo.buscarPorCorreo.mockResolvedValue({ id: 'user-1' });
+    usuarioRepo.buscarPorCorreo.mockResolvedValue({ id: "user-1" });
 
-    await iniciarRecuperacion('usuario@test.com', usuarioRepo, tokenRepo);
+    await iniciarRecuperacion("usuario@test.com", usuarioRepo, tokenRepo);
 
-    expect(tokenRepo.invalidarPorIdUsuario).toHaveBeenCalledWith('user-1');
+    expect(tokenRepo.invalidarPorIdUsuario).toHaveBeenCalledWith("user-1");
     expect(tokenRepo.crear).toHaveBeenCalledWith(
-      expect.objectContaining({ idUsuario: 'user-1' }),
+      expect.objectContaining({ idUsuario: "user-1" }),
     );
   });
 
-  it('no hace nada si el correo no existe (retorno silencioso)', async () => {
+  it("no hace nada si el correo no existe (retorno silencioso)", async () => {
     const { usuarioRepo, tokenRepo } = crearMocks();
     usuarioRepo.buscarPorCorreo.mockResolvedValue(null);
 
-    await iniciarRecuperacion('no-existe@test.com', usuarioRepo, tokenRepo);
+    await iniciarRecuperacion("no-existe@test.com", usuarioRepo, tokenRepo);
 
     expect(tokenRepo.invalidarPorIdUsuario).not.toHaveBeenCalled();
     expect(tokenRepo.crear).not.toHaveBeenCalled();

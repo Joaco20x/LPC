@@ -1,9 +1,9 @@
-import type { DatosGasto } from '@/gastos/types/gasto';
-import type { IGastoRepository } from '@/gastos/repositories/IGastoRepository';
-import type { IDivisionGastoRepository } from '@/gastos/repositories/IDivisionGastoRepository';
-import type { IDeudaRepository } from '@/deudas/repositories/IDeudaRepository';
-import type { IMiembroGrupoRepository } from '@/grupos/repositories/IMiembroGrupoRepository';
-import type { IDatabaseService } from '@/shared/libs/IDatabaseService';
+import type { DatosGasto } from "@/gastos/types/gasto";
+import type { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
+import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGastoRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
+import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
 
 export async function registrarGasto(
   datos: DatosGasto,
@@ -15,7 +15,7 @@ export async function registrarGasto(
 ) {
   return await db.transaction(async (tx) => {
     if (!datos.idGrupo || !datos.idPagador) {
-      throw new Error('Faltan identificadores requeridos (Grupo o Pagador)');
+      throw new Error("Faltan identificadores requeridos (Grupo o Pagador)");
     }
 
     const nuevoGasto = await gastoRepo.crear(
@@ -23,8 +23,8 @@ export async function registrarGasto(
         idGrupo: datos.idGrupo,
         idPagador: datos.idPagador,
         monto: datos.monto ?? 0,
-        descripcion: datos.descripcion ?? '',
-        categoria: datos.categoria ?? '',
+        descripcion: datos.descripcion ?? "",
+        categoria: datos.categoria ?? "",
         urlBoleta: datos.urlBoleta ?? null,
       },
       tx,
@@ -47,12 +47,17 @@ export async function registrarGasto(
       const totalMiembros = miembrosGrupo.length;
 
       if (totalMiembros > 1) {
-        const idsEnDivisiones = new Set(datos.divisiones.map((d) => d.idUsuario));
-        const deudores = miembrosGrupo.map((m) => m.idUsuario).filter((id) => !idsEnDivisiones.has(id));
+        const idsEnDivisiones = new Set(
+          datos.divisiones.map((d) => d.idUsuario),
+        );
+        const deudores = miembrosGrupo
+          .map((m) => m.idUsuario)
+          .filter((id) => !idsEnDivisiones.has(id));
 
         if (deudores.length > 0) {
           const partePorPersona = Number(datos.monto) / totalMiembros;
-          const montoPorAcreedor = Math.round((partePorPersona / idsEnDivisiones.size) * 100) / 100;
+          const montoPorAcreedor =
+            Math.round((partePorPersona / idsEnDivisiones.size) * 100) / 100;
 
           const nuevasDeudas = deudores.flatMap((idDeudor) =>
             [...idsEnDivisiones].map((idAcreedor) => ({
@@ -82,9 +87,14 @@ export async function obtenerOpcionesFormulario(
   miembroRepo: IMiembroGrupoRepository,
 ) {
   const miembrosGrupo = await miembroRepo.buscarPorUsuario(idUsuario);
-  const grupos = miembrosGrupo.map((m) => ({ id: m.grupo.id, nombre: m.grupo.nombre }));
+  const grupos = miembrosGrupo.map((m) => ({
+    id: m.grupo.id,
+    nombre: m.grupo.nombre,
+  }));
   const idGrupos = grupos.map((g) => g.id);
   const miembros = await miembroRepo.buscarMiembrosDeGrupos(idGrupos);
-  const usuariosUnicos = Array.from(new Map(miembros.map((m) => [m.idUsuario, m.usuario])).values());
+  const usuariosUnicos = Array.from(
+    new Map(miembros.map((m) => [m.idUsuario, m.usuario])).values(),
+  );
   return { grupos, miembros: usuariosUnicos };
 }

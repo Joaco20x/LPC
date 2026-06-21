@@ -1,13 +1,12 @@
 // Página principal — Landing de LPC
 // Punto de entrada a todas las funciones de autenticación
 
-import Link from 'next/link';
-import './landing.css';
-import GruposAnimados from "@/grupos/components/Gruposanimados"
+import Link from "next/link";
+import "./landing.css";
+import GruposAnimados from "@/grupos/components/Gruposanimados";
 export default function PaginaInicio() {
   return (
     <main className="landing-raiz">
-
       {/* ── Navegación superior ── */}
       <nav className="landing-nav">
         <span className="landing-nav__marca">LPC</span>
@@ -22,17 +21,24 @@ export default function PaginaInicio() {
       </nav>
 
       {/* ── Hero ── */}
-        <section className="landing-hero" style={{ position: 'relative', overflow: 'hidden' }}>
-          <GruposAnimados/>
-        <div className="landing-hero__contenido" style={{ position: 'relative', zIndex: 1 }}>
+      <section
+        className="landing-hero"
+        style={{ position: "relative", overflow: "hidden" }}
+      >
+        <GruposAnimados />
+        <div
+          className="landing-hero__contenido"
+          style={{ position: "relative", zIndex: 1 }}
+        >
           <p className="landing-hero__etiqueta">Gestión de gastos de viaje</p>
           <h1 className="landing-hero__titulo">
-            Viaja juntos.<br />
+            Viaja juntos.
+            <br />
             <em>Divide fácil.</em>
           </h1>
           <p className="landing-hero__descripcion">
-            Registra gastos, divide costos y liquida deudas con tu grupo
-            sin hojas de cálculo ni discusiones.
+            Registra gastos, divide costos y liquida deudas con tu grupo sin
+            hojas de cálculo ni discusiones.
           </p>
           <div className="landing-hero__botones">
             <Link href="/registro" className="boton-solido">
@@ -48,7 +54,6 @@ export default function PaginaInicio() {
       {/* ── Características ── */}
       <section className="landing-features">
         <div className="landing-features__grid">
-
           <article className="landing-feature">
             <span className="landing-feature__numero">01</span>
             <h2 className="landing-feature__titulo">Registra</h2>
@@ -62,8 +67,8 @@ export default function PaginaInicio() {
             <span className="landing-feature__numero">02</span>
             <h2 className="landing-feature__titulo">Divide</h2>
             <p className="landing-feature__texto">
-              Reparte de forma equitativa, porcentual o manual.
-              Excluye integrantes cuando corresponda.
+              Reparte de forma equitativa, porcentual o manual. Excluye
+              integrantes cuando corresponda.
             </p>
           </article>
 
@@ -71,11 +76,10 @@ export default function PaginaInicio() {
             <span className="landing-feature__numero">03</span>
             <h2 className="landing-feature__titulo">Liquida</h2>
             <p className="landing-feature__texto">
-              Ve exactamente quién le debe a quién y cuánto.
-              Sin cálculos, sin confusión.
+              Ve exactamente quién le debe a quién y cuánto. Sin cálculos, sin
+              confusión.
             </p>
           </article>
-
         </div>
       </section>
 
@@ -88,7 +92,9 @@ export default function PaginaInicio() {
             <Image src="/viaje.jpg" alt="Viajeros" width={600} height={400} />
           */}
           <p className="landing-cta__texto">
-            Tu próximo viaje,<br />sin las cuentas pendientes.
+            Tu próximo viaje,
+            <br />
+            sin las cuentas pendientes.
           </p>
           <Link href="/registro" className="boton-solido">
             Empezar ahora
@@ -105,7 +111,6 @@ export default function PaginaInicio() {
           <Link href="/recuperar-contrasena">Recuperar contraseña</Link>
         </div>
       </footer>
-
     </main>
   );
 }

@@ -1,6 +1,6 @@
 /* gastos.css — estilos del módulo de gastos */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap");
 
 :root {
   --color-fondo: #f8f7f4;
@@ -15,8 +15,8 @@
   --color-error: #8b3a3a;
   --color-exito: #2d4a3e;
 
-  --fuente-display: 'DM Serif Display', Georgia, serif;
-  --fuente-cuerpo: 'DM Sans', system-ui, sans-serif;
+  --fuente-display: "DM Serif Display", Georgia, serif;
+  --fuente-cuerpo: "DM Sans", system-ui, sans-serif;
 
   --radio-input: 2px;
   --radio-boton: 2px;
@@ -115,7 +115,9 @@
   font-size: 0.9375rem;
   font-weight: 300;
   color: var(--color-texto-principal);
-  transition: border-color var(--transicion), background-color var(--transicion);
+  transition:
+    border-color var(--transicion),
+    background-color var(--transicion);
   outline: none;
   box-sizing: border-box;
 }
@@ -178,7 +180,9 @@
   font-weight: 500;
   border-radius: var(--radio-boton);
   cursor: pointer;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition:
+    background-color var(--transicion),
+    color var(--transicion);
   white-space: nowrap;
 }
 
@@ -195,7 +199,9 @@
   font-size: 0.8125rem;
   border-radius: var(--radio-boton);
   cursor: pointer;
-  transition: background-color var(--transicion), color var(--transicion);
+  transition:
+    background-color var(--transicion),
+    color var(--transicion);
   line-height: 1;
 }
 
@@ -223,7 +229,9 @@
   font-weight: 500;
   color: #ffffff;
   letter-spacing: 0.01em;
-  transition: background-color var(--transicion), transform 80ms ease;
+  transition:
+    background-color var(--transicion),
+    transform 80ms ease;
 }
 
 .btn-primary:hover:not(:disabled) {

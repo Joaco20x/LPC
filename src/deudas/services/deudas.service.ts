@@ -1,5 +1,5 @@
-import type { IDeudaRepository, DeudaConRelaciones } from '@/deudas/repositories/IDeudaRepository';
-import type { DeudasPendientes, DeudaItem } from '@/deudas/types/deudas';
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import type { DeudasPendientes, DeudaItem } from "@/deudas/types/deudas";
 
 export async function obtenerDeudasPendientes(
   idUsuario: string,

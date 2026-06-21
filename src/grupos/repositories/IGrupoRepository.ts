@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from "@prisma/client";
 
 export interface DatosCrearGrupo {
   nombre: string;
@@ -10,12 +10,18 @@ export interface DatosCrearGrupo {
 
 export type GrupoConDetalles = Prisma.GrupoGetPayload<{
   include: {
-    miembros: { include: { usuario: { select: { id: true; nombre: true; correo: true } } } };
+    miembros: {
+      include: {
+        usuario: { select: { id: true; nombre: true; correo: true } };
+      };
+    };
     gastos: {
-      orderBy: { creadoEn: 'desc' };
+      orderBy: { creadoEn: "desc" };
       include: {
         pagador: { select: { id: true; nombre: true } };
-        divisiones: { include: { usuario: { select: { id: true; nombre: true } } } };
+        divisiones: {
+          include: { usuario: { select: { id: true; nombre: true } } };
+        };
       };
     };
   };

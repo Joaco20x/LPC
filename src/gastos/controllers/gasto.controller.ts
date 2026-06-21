@@ -1,19 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { registrarGasto, obtenerGastos, obtenerOpcionesFormulario } from '@/gastos/services/gasto.service';
-import { validarGasto } from '@/gastos/validaciones/gasto';
-import { verificarAccessToken } from '@/auth/services/jwt';
-import { crearDependencias } from '@/shared/di/crearDependencias';
-import { PrismaDatabaseService } from '@/shared/libs/prismaDatabaseService';
+import { NextRequest, NextResponse } from "next/server";
+import {
+  registrarGasto,
+  obtenerGastos,
+  obtenerOpcionesFormulario,
+} from "@/gastos/services/gasto.service";
+import { validarGasto } from "@/gastos/validaciones/gasto";
+import { verificarAccessToken } from "@/auth/services/jwt";
+import { crearDependencias } from "@/shared/di/crearDependencias";
+import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 function extraerPayload(req: NextRequest) {
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return { error: NextResponse.json({ exito: false, mensaje: 'No autorizado' }, { status: 401 }) };
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return {
+      error: NextResponse.json(
+        { exito: false, mensaje: "No autorizado" },
+        { status: 401 },
+      ),
+    };
   }
   try {
-    return { payload: verificarAccessToken(authHeader.split(' ')[1]) };
+    return { payload: verificarAccessToken(authHeader.split(" ")[1]) };
   } catch {
-    return { error: NextResponse.json({ exito: false, mensaje: 'Token inválido o expirado' }, { status: 401 }) };
+    return {
+      error: NextResponse.json(
+        { exito: false, mensaje: "Token inválido o expirado" },
+        { status: 401 },
+      ),
+    };
   }
 }
 
@@ -26,7 +40,10 @@ export async function controladorCrearGasto(req: NextRequest) {
     const errores = validarGasto(cuerpo);
 
     if (errores.length > 0) {
-      return NextResponse.json({ exito: false, mensaje: 'Datos inválidos', errores }, { status: 400 });
+      return NextResponse.json(
+        { exito: false, mensaje: "Datos inválidos", errores },
+        { status: 400 },
+      );
     }
 
     const deps = crearDependencias();
@@ -39,9 +56,18 @@ export async function controladorCrearGasto(req: NextRequest) {
       PrismaDatabaseService,
     );
 
-    return NextResponse.json({ exito: true, mensaje: 'Gasto registrado correctamente', datos: nuevoGasto }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ exito: false, mensaje: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        exito: true,
+        mensaje: "Gasto registrado correctamente",
+        datos: nuevoGasto,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    return NextResponse.json({ exito: false, mensaje }, { status: 500 });
   }
 }
 
@@ -54,8 +80,10 @@ export async function controladorObtenerGastos(req: NextRequest) {
     const gastos = await obtenerGastos(gastoRepo);
 
     return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ exito: false, mensaje: error.message }, { status: 500 });
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    return NextResponse.json({ exito: false, mensaje }, { status: 500 });
   }
 }
 
@@ -65,10 +93,15 @@ export async function controladorObtenerOpciones(req: NextRequest) {
     if (error) return error;
 
     const { miembroGrupoRepo } = crearDependencias();
-    const opciones = await obtenerOpcionesFormulario(payload!.idUsuario, miembroGrupoRepo);
+    const opciones = await obtenerOpcionesFormulario(
+      payload!.idUsuario,
+      miembroGrupoRepo,
+    );
 
     return NextResponse.json({ exito: true, datos: opciones }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ exito: false, mensaje: error.message }, { status: 500 });
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    return NextResponse.json({ exito: false, mensaje }, { status: 500 });
   }
 }

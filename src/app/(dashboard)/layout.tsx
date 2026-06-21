@@ -1,25 +1,27 @@
+"use client";
 
-'use client';
+import "./dashboard.css";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+  limpiarSesion,
+  obtenerDatosUsuario,
+} from "@/shared/servicios/almacenamientoTokens";
 
-import './dashboard.css';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { limpiarSesion, obtenerDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
-
-export default function LayoutDashboard({ children }: { children: React.ReactNode }) {
+export default function LayoutDashboard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
-  const [nombreUsuario, setNombreUsuario] = useState('Usuario');
-
-  // Acceder a localStorage solo en el cliente (evita error de SSR)
-  useEffect(() => {
-    const datos = obtenerDatosUsuario();
-    setNombreUsuario(datos?.nombre || 'Usuario');
-  }, []);
+  const [nombreUsuario] = useState(
+    () => obtenerDatosUsuario()?.nombre || "Usuario",
+  );
 
   const manejarCerrarSesion = () => {
     limpiarSesion();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -28,14 +30,20 @@ export default function LayoutDashboard({ children }: { children: React.ReactNod
         <div className="dashboard-nav__izquierda">
           <span className="dashboard-nav__marca">LPC</span>
           <div className="dashboard-nav__links">
-            <Link href="/dashboard" className="dashboard-nav__link">Inicio</Link>
-            <Link href="/gastos" className="dashboard-nav__link">Gastos</Link>
-            <Link href="/deudas" className="dashboard-nav__link">Deudas</Link>
+            <Link href="/dashboard" className="dashboard-nav__link">
+              Inicio
+            </Link>
+            <Link href="/gastos" className="dashboard-nav__link">
+              Gastos
+            </Link>
+            <Link href="/deudas" className="dashboard-nav__link">
+              Deudas
+            </Link>
           </div>
         </div>
         <div className="dashboard-nav__usuario">
           <span className="dashboard-nav__nombre">{nombreUsuario}</span>
-          <button 
+          <button
             onClick={manejarCerrarSesion}
             className="dashboard-nav__cerrar-sesion"
           >

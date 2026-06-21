@@ -1,6 +1,6 @@
-import { prisma } from '@/shared/libs/prisma';
-import type { Sesion } from '@prisma/client';
-import type { ISesionRepository, DatosCrearSesion } from './ISesionRepository';
+import { prisma } from "@/shared/libs/prisma";
+import type { Sesion } from "@prisma/client";
+import type { ISesionRepository, DatosCrearSesion } from "./ISesionRepository";
 
 export class PrismaSesionRepository implements ISesionRepository {
   async crear(data: DatosCrearSesion): Promise<Sesion> {
@@ -12,7 +12,10 @@ export class PrismaSesionRepository implements ISesionRepository {
     });
   }
   async actualizarTokenHash(id: string, nuevoHash: string): Promise<void> {
-    await prisma.sesion.update({ where: { id }, data: { tokenHash: nuevoHash } });
+    await prisma.sesion.update({
+      where: { id },
+      data: { tokenHash: nuevoHash },
+    });
   }
   async eliminarPorTokenHash(tokenHash: string): Promise<void> {
     await prisma.sesion.deleteMany({ where: { tokenHash } });

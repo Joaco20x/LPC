@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { Prisma } from "@prisma/client";
 
 export interface DatosCrearDeuda {
   idGrupo: string;
@@ -18,5 +18,8 @@ export type DeudaConRelaciones = Prisma.DeudaGetPayload<{
 
 export interface IDeudaRepository {
   crearMuchas(data: DatosCrearDeuda[], tx?: unknown): Promise<void>;
-  obtenerPendientes(idUsuario: string, idGrupo?: string): Promise<DeudaConRelaciones[]>;
+  obtenerPendientes(
+    idUsuario: string,
+    idGrupo?: string,
+  ): Promise<DeudaConRelaciones[]>;
 }

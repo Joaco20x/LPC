@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { procesarLogin } from '@/auth/services/login.service';
-import { validarInicioSesion } from '@/auth/validaciones/autenticacion';
-import { crearDependencias } from '@/shared/di/crearDependencias';
+import { NextRequest, NextResponse } from "next/server";
+import { procesarLogin } from "@/auth/services/login.service";
+import { validarInicioSesion } from "@/auth/validaciones/autenticacion";
+import { crearDependencias } from "@/shared/di/crearDependencias";
 
 export async function controladorLogin(req: NextRequest) {
   try {
@@ -9,24 +9,44 @@ export async function controladorLogin(req: NextRequest) {
     const errores = validarInicioSesion(cuerpo);
 
     if (errores.length > 0) {
-      return NextResponse.json({ exito: false, mensaje: 'Datos inválidos' }, { status: 400 });
+      return NextResponse.json(
+        { exito: false, mensaje: "Datos inválidos" },
+        { status: 400 },
+      );
     }
 
     const { usuarioRepo, sesionRepo } = crearDependencias();
-    const resultado = await procesarLogin(cuerpo.correo, cuerpo.contrasena, usuarioRepo, sesionRepo);
+    const resultado = await procesarLogin(
+      cuerpo.correo,
+      cuerpo.contrasena,
+      usuarioRepo,
+      sesionRepo,
+    );
 
-    const respuesta = NextResponse.json({
-      exito: true, mensaje: 'Sesión iniciada',
-      datos: { accessToken: resultado.accessToken, usuario: resultado.usuario },
-    }, { status: 200 });
+    const respuesta = NextResponse.json(
+      {
+        exito: true,
+        mensaje: "Sesión iniciada",
+        datos: {
+          accessToken: resultado.accessToken,
+          usuario: resultado.usuario,
+        },
+      },
+      { status: 200 },
+    );
 
-    respuesta.cookies.set('refreshToken', resultado.refreshToken, {
-      httpOnly: true, secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7,
+    respuesta.cookies.set("refreshToken", resultado.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
     });
 
     return respuesta;
-  } catch (error: any) {
-    return NextResponse.json({ exito: false, mensaje: error.message || 'Error en el servidor' }, { status: 401 });
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    return NextResponse.json({ exito: false, mensaje }, { status: 401 });
   }
 }

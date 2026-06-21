@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 // Hook reutilizable para formularios - Principio DRY + SRP
-import { useState, useCallback } from 'react';
-import type { ErrorCampo } from '@/auth/types/autenticacion';
+import { useState, useCallback } from "react";
+import type { ErrorCampo } from "@/auth/types/autenticacion";
 
 interface EstadoFormulario<T> {
   datos: T;
@@ -20,7 +20,7 @@ interface AccionesFormulario<T> {
 }
 
 export function useFormulario<T extends object>(
-  valorInicial: T
+  valorInicial: T,
 ): [EstadoFormulario<T>, AccionesFormulario<T>] {
   const [datos, setDatos] = useState<T>(valorInicial);
   const [errores, setErrores] = useState<Record<string, string>>({});
@@ -28,8 +28,8 @@ export function useFormulario<T extends object>(
   const [enviado, setEnviado] = useState(false);
 
   const actualizarCampo = useCallback((campo: keyof T, valor: string) => {
-    setDatos(prev => ({ ...prev, [campo]: valor }));
-    setErrores(prev => {
+    setDatos((prev) => ({ ...prev, [campo]: valor }));
+    setErrores((prev) => {
       const siguiente = { ...prev };
       delete siguiente[campo as string];
       return siguiente;
@@ -45,7 +45,7 @@ export function useFormulario<T extends object>(
   }, []);
 
   const limpiarError = useCallback((campo: string) => {
-    setErrores(prev => {
+    setErrores((prev) => {
       const siguiente = { ...prev };
       delete siguiente[campo];
       return siguiente;

@@ -1,5 +1,8 @@
-import type { ISesionRepository } from '@/auth/repositories/ISesionRepository';
+import type { ISesionRepository } from "@/auth/repositories/ISesionRepository";
 
-export async function terminarSesion(refreshToken: string, sesionRepo: ISesionRepository) {
+export async function terminarSesion(
+  refreshToken: string,
+  sesionRepo: ISesionRepository,
+) {
   await sesionRepo.eliminarPorTokenHash(refreshToken);
 }

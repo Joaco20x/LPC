@@ -4,11 +4,11 @@
 
 export async function peticionAutenticada(
   url: string,
-  opciones: RequestInit = {}
+  opciones: RequestInit = {},
 ): Promise<Response> {
   const accessToken =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('lpc_access_token')
+    typeof window !== "undefined"
+      ? localStorage.getItem("lpc_access_token")
       : null;
 
   const respuesta = await fetch(url, {
@@ -25,24 +25,24 @@ export async function peticionAutenticada(
   }
 
   // Si es 401, intentar refrescar el token
-  const refreshRespuesta = await fetch('/api/auth/refresh', {
-    method: 'POST',
-    credentials: 'include',
+  const refreshRespuesta = await fetch("/api/auth/refresh", {
+    method: "POST",
+    credentials: "include",
   });
 
   if (!refreshRespuesta.ok) {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('lpc_access_token');
-      localStorage.removeItem('lpc_datos_usuario');
-      window.location.href = '/login';
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("lpc_access_token");
+      localStorage.removeItem("lpc_datos_usuario");
+      window.location.href = "/login";
     }
-    throw new Error('Sesión expirada');
+    throw new Error("Sesión expirada");
   }
 
   const { accessToken: nuevoToken } = await refreshRespuesta.json();
 
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('lpc_access_token', nuevoToken);
+  if (typeof window !== "undefined") {
+    localStorage.setItem("lpc_access_token", nuevoToken);
   }
 
   // Reintentar la petición original con el nuevo token

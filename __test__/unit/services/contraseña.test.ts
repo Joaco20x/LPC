@@ -1,29 +1,43 @@
-import { hashearContrasena, verificarContrasena } from '@/auth/services/contraseña';
+let callCount = 0;
+jest.mock("bcryptjs", () => ({
+  hash: jest.fn((pw: string, rounds: number) => {
+    callCount++;
+    return Promise.resolve(`hash-${pw}-${rounds}-${callCount}`);
+  }),
+  compare: jest.fn((pw: string, hash: string) =>
+    Promise.resolve(hash.startsWith(`hash-${pw}`)),
+  ),
+}));
 
-describe('hashearContrasena', () => {
-  it('retorna un hash para una contraseña', async () => {
-    const hash = await hashearContrasena('mi-contraseña');
-    expect(typeof hash).toBe('string');
+import {
+  hashearContrasena,
+  verificarContrasena,
+} from "@/auth/services/contraseña";
+
+describe("hashearContrasena", () => {
+  it("retorna un hash para una contraseña", async () => {
+    const hash = await hashearContrasena("mi-contraseña");
+    expect(typeof hash).toBe("string");
     expect(hash.length).toBeGreaterThan(10);
   });
 
-  it('produce hashes distintos para la misma contraseña (salt)', async () => {
-    const hash1 = await hashearContrasena('mi-contraseña');
-    const hash2 = await hashearContrasena('mi-contraseña');
+  it("produce hashes distintos para la misma contraseña (salt)", async () => {
+    const hash1 = await hashearContrasena("mi-contraseña");
+    const hash2 = await hashearContrasena("mi-contraseña");
     expect(hash1).not.toBe(hash2);
   });
 });
 
-describe('verificarContrasena', () => {
-  it('retorna true para la contraseña correcta', async () => {
-    const hash = await hashearContrasena('mi-contraseña');
-    const valida = await verificarContrasena('mi-contraseña', hash);
+describe("verificarContrasena", () => {
+  it("retorna true para la contraseña correcta", async () => {
+    const hash = await hashearContrasena("mi-contraseña");
+    const valida = await verificarContrasena("mi-contraseña", hash);
     expect(valida).toBe(true);
   });
 
-  it('retorna false para contraseña incorrecta', async () => {
-    const hash = await hashearContrasena('mi-contraseña');
-    const valida = await verificarContrasena('otra-contraseña', hash);
+  it("retorna false para contraseña incorrecta", async () => {
+    const hash = await hashearContrasena("mi-contraseña");
+    const valida = await verificarContrasena("otra-contraseña", hash);
     expect(valida).toBe(false);
   });
 });

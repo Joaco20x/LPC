@@ -4,7 +4,7 @@
 export interface DivisionGastoInput {
   idUsuario: string;
   montoAsignado: number;
-  tipoDivision: 'igual' | 'exacto' | 'porcentaje';
+  tipoDivision: "igual" | "exacto" | "porcentaje";
 }
 
 export interface DatosGasto {

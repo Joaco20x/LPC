@@ -1,4 +1,4 @@
-import { terminarSesion } from '@/auth/services/logout.service';
+import { terminarSesion } from "@/auth/services/logout.service";
 
 function crearMockSesionRepo() {
   return {
@@ -10,12 +10,14 @@ function crearMockSesionRepo() {
   };
 }
 
-describe('terminarSesion', () => {
-  it('elimina la sesión por token hash', async () => {
+describe("terminarSesion", () => {
+  it("elimina la sesión por token hash", async () => {
     const sesionRepo = crearMockSesionRepo();
 
-    await terminarSesion('token-hash-ejemplo', sesionRepo);
+    await terminarSesion("token-hash-ejemplo", sesionRepo);
 
-    expect(sesionRepo.eliminarPorTokenHash).toHaveBeenCalledWith('token-hash-ejemplo');
+    expect(sesionRepo.eliminarPorTokenHash).toHaveBeenCalledWith(
+      "token-hash-ejemplo",
+    );
   });
 });

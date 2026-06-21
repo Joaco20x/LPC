@@ -1,5 +1,5 @@
-import { NextRequest } from 'next/server';
-import { controladorLogin } from '@/auth/controllers/login.controller';
+import { NextRequest } from "next/server";
+import { controladorLogin } from "@/auth/controllers/login.controller";
 
 export async function POST(req: NextRequest) {
   return await controladorLogin(req);

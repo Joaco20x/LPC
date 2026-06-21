@@ -1,7 +1,9 @@
-import type { IMiembroGrupoRepository } from '@/grupos/repositories/IMiembroGrupoRepository';
-import type { IDeudaRepository } from '@/deudas/repositories/IDeudaRepository';
+import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
 
-interface DivisionInput { idUsuario: string }
+interface DivisionInput {
+  idUsuario: string;
+}
 interface DatosGenerarDeudas {
   idGrupo: string;
   monto: number;
@@ -24,7 +26,9 @@ export async function generarDeudas(
   if (totalMiembros <= 1) return;
 
   const idsEnDivisiones = new Set(datos.divisiones.map((d) => d.idUsuario));
-  const deudores = miembrosGrupo.map((m) => m.idUsuario).filter((id) => !idsEnDivisiones.has(id));
+  const deudores = miembrosGrupo
+    .map((m) => m.idUsuario)
+    .filter((id) => !idsEnDivisiones.has(id));
 
   if (deudores.length === 0) return;
 

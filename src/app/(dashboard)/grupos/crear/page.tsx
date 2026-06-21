@@ -1,10 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import './crear-grupo.css';
-import CampoEntrada from '@/auth/components/CampoEntrada';
-import { useCrearGrupo } from '@/grupos/components/useCrearGrupo';
-
+import React from "react";
+import "./crear-grupo.css";
+import CampoEntrada from "@/auth/components/CampoEntrada";
+import { useCrearGrupo } from "@/grupos/components/useCrearGrupo";
 
 export default function PaginaCrearGrupo() {
   const {
@@ -26,35 +25,59 @@ export default function PaginaCrearGrupo() {
   return (
     <main className="crear-grupo-raiz">
       <div className="crear-grupo-card">
-
         <div className="pasos-indicador">
-          <div className={`paso-punto ${paso >= 1 ? 'paso-punto--activo' : ''}`} />
-          <div className={`paso-punto ${paso >= 2 ? 'paso-punto--activo' : ''}`} />
+          <div
+            className={`paso-punto ${paso >= 1 ? "paso-punto--activo" : ""}`}
+          />
+          <div
+            className={`paso-punto ${paso >= 2 ? "paso-punto--activo" : ""}`}
+          />
         </div>
 
-        {errorGlobal && <div className="auth-mensaje auth-mensaje--error">{errorGlobal}</div>}
+        {errorGlobal && (
+          <div className="auth-mensaje auth-mensaje--error">{errorGlobal}</div>
+        )}
 
         {paso === 1 ? (
           <section className="seccion-wizard">
             <h1 className="titulo-paso">Detalles del Viaje</h1>
-            <p className="descripcion-paso">Comencemos por lo básico: ¿A dónde van y cuándo?</p>
+            <p className="descripcion-paso">
+              Comencemos por lo básico: ¿A dónde van y cuándo?
+            </p>
 
             <CampoEntrada
-              id="nombre" etiqueta="Nombre del Grupo" valor={datosGrupo.nombre}
-              onChange={(v) => actualizarDatosGrupo('nombre', v)}
+              id="nombre"
+              etiqueta="Nombre del Grupo"
+              valor={datosGrupo.nombre}
+              onChange={(v) => actualizarDatosGrupo("nombre", v)}
             />
             <CampoEntrada
-              id="pais" etiqueta="País de destino" valor={datosGrupo.pais}
-              onChange={(v) => actualizarDatosGrupo('pais', v)}
+              id="pais"
+              etiqueta="País de destino"
+              valor={datosGrupo.pais}
+              onChange={(v) => actualizarDatosGrupo("pais", v)}
             />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1rem",
+                marginTop: "1rem",
+              }}
+            >
               <CampoEntrada
-                id="inicio" etiqueta="Inicio" tipo="date" valor={datosGrupo.fechaInicio}
-                onChange={(v) => actualizarDatosGrupo('fechaInicio', v)}
+                id="inicio"
+                etiqueta="Inicio"
+                tipo="date"
+                valor={datosGrupo.fechaInicio}
+                onChange={(v) => actualizarDatosGrupo("fechaInicio", v)}
               />
               <CampoEntrada
-                id="fin" etiqueta="Fin" tipo="date" valor={datosGrupo.fechaFin}
-                onChange={(v) => actualizarDatosGrupo('fechaFin', v)}
+                id="fin"
+                etiqueta="Fin"
+                tipo="date"
+                valor={datosGrupo.fechaFin}
+                onChange={(v) => actualizarDatosGrupo("fechaFin", v)}
               />
             </div>
 
@@ -72,12 +95,16 @@ export default function PaginaCrearGrupo() {
         ) : (
           <section className="seccion-wizard">
             <h1 className="titulo-paso">Añadir Integrantes</h1>
-            <p className="descripcion-paso">Busca a tus amigos por su correo institucional.</p>
+            <p className="descripcion-paso">
+              Busca a tus amigos por su correo institucional.
+            </p>
 
             <div className="buscador-integrantes">
               <div style={{ flex: 1 }}>
                 <CampoEntrada
-                  id="search" etiqueta="Correo electrónico" valor={correoBusqueda}
+                  id="search"
+                  etiqueta="Correo electrónico"
+                  valor={correoBusqueda}
                   placeholder="ejemplo@ufrontera.cl"
                   onChange={setCorreoBusqueda}
                 />
@@ -86,18 +113,22 @@ export default function PaginaCrearGrupo() {
                 className="boton-secundario"
                 onClick={buscarYAñadir}
                 disabled={buscandoUsuario || !correoBusqueda}
-                style={{ height: '3.5rem', marginBottom: '0.5rem' }}
+                style={{ height: "3.5rem", marginBottom: "0.5rem" }}
               >
-                {buscandoUsuario ? '...' : 'Añadir'}
+                {buscandoUsuario ? "..." : "Añadir"}
               </button>
             </div>
 
             <ul className="lista-integrantes">
-              {listaIntegrantes.map(integrante => (
+              {listaIntegrantes.map((integrante) => (
                 <li key={integrante.id} className="integrante-item">
                   <div className="integrante-info">
-                    <span className="integrante-nombre">{integrante.nombre}</span>
-                    <span className="integrante-correo">{integrante.correo}</span>
+                    <span className="integrante-nombre">
+                      {integrante.nombre}
+                    </span>
+                    <span className="integrante-correo">
+                      {integrante.correo}
+                    </span>
                   </div>
                   <button
                     className="boton-eliminar"
@@ -110,9 +141,11 @@ export default function PaginaCrearGrupo() {
             </ul>
 
             <div className="acciones-wizard">
-              <button className="boton-secundario" onClick={() => setPaso(1)}>Atrás</button>
+              <button className="boton-secundario" onClick={() => setPaso(1)}>
+                Atrás
+              </button>
               <button
-                className={`boton-primario ${cargando ? 'boton-primario--cargando' : ''}`}
+                className={`boton-primario ${cargando ? "boton-primario--cargando" : ""}`}
                 onClick={finalizarCreacion}
                 disabled={cargando || listaIntegrantes.length === 0}
               >

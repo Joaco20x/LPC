@@ -1,12 +1,20 @@
-import { prisma } from '@/shared/libs/prisma';
-import type { IDeudaRepository, DatosCrearDeuda, DeudaConRelaciones } from './IDeudaRepository';
+import { prisma } from "@/shared/libs/prisma";
+import type { Prisma } from "@prisma/client";
+import type {
+  IDeudaRepository,
+  DatosCrearDeuda,
+  DeudaConRelaciones,
+} from "./IDeudaRepository";
 
 export class PrismaDeudaRepository implements IDeudaRepository {
   async crearMuchas(data: DatosCrearDeuda[], tx?: unknown): Promise<void> {
-    const client = tx as any || prisma;
+    const client = (tx || prisma) as Prisma.TransactionClient;
     await client.deuda.createMany({ data });
   }
-  async obtenerPendientes(idUsuario: string, idGrupo?: string): Promise<DeudaConRelaciones[]> {
+  async obtenerPendientes(
+    idUsuario: string,
+    idGrupo?: string,
+  ): Promise<DeudaConRelaciones[]> {
     return prisma.deuda.findMany({
       where: {
         saldada: false,

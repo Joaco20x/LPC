@@ -1,4 +1,4 @@
-import type { TokenRecuperacion } from '@prisma/client';
+import type { TokenRecuperacion } from "@prisma/client";
 
 export interface DatosCrearTokenRecuperacion {
   idUsuario: string;

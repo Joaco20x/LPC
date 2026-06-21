@@ -1,6 +1,6 @@
-import { generarTokens } from '@/auth/services/jwt';
-import type { IUsuarioRepository } from '@/auth/repositories/IUsuarioRepository';
-import type { ISesionRepository } from '@/auth/repositories/ISesionRepository';
+import { generarTokens } from "@/auth/services/jwt";
+import type { IUsuarioRepository } from "@/auth/repositories/IUsuarioRepository";
+import type { ISesionRepository } from "@/auth/repositories/ISesionRepository";
 
 const DIAS_REFRESH = 7;
 
@@ -16,7 +16,7 @@ export async function procesarLoginGoogle(
   usuarioRepo: IUsuarioRepository,
   sesionRepo: ISesionRepository,
 ) {
-  let usuario = await usuarioRepo.buscarPorOauth('google', datosGoogle.id);
+  let usuario = await usuarioRepo.buscarPorOauth("google", datosGoogle.id);
 
   if (!usuario) {
     usuario = await usuarioRepo.buscarPorCorreo(datosGoogle.email);
@@ -27,13 +27,16 @@ export async function procesarLoginGoogle(
       nombre: datosGoogle.name,
       correo: datosGoogle.email,
       contrasenaHash: null,
-      proveedorOauth: 'google',
+      proveedorOauth: "google",
       idProveedorOauth: datosGoogle.id,
       verificado: datosGoogle.verified_email,
     });
   }
 
-  const tokens = generarTokens({ idUsuario: usuario.id, correo: usuario.correo });
+  const tokens = generarTokens({
+    idUsuario: usuario.id,
+    correo: usuario.correo,
+  });
 
   const expiraEn = new Date();
   expiraEn.setDate(expiraEn.getDate() + DIAS_REFRESH);

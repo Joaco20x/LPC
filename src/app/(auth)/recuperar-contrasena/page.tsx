@@ -1,18 +1,19 @@
-'use client';
+"use client";
 
 // Página de recuperación de contraseña — FR-01
 
-import Link from 'next/link';
-import { useFormulario } from '@/auth/validaciones/useFormulario';
-import { validarRecuperacion } from '@/auth/validaciones/autenticacion';
-import { recuperarContrasena} from '@/auth/validaciones/servicioAuth';
-import CampoEntrada from '@/auth/components/CampoEntrada';
-import type { DatosRecuperacion } from '@/auth/types/autenticacion';
+import Link from "next/link";
+import { useFormulario } from "@/auth/validaciones/useFormulario";
+import { validarRecuperacion } from "@/auth/validaciones/autenticacion";
+import { recuperarContrasena } from "@/auth/validaciones/servicioAuth";
+import CampoEntrada from "@/auth/components/CampoEntrada";
+import type { DatosRecuperacion } from "@/auth/types/autenticacion";
 
-const VALORES_INICIALES: DatosRecuperacion = { correo: '' };
+const VALORES_INICIALES: DatosRecuperacion = { correo: "" };
 
 export default function PaginaRecuperarContrasena() {
-  const [estado, acciones] = useFormulario<DatosRecuperacion>(VALORES_INICIALES);
+  const [estado, acciones] =
+    useFormulario<DatosRecuperacion>(VALORES_INICIALES);
   const { datos, errores, cargando, enviado } = estado;
 
   const manejarEnvio = async (e: React.FormEvent) => {
@@ -42,7 +43,13 @@ export default function PaginaRecuperarContrasena() {
     return (
       <div className="auth-confirmacion">
         <div className="auth-confirmacion__icono">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 20 20"
+            fill="none"
+            aria-hidden="true"
+          >
             <path
               d="M2.5 6.5l7.5 5 7.5-5M2.5 5.5h15v10a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-10Z"
               stroke="currentColor"
@@ -54,14 +61,18 @@ export default function PaginaRecuperarContrasena() {
         </div>
         <h2 className="auth-confirmacion__titulo">Revisa tu correo</h2>
         <p className="auth-confirmacion__descripcion">
-          Enviamos las instrucciones de recuperación a{' '}
-          <span className="auth-confirmacion__correo">{datos.correo}</span>.
-          El enlace es válido por 30 minutos.
+          Enviamos las instrucciones de recuperación a{" "}
+          <span className="auth-confirmacion__correo">{datos.correo}</span>. El
+          enlace es válido por 30 minutos.
         </p>
         <Link
           href="/login"
           className="boton-primario"
-          style={{ display: 'block', textDecoration: 'none', textAlign: 'center' }}
+          style={{
+            display: "block",
+            textDecoration: "none",
+            textAlign: "center",
+          }}
         >
           Volver al inicio
         </Link>
@@ -79,7 +90,8 @@ export default function PaginaRecuperarContrasena() {
         </div>
         <h1 className="auth-titulo">Recupera tu acceso</h1>
         <p className="auth-subtitulo">
-          Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+          Ingresa tu correo y te enviaremos un enlace para restablecer tu
+          contraseña.
         </p>
       </header>
 
@@ -92,15 +104,15 @@ export default function PaginaRecuperarContrasena() {
           error={errores.correo}
           placeholder="tu@correo.com"
           autoComplete="email"
-          onChange={(valor) => acciones.actualizarCampo('correo', valor)}
+          onChange={(valor) => acciones.actualizarCampo("correo", valor)}
         />
 
         <button
           type="submit"
           disabled={cargando}
-          className={`boton-primario${cargando ? ' boton-primario--cargando' : ''}`}
+          className={`boton-primario${cargando ? " boton-primario--cargando" : ""}`}
         >
-          {cargando ? '' : 'Enviar instrucciones'}
+          {cargando ? "" : "Enviar instrucciones"}
         </button>
       </form>
 

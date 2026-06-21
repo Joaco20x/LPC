@@ -1,4 +1,4 @@
-import type { Gasto, Prisma } from '@prisma/client';
+import type { Gasto, Prisma } from "@prisma/client";
 
 export interface DatosCrearGasto {
   idGrupo: string;
@@ -13,7 +13,9 @@ export type GastoConRelaciones = Prisma.GastoGetPayload<{
   include: {
     pagador: { select: { id: true; nombre: true } };
     grupo: { select: { id: true; nombre: true } };
-    divisiones: { include: { usuario: { select: { id: true; nombre: true } } } };
+    divisiones: {
+      include: { usuario: { select: { id: true; nombre: true } } };
+    };
   };
 }>;
 

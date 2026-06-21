@@ -1,4 +1,4 @@
-import type { Sesion } from '@prisma/client';
+import type { Sesion } from "@prisma/client";
 
 export interface DatosCrearSesion {
   idUsuario: string;

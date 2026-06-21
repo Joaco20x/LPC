@@ -1,6 +1,9 @@
-import { prisma } from '@/shared/libs/prisma';
-import type { TokenRecuperacion } from '@prisma/client';
-import type { ITokenRecuperacionRepository, DatosCrearTokenRecuperacion } from './ITokenRecuperacionRepository';
+import { prisma } from "@/shared/libs/prisma";
+import type { TokenRecuperacion } from "@prisma/client";
+import type {
+  ITokenRecuperacionRepository,
+  DatosCrearTokenRecuperacion,
+} from "./ITokenRecuperacionRepository";
 
 export class PrismaTokenRecuperacionRepository implements ITokenRecuperacionRepository {
   async invalidarPorIdUsuario(idUsuario: string): Promise<void> {
@@ -18,6 +21,9 @@ export class PrismaTokenRecuperacionRepository implements ITokenRecuperacionRepo
     });
   }
   async marcarComoUsado(id: string): Promise<void> {
-    await prisma.tokenRecuperacion.update({ where: { id }, data: { usado: true } });
+    await prisma.tokenRecuperacion.update({
+      where: { id },
+      data: { usado: true },
+    });
   }
 }

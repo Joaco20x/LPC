@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap");
 
 :root {
   --color-fondo: #f8f7f4;
@@ -10,14 +10,16 @@
   --color-acento-hover: #1e3329;
   --color-borde: #e4e4e0;
 
-  --fuente-display: 'DM Serif Display', Georgia, serif;
-  --fuente-cuerpo: 'DM Sans', system-ui, sans-serif;
+  --fuente-display: "DM Serif Display", Georgia, serif;
+  --fuente-cuerpo: "DM Sans", system-ui, sans-serif;
 
   --transicion: 220ms cubic-bezier(0.4, 0, 0.2, 1);
   --transicion-lenta: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -117,7 +119,9 @@
   border-radius: 4px;
   text-decoration: none;
   color: inherit;
-  transition: border-color var(--transicion), box-shadow var(--transicion);
+  transition:
+    border-color var(--transicion),
+    box-shadow var(--transicion);
   cursor: pointer;
 }
 
@@ -162,6 +166,12 @@
 }
 
 @keyframes aparecerSuave {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

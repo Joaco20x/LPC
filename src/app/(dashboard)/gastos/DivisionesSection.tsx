@@ -1,4 +1,4 @@
-import { Opcion, DivisionFormulario } from '@/gastos/components/useGastoForm';
+import { Opcion, DivisionFormulario } from "@/gastos/components/useGastoForm";
 
 interface Props {
   divisiones: DivisionFormulario[];
@@ -9,15 +9,26 @@ interface Props {
   errorDivisiones?: string;
 }
 
-export function DivisionesSection({ divisiones, miembros, onAgregar, onEliminar, onChange, errorDivisiones }: Props) {
+export function DivisionesSection({
+  divisiones,
+  miembros,
+  onAgregar,
+  onEliminar,
+  onChange,
+  errorDivisiones,
+}: Props) {
   return (
     <div className="divisiones-seccion">
       <div className="divisiones-header">
         <span className="divisiones-titulo">División del gasto</span>
         <span className="opcional">
-          ({divisiones.length} persona{divisiones.length !== 1 ? 's' : ''})
+          ({divisiones.length} persona{divisiones.length !== 1 ? "s" : ""})
         </span>
-        <button type="button" className="btn-agregar-division" onClick={onAgregar}>
+        <button
+          type="button"
+          className="btn-agregar-division"
+          onClick={onAgregar}
+        >
           + Agregar
         </button>
       </div>
@@ -31,18 +42,20 @@ export function DivisionesSection({ divisiones, miembros, onAgregar, onEliminar,
           <select
             className="form-control"
             value={div.idUsuario}
-            onChange={(e) => onChange(i, 'idUsuario', e.target.value)}
+            onChange={(e) => onChange(i, "idUsuario", e.target.value)}
           >
             <option value="">Persona</option>
             {miembros.map((m) => (
-              <option key={m.id} value={m.id}>{m.nombre}</option>
+              <option key={m.id} value={m.id}>
+                {m.nombre}
+              </option>
             ))}
           </select>
 
           <select
             className="form-control"
             value={div.tipoDivision}
-            onChange={(e) => onChange(i, 'tipoDivision', e.target.value)}
+            onChange={(e) => onChange(i, "tipoDivision", e.target.value)}
           >
             <option value="igual">Igual</option>
             <option value="exacto">Monto exacto</option>
@@ -52,10 +65,12 @@ export function DivisionesSection({ divisiones, miembros, onAgregar, onEliminar,
           <input
             type="number"
             className="form-control"
-            placeholder={div.tipoDivision === 'porcentaje' ? '% (ej: 50)' : 'Monto'}
+            placeholder={
+              div.tipoDivision === "porcentaje" ? "% (ej: 50)" : "Monto"
+            }
             value={div.montoAsignado}
             min="0"
-            onChange={(e) => onChange(i, 'montoAsignado', e.target.value)}
+            onChange={(e) => onChange(i, "montoAsignado", e.target.value)}
           />
 
           <button
@@ -70,7 +85,10 @@ export function DivisionesSection({ divisiones, miembros, onAgregar, onEliminar,
       ))}
 
       {errorDivisiones && (
-        <span className="error-msg" style={{ display: 'block', marginTop: '0.5rem' }}>
+        <span
+          className="error-msg"
+          style={{ display: "block", marginTop: "0.5rem" }}
+        >
           {errorDivisiones}
         </span>
       )}

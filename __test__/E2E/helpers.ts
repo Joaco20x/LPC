@@ -6,7 +6,7 @@ export function crearMockNextRequest(opciones: {
   cookies?: Record<string, string>;
   params?: Record<string, string>;
 }) {
-  const url = opciones.url || 'http://localhost:3000/api/test';
+  const url = opciones.url || "http://localhost:3000/api/test";
   const urlObj = new URL(url);
 
   const mockJson = jest.fn().mockResolvedValue(opciones.cuerpo || {});
@@ -20,13 +20,14 @@ export function crearMockNextRequest(opciones: {
     headers: new Map<string, string>(),
     nextUrl: urlObj,
     url,
-    method: opciones.metodo || 'GET',
+    method: opciones.metodo || "GET",
   };
 
   if (opciones.token) {
-    req.headers.set('Authorization', `Bearer ${opciones.token}`);
+    req.headers.set("Authorization", `Bearer ${opciones.token}`);
     req.headers.get = (name: string) => {
-      if (name.toLowerCase() === 'authorization') return `Bearer ${opciones.token}`;
+      if (name.toLowerCase() === "authorization")
+        return `Bearer ${opciones.token}`;
       return null;
     };
   } else {
@@ -49,6 +50,6 @@ export function analizarRespuesta(respuesta: Response) {
     },
     headers: (respuesta as any).headers || {},
     redirected: (respuesta as any).redirected || false,
-    url: (respuesta as any).url || '',
+    url: (respuesta as any).url || "",
   };
 }

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 // Componente para botones de OAuth - SRP + OCP (abierto a nuevos proveedores)
 
-import type { ProveedorOAuth } from '@/auth/types/autenticacion';
+import type { ProveedorOAuth } from "@/auth/types/autenticacion";
 
 interface PropsBotonOAuth {
   proveedor: ProveedorOAuth;
@@ -11,13 +11,19 @@ interface PropsBotonOAuth {
 }
 
 const ETIQUETAS_PROVEEDOR: Record<ProveedorOAuth, string> = {
-  google: 'Continuar con Google',
-  apple: 'Continuar con Apple',
+  google: "Continuar con Google",
+  apple: "Continuar con Apple",
 };
 
 // Íconos SVG inline para no depender de librerías externas
 const IconoGoogle = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    fill="none"
+    aria-hidden="true"
+  >
     <path
       d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"
       fill="#4285F4"
@@ -38,7 +44,13 @@ const IconoGoogle = () => (
 );
 
 const IconoApple = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 18 18"
+    fill="currentColor"
+    aria-hidden="true"
+  >
     <path d="M13.18 9.385c-.021-2.14 1.745-3.174 1.824-3.226-1-1.456-2.547-1.655-3.094-1.674-1.314-.134-2.572.777-3.238.777-.666 0-1.69-.759-2.779-.738-1.43.022-2.75.835-3.484 2.117-1.492 2.582-.381 6.408 1.07 8.506.712 1.024 1.558 2.172 2.668 2.131 1.074-.044 1.478-.688 2.775-.688 1.298 0 1.664.688 2.795.664 1.155-.019 1.882-1.043 2.585-2.073.822-1.187 1.157-2.347 1.175-2.405-.026-.011-2.25-.863-2.273-3.392Z" />
     <path d="M11.048 3.176C11.623 2.475 12.01 1.504 11.9.521c-.848.036-1.88.567-2.48 1.251-.541.618-.998 1.615-.873 2.566.952.073 1.921-.479 2.501-1.162Z" />
   </svg>
@@ -49,7 +61,11 @@ const ICONOS_PROVEEDOR: Record<ProveedorOAuth, React.ReactNode> = {
   apple: <IconoApple />,
 };
 
-export default function BotonOAuth({ proveedor, onClick, cargando = false }: PropsBotonOAuth) {
+export default function BotonOAuth({
+  proveedor,
+  onClick,
+  cargando = false,
+}: PropsBotonOAuth) {
   return (
     <button
       type="button"
@@ -59,7 +75,9 @@ export default function BotonOAuth({ proveedor, onClick, cargando = false }: Pro
       aria-label={ETIQUETAS_PROVEEDOR[proveedor]}
     >
       <span className="boton-oauth__icono">{ICONOS_PROVEEDOR[proveedor]}</span>
-      <span className="boton-oauth__texto">{ETIQUETAS_PROVEEDOR[proveedor]}</span>
+      <span className="boton-oauth__texto">
+        {ETIQUETAS_PROVEEDOR[proveedor]}
+      </span>
     </button>
   );
 }

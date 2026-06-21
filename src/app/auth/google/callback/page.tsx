@@ -1,43 +1,53 @@
-'use client';
+"use client";
 
-import { Suspense, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  guardarAccessToken,
+  guardarDatosUsuario,
+} from "@/shared/servicios/almacenamientoTokens";
 
 function ContenidoCallbackGoogle() {
   const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
-    const accessToken = params.get('accessToken');
-    const error = params.get('error');
+    const accessToken = params.get("accessToken");
+    const error = params.get("error");
 
     if (error || !accessToken) {
-      router.replace('/login?error=oauth_fallido');
+      router.replace("/login?error=oauth_fallido");
       return;
     }
 
     guardarAccessToken(accessToken);
 
-    const id = params.get('id');
-    const nombre = params.get('nombre');
-    const correo = params.get('correo');
-    const verificado = params.get('verificado');
+    const id = params.get("id");
+    const nombre = params.get("nombre");
+    const correo = params.get("correo");
+    const verificado = params.get("verificado");
 
     if (id && nombre && correo) {
       guardarDatosUsuario({
         id,
         nombre,
         correo,
-        verificado: verificado === 'true',
+        verificado: verificado === "true",
       });
     }
 
-    router.replace('/dashboard');
+    router.replace("/dashboard");
   }, [params, router]);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+      }}
+    >
       <p>Iniciando sesión con Google...</p>
     </div>
   );
@@ -45,11 +55,20 @@ function ContenidoCallbackGoogle() {
 
 export default function PaginaCallbackGoogle() {
   return (
-    <Suspense fallback={
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <p>Iniciando sesión con Google...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <p>Iniciando sesión con Google...</p>
+        </div>
+      }
+    >
       <ContenidoCallbackGoogle />
     </Suspense>
   );

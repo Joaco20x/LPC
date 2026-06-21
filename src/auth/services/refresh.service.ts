@@ -1,13 +1,19 @@
-import { verificarRefreshToken, generarTokens } from '@/auth/services/jwt';
-import type { ISesionRepository } from '@/auth/repositories/ISesionRepository';
+import { verificarRefreshToken, generarTokens } from "@/auth/services/jwt";
+import type { ISesionRepository } from "@/auth/repositories/ISesionRepository";
 
-export async function refrescarToken(refreshToken: string, sesionRepo: ISesionRepository) {
+export async function refrescarToken(
+  refreshToken: string,
+  sesionRepo: ISesionRepository,
+) {
   const payload = verificarRefreshToken(refreshToken);
 
   const sesion = await sesionRepo.buscarPorTokenHash(refreshToken);
-  if (!sesion) throw new Error('Sesión inválida o expirada');
+  if (!sesion) throw new Error("Sesión inválida o expirada");
 
-  const tokens = generarTokens({ idUsuario: payload.idUsuario, correo: payload.correo });
+  const tokens = generarTokens({
+    idUsuario: payload.idUsuario,
+    correo: payload.correo,
+  });
   await sesionRepo.actualizarTokenHash(sesion.id, tokens.refreshToken);
 
   return { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken };
