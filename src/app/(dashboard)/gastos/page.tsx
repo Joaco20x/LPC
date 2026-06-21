@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useGastoForm } from '../../../frontend/components/esquemas/useGastoForm';
+import { useGastoForm } from '@/gastos/components/useGastoForm';
 import { DivisionesSection } from './DivisionesSection';
 import './gastos.css';
 

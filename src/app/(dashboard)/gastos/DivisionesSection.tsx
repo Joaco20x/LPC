@@ -1,4 +1,4 @@
-import { Opcion, DivisionFormulario } from '../../../frontend/components/esquemas/useGastoForm';
+import { Opcion, DivisionFormulario } from '@/gastos/components/useGastoForm';
 
 interface Props {
   divisiones: DivisionFormulario[];

@@ -6,13 +6,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useFormulario } from '@/shared/validaciones/useFormulario';
-import { validarInicioSesion } from '@/shared/validaciones/autenticacion';
-import { iniciarSesion } from '@/shared/validaciones/servicioAuth';
-import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
-import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
-import Separador from '@/frontend/components/autenticacion/Separador';
-import type { DatosInicioSesion, ProveedorOAuth } from '@/shared/types/autenticacion';
+import { useFormulario } from '@/auth/validaciones/useFormulario';
+import { validarInicioSesion } from '@/auth/validaciones/autenticacion';
+import { iniciarSesion } from '@/auth/validaciones/servicioAuth';
+import CampoEntrada from '@/auth/components/CampoEntrada';
+import BotonOAuth from '@/auth/components/BotonOAuth';
+import Separador from '@/auth/components/Separador';
+import type { DatosInicioSesion, ProveedorOAuth } from '@/auth/types/autenticacion';
 import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
 import '@/app/(auth)/auth.css';
 
@@ -60,8 +60,9 @@ export default function PaginaInicioSesion() {
   };
 
   const manejarOAuth = (proveedor: ProveedorOAuth) => {
-    // TODO: Conectar con NextAuth o proveedor OAuth
-    console.log('OAuth con:', proveedor);
+    if (proveedor === 'google') {
+      window.location.href = '/api/auth/google/iniciar';
+    }
   };
 
   return (

@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useFormulario } from '@/shared/validaciones/useFormulario';
-import { validarRegistro } from '@/shared/validaciones/autenticacion';
-import { registrar } from '@/shared/validaciones/servicioAuth';
-import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
-import BotonOAuth from '@/frontend/components/autenticacion/BotonOAuth';
-import Separador from '@/frontend/components/autenticacion/Separador';
-import type { DatosRegistro, ProveedorOAuth } from '@/shared/types/autenticacion';
+import { useFormulario } from '@/auth/validaciones/useFormulario';
+import { validarRegistro } from '@/auth/validaciones/autenticacion';
+import { registrar } from '@/auth/validaciones/servicioAuth';
+import CampoEntrada from '@/auth/components/CampoEntrada';
+import BotonOAuth from '@/auth/components/BotonOAuth';
+import Separador from '@/auth/components/Separador';
+import type { DatosRegistro, ProveedorOAuth } from '@/auth/types/autenticacion';
 import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
 const VALORES_INICIALES: DatosRegistro = {
   nombre: '',
@@ -55,7 +55,9 @@ export default function PaginaRegistro() {
   };
 
   const manejarOAuth = (proveedor: ProveedorOAuth) => {
-    console.log('OAuth con:', proveedor);
+    if (proveedor === 'google') {
+      window.location.href = '/api/auth/google/iniciar';
+    }
   };
 
   if (enviado) {

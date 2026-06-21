@@ -48,7 +48,7 @@ export default function PaginaDetalleGrupo() {
   const cargarDetalle = async () => {
     setCargando(true);
     try {
-      const res = await peticionAutenticada(`/api_dor/grupos/${id}`);
+      const res = await peticionAutenticada(`/api/grupos/${id}`);
       const data = await res.json();
       if (data.exito) {
         setGrupo(data.datos.grupo);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSwaggerSpec } from '@/lib/swagger';
+import { getSwaggerSpec } from '@/shared/libs/swagger';
 
 export async function GET() {
   const spec = getSwaggerSpec();

@@ -3,11 +3,11 @@
 // Página de recuperación de contraseña — FR-01
 
 import Link from 'next/link';
-import { useFormulario } from '@/shared/validaciones/useFormulario';
-import { validarRecuperacion } from '@/shared/validaciones/autenticacion';
-import { recuperarContrasena} from '@/shared/validaciones/servicioAuth';
-import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
-import type { DatosRecuperacion } from '@/shared/types/autenticacion';
+import { useFormulario } from '@/auth/validaciones/useFormulario';
+import { validarRecuperacion } from '@/auth/validaciones/autenticacion';
+import { recuperarContrasena} from '@/auth/validaciones/servicioAuth';
+import CampoEntrada from '@/auth/components/CampoEntrada';
+import type { DatosRecuperacion } from '@/auth/types/autenticacion';
 
 const VALORES_INICIALES: DatosRecuperacion = { correo: '' };
 

@@ -34,7 +34,7 @@ export default function PaginaPrincipalDashboard() {
     setCargandoGrupos(true);
     setErrorGrupos(null);
     try {
-      const res = await peticionAutenticada('/api_dor/grupos');
+      const res = await peticionAutenticada('/api/grupos');
       const data = await res.json();
       if (data.exito) {
         setGrupos(data.datos.grupos);

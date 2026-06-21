@@ -6,10 +6,10 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useFormulario } from '@/shared/validaciones/useFormulario';
-import { validarContrasena } from '@/shared/validaciones/autenticacion';
-import { cambiarContrasena } from '@/shared/validaciones/servicioAuth';
-import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
+import { useFormulario } from '@/auth/validaciones/useFormulario';
+import { validarContrasena } from '@/auth/validaciones/autenticacion';
+import { cambiarContrasena } from '@/auth/validaciones/servicioAuth';
+import CampoEntrada from '@/auth/components/CampoEntrada';
 
 interface DatosNuevaContrasena {
   contrasena: string;

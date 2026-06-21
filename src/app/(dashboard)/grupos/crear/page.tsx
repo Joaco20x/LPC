@@ -2,8 +2,8 @@
 
 import React from 'react';
 import './crear-grupo.css';
-import CampoEntrada from '@/frontend/components/autenticacion/CampoEntrada';
-import { useCrearGrupo } from '@/frontend/components/esquemas/useCrearGrupo';
+import CampoEntrada from '@/auth/components/CampoEntrada';
+import { useCrearGrupo } from '@/grupos/components/useCrearGrupo';
 
 
 export default function PaginaCrearGrupo() {

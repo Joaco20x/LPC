@@ -103,7 +103,7 @@ function ContenidoDeudas() {
         setCargando(true);
         setError(null);
         try {
-        const url  = grupoId ? `/api_dor/deudas?grupo=${grupoId}` : '/api_dor/deudas';
+        const url  = grupoId ? `/api/deudas?grupo=${grupoId}` : '/api/deudas';
         const res  = await peticionAutenticada(url);
         const data = await res.json();
         if (data.exito) {

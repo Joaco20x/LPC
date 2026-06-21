@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import './landing.css';
-import GruposAnimados from "@/frontend/components/Gruposanimados"
+import GruposAnimados from "@/grupos/components/Gruposanimados"
 export default function PaginaInicio() {
   return (
     <main className="landing-raiz">

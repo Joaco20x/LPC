@@ -25,7 +25,7 @@ export async function peticionAutenticada(
   }
 
   // Si es 401, intentar refrescar el token
-  const refreshRespuesta = await fetch('/api_dor/refresh', {
+  const refreshRespuesta = await fetch('/api/auth/refresh', {
     method: 'POST',
     credentials: 'include',
   });
