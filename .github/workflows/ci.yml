@@ -93,6 +93,13 @@ jobs:
         run: make test-integration
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          JWT_EXPIRACION: ${{secrets.JWT_EXPIRACION}}
+          JWT_REFRESH_EXPIRACION: ${{secrets.JWT_REFRESH_EXPIRACION}}
+          NEXT_PUBLIC_URL: ${{secrets.NEXT_PUBLIC_URL}}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
   test-e2e:
     name: E2E API Tests
