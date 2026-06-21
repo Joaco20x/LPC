@@ -143,34 +143,47 @@ Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 | `localhost:3000/registro` | Crear cuenta |
 | `localhost:3000/recuperar-contrasena` | Recuperar contraseña |
 | `localhost:3000/nueva-contrasena` | Establecer nueva contraseña |
+| `localhost:3000/dashboard` | Panel principal (requiere sesión) |
+| `localhost:3000/grupos/crear` | Crear grupo de viaje |
+| `localhost:3000/gastos` | Gestión de gastos |
+| `localhost:3000/deudas` | Liquidación de deudas |
+| `localhost:3000/auth/google/callback` | Callback intermedio OAuth Google |
 
 ---
 
 ## 7. Arquitectura del proyecto
 
-El proyecto sigue una **Arquitectura en Capas (Controlador–Servicio)** para separar responsabilidades. Respetar esta estructura es obligatorio al crear nuevas funcionalidades.
+El proyecto sigue una **Arquitectura basada en Dominios (Domain-Driven Design ligero)**, donde cada módulo de negocio (auth, grupos, gastos, deudas) agrupa su propia capa técnica (controlador, servicio, repositorio, tipos, validaciones). Esto mantiene el código cohesivo y facilita escalar funcionalidades sin acoplar módulos.
 
 ```
 Petición HTTP
      │
      ▼
-app/api/*          ← Solo recibe la petición y delega al controlador
+app/api/auth/login/route.ts   ← Solo recibe la petición y delega al controlador del dominio
      │
      ▼
-backend/controllers ← Valida la petición, maneja cookies y retorna la respuesta HTTP
+auth/controllers/login.controller.ts  ← Valida la petición, maneja cookies y retorna la respuesta HTTP
      │
      ▼
-backend/services    ← Lógica de negocio y consultas a la base de datos (Prisma)
+auth/services/login.service.ts       ← Lógica de negocio (bcrypt, JWT)
      │
      ▼
-backend/db         ← Cliente Prisma y configuración de conexión
+auth/repositories/PrismaUsuarioRepository.ts  ← Consultas a la base de datos via Prisma
+     │
+     ▼
+shared/libs/prisma.ts              ← Cliente Prisma singleton
 ```
 
-**Reglas de la arquitectura:**
+**Reglas de la arquitectura por dominio:**
 
-- Las **rutas** (`app/api`) solo reciben la petición y delegan el trabajo al controlador. No contienen lógica.
-- Los **controladores** (`backend/controllers`) validan las peticiones HTTP, manejan cookies y retornan respuestas al cliente. **No acceden a la base de datos directamente.**
-- Los **servicios** (`backend/services`) contienen toda la lógica de negocio y las consultas a la base de datos via Prisma. **No manejan peticiones ni respuestas HTTP.**
+- **`app/api/*/route.ts`** — Recibe la petición HTTP y delega al controlador del dominio. Sin lógica propia.
+- **`*/controllers/*.controller.ts`** — Valida la petición, maneja cookies/respuestas HTTP. No accede a BD directamente.
+- **`*/services/*.service.ts`** — Lógica de negocio (JWT, bcrypt, cálculos). Sin conocimiento HTTP.
+- **`*/repositories/*Repository.ts`** — Interfaz e implementación Prisma para acceso a datos.
+- **`*/types/*.ts`** — Interfaces TypeScript del dominio.
+- **`*/validaciones/*.ts`** — Validaciones de formulario del lado cliente.
+
+Los dominios NO se importan entre sí; la comunicación entre dominios se hace a través del contenedor DI (`shared/di/crearDependencias.ts`). El dominio `shared/` contiene utilidades transversales (cliente Prisma, DI, almacenamiento de tokens en cliente).
 
 ---
 
@@ -179,54 +192,126 @@ backend/db         ← Cliente Prisma y configuración de conexión
 ```
 eatryp/
 ├── src/
-│   ├── app/
-│   │   ├── layout.tsx                      # Layout raíz (html + body)
-│   │   ├── page.tsx                        # Landing principal
+│   ├── app/                              # Next.js App Router (UI + API)
+│   │   ├── layout.tsx                    # Layout raíz (html + body)
+│   │   ├── page.tsx                      # Landing principal
 │   │   ├── globals.css
 │   │   ├── landing.css
-│   │   ├── (auth)/                         # Grupo de rutas de autenticación (UI)
+│   │   ├── (auth)/                       # Grupo de rutas público (sin sesión)
 │   │   │   ├── layout.tsx
 │   │   │   ├── auth.css
-│   │   │   ├── login/
-│   │   │   │   └── page.tsx
-│   │   │   ├── registro/
-│   │   │   │   └── page.tsx
-│   │   │   ├── recuperar-contrasena/
-│   │   │   │   └── page.tsx
-│   │   │   └── nueva-contrasena/
-│   │   │       └── page.tsx
-│   │   └── api_dor/                        # Rutas API (solo delegan al controlador)
-│   │       ├── login/
-│   │       ├── logout/
-│   │       ├── registro/
-│   │       ├── recuperar-contrasena/
-│   │       └── nueva-contrasena/
-│   ├── backend/
-│   │   ├── auth/                           # Utilidades de autenticación
-│   │   │   ├── contraseña.ts               # Helpers de bcrypt
-│   │   │   └── jwt.ts                      # Helpers de JWT
-│   │   ├── controllers/                    # Controladores: HTTP + cookies + respuestas
-│   │   │   ├── login/
-│   │   │   ├── logout/
-│   │   │   ├── registro/
-│   │   │   ├── recuperar-contrasena/
-│   │   │   └── nueva-contrasena/
-│   │   ├── db/                             # Cliente Prisma y configuración de BD
-│   │   └── services/                       # Servicios: lógica de negocio + Prisma
-│   │       ├── login/
-│   │       ├── logout/
-│   │       ├── registro/
-│   │       ├── recuperar-contrasena/
-│   │       └── nueva-contrasena/
-│   ├── frontend/
-│   │   └── components/
-│   │       ├── autenticacion/              # Componentes reutilizables de auth
-│   │       └── Gruposanimados.tsx
-│   ├── shared/
-│   │   ├── types/                          # Interfaces TypeScript compartidas
-│   │   └── validaciones/                   # Funciones de validación y hooks
-└── prisma/
-    └── schema.prisma                       # Schema de la base de datos
+│   │   │   ├── login/page.tsx
+│   │   │   ├── registro/page.tsx
+│   │   │   ├── recuperar-contrasena/page.tsx
+│   │   │   └── nueva-contrasena/page.tsx
+│   │   ├── (dashboard)/                  # Grupo de rutas protegidas (con sesión)
+│   │   │   ├── layout.tsx
+│   │   │   ├── dashboard/page.tsx
+│   │   │   ├── gastos/page.tsx
+│   │   │   ├── deudas/page.tsx
+│   │   │   ├── grupos/crear/page.tsx
+│   │   │   └── grupos/[id]/page.tsx
+│   │   ├── api/                          # API routes (delegan a controladores por dominio)
+│   │   │   ├── auth/login/route.ts
+│   │   │   ├── auth/registro/route.ts
+│   │   │   ├── auth/logout/route.ts
+│   │   │   ├── auth/refresh/route.ts
+│   │   │   ├── auth/recuperar-contrasena/route.ts
+│   │   │   ├── auth/nueva-contrasena/route.ts
+│   │   │   ├── auth/usuarios/buscar/route.ts
+│   │   │   ├── auth/google/iniciar/route.ts
+│   │   │   ├── auth/google/callback/route.ts
+│   │   │   ├── grupos/route.ts
+│   │   │   ├── grupos/[id]/route.ts
+│   │   │   ├── gastos/route.ts
+│   │   │   ├── gastos/opciones/route.ts
+│   │   │   └── deudas/route.ts
+│   │   ├── auth/google/callback/         # Página intermedia OAuth
+│   │   │   └── page.tsx
+│   │   └── api-doc/                      # Documentación Swagger
+│   │       ├── page.tsx
+│   │       └── json/route.ts
+│   │
+│   ├── auth/                             # Dominio: Autenticación y Usuarios
+│   │   ├── controllers/
+│   │   │   ├── login.controller.ts
+│   │   │   ├── registro.controller.ts
+│   │   │   ├── logout.controller.ts
+│   │   │   ├── refresh.controller.ts
+│   │   │   ├── recuperar.controller.ts
+│   │   │   ├── nueva-contrasena.controller.ts
+│   │   │   ├── usuarios.controller.ts
+│   │   │   └── google.oauth.controller.ts
+│   │   ├── services/
+│   │   │   ├── login.service.ts
+│   │   │   ├── registro.service.ts
+│   │   │   ├── logout.service.ts
+│   │   │   ├── refresh.service.ts
+│   │   │   ├── recuperar.service.ts
+│   │   │   ├── nueva-contrasena.service.ts
+│   │   │   ├── jwt.ts                    # Helpers JWT
+│   │   │   ├── contraseña.ts             # Helpers bcrypt
+│   │   │   └── google.service.ts         # OAuth Google
+│   │   ├── repositories/
+│   │   │   ├── IUsuarioRepository.ts
+│   │   │   ├── PrismaUsuarioRepository.ts
+│   │   │   ├── ISesionRepository.ts
+│   │   │   ├── PrismaSesionRepository.ts
+│   │   │   ├── ITokenRecuperacionRepository.ts
+│   │   │   └── PrismaTokenRecuperacionRepository.ts
+│   │   ├── components/
+│   │   │   ├── BotonOAuth.tsx
+│   │   │   ├── CampoEntrada.tsx
+│   │   │   └── Separador.tsx
+│   │   ├── types/
+│   │   │   └── autenticacion.ts
+│   │   ├── validaciones/
+│   │   │   ├── autenticacion.ts
+│   │   │   └── useFormulario.ts
+│   │
+│   ├── grupos/                           # Dominio: Grupos de Viaje
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── components/
+│   │   ├── types/
+│   │   ├── validaciones/
+│   │   └── api/
+│   │
+│   ├── gastos/                           # Dominio: Gastos
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── components/
+│   │   ├── types/
+│   │   ├── validaciones/
+│   │   └── api/
+│   │
+│   ├── deudas/                           # Dominio: Deudas
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── repositories/
+│   │   ├── components/
+│   │   ├── types/
+│   │   └── api/
+│   │
+│   ├── notificaciones/                   # Dominio: Notificaciones (pendiente)
+│   │   ├── services/
+│   │   ├── types/
+│   │   └── api/
+│   │
+│   ├── admin/                            # Dominio: Admin (pendiente)
+│   │   ├── controllers/
+│   │   └── services/
+│   │
+│   ├── shared/                           # Utilidades transversales
+│   │   ├── di/crearDependencias.ts       # Contenedor DI
+│   │   ├── libs/prisma.ts                # Cliente Prisma singleton
+│   │   ├── servicios/almacenamientoTokens.ts  # Gestión de tokens en cliente
+│   │   └── types/
+│
+└── prisma/                              # ORM — esquema y migraciones
+    └── schema.prisma                     # Schema de la base de datos
 ```
 
 ---
