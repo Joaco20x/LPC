@@ -128,8 +128,13 @@ jobs:
         env:
           NODE_ENV: test
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: http://localhost:3000
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET }}
+          JWT_EXPIRACION: ${{secrets.JWT_EXPIRACION}}
+          JWT_REFRESH_EXPIRACION: ${{secrets.JWT_REFRESH_EXPIRACION}}
+          NEXT_PUBLIC_URL: ${{secrets.NEXT_PUBLIC_URL}}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
 
       - name: Subir reporte E2E
         uses: actions/upload-artifact@v4
