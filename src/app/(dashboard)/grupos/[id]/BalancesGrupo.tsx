@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, startTransition } from "react";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import "./detalles.css";
 
@@ -31,21 +31,23 @@ export default function BalancesGrupo({ idGrupo }: { idGrupo: string }) {
   const [error, setError] = useState<string | null>(null);
   const [procesando, setProcesando] = useState<string | null>(null);
 
-  const cargarDeudas = useCallback(async () => {
-    setCargando(true);
-    try {
-      const res = await peticionAutenticada(`/api/grupos/${idGrupo}/deudas`);
-      const payload = await res.json();
-      if (payload.exito) {
-        setDatos(payload.datos);
-      } else {
-        setError(payload.mensaje || "Error al cargar deudas");
+  const cargarDeudas = useCallback(() => {
+    startTransition(async () => {
+      setCargando(true);
+      try {
+        const res = await peticionAutenticada(`/api/grupos/${idGrupo}/deudas`);
+        const payload = await res.json();
+        if (payload.exito) {
+          setDatos(payload.datos);
+        } else {
+          setError(payload.mensaje || "Error al cargar deudas");
+        }
+      } catch {
+        setError("Error de conexión");
+      } finally {
+        setCargando(false);
       }
-    } catch {
-      setError("Error de conexión");
-    } finally {
-      setCargando(false);
-    }
+    });
   }, [idGrupo]);
 
   useEffect(() => {
@@ -135,8 +137,8 @@ export default function BalancesGrupo({ idGrupo }: { idGrupo: string }) {
                   b.balance > 0
                     ? "rgba(40, 167, 69, 0.05)"
                     : b.balance < 0
-                    ? "rgba(220, 53, 69, 0.05)"
-                    : "var(--fondo-superficie)",
+                      ? "rgba(220, 53, 69, 0.05)"
+                      : "var(--fondo-superficie)",
               }}
             >
               <p style={{ margin: 0, fontSize: "0.875rem", fontWeight: 600 }}>
@@ -151,8 +153,8 @@ export default function BalancesGrupo({ idGrupo }: { idGrupo: string }) {
                     b.balance > 0
                       ? "var(--color-exito, #28a745)"
                       : b.balance < 0
-                      ? "var(--color-error, #dc3545)"
-                      : "var(--color-texto-suave)",
+                        ? "var(--color-error, #dc3545)"
+                        : "var(--color-texto-suave)",
                 }}
               >
                 {b.balance > 0 ? "+" : ""}

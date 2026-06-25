@@ -14,7 +14,7 @@ export interface TransferenciaSugerida {
 
 export async function calcularBalancesYOptimizacion(
   idGrupo: string,
-  deudaRepo: IDeudaRepository
+  deudaRepo: IDeudaRepository,
 ) {
   // 1. Obtener todas las deudas pendientes del grupo
   const deudas = await deudaRepo.obtenerTodasPorGrupo(idGrupo);
@@ -107,7 +107,7 @@ export async function saldarTransferenciaSugerida(
   idDeudor: string,
   idAcreedor: string,
   monto: number,
-  deudaRepo: IDeudaRepository
+  deudaRepo: IDeudaRepository,
 ) {
   // Crear una deuda inversa para reflejar el pago
   // El acreedor original (el que recibe el dinero) ahora es el deudor de este registro de pago

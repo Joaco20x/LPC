@@ -8,7 +8,7 @@ import { crearDependencias } from "@/shared/di/crearDependencias";
 
 export async function controladorObtenerBalancesGrupo(
   req: NextRequest,
-  idGrupo: string
+  idGrupo: string,
 ) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -16,7 +16,7 @@ export async function controladorObtenerBalancesGrupo(
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         { exito: false, mensaje: "No autorizado" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -28,17 +28,18 @@ export async function controladorObtenerBalancesGrupo(
 
     return NextResponse.json(
       { exito: true, mensaje: "Balances obtenidos", datos },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
-    const mensaje = error instanceof Error ? error.message : "Error en el servidor";
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
     return NextResponse.json({ exito: false, mensaje }, { status: 500 });
   }
 }
 
 export async function controladorSaldarTransferencia(
   req: NextRequest,
-  idGrupo: string
+  idGrupo: string,
 ) {
   try {
     const authHeader = req.headers.get("authorization");
@@ -46,7 +47,7 @@ export async function controladorSaldarTransferencia(
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         { exito: false, mensaje: "No autorizado" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -59,7 +60,7 @@ export async function controladorSaldarTransferencia(
     if (!idDeudor || !idAcreedor || !monto) {
       return NextResponse.json(
         { exito: false, mensaje: "Faltan datos para saldar la deuda" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -69,15 +70,16 @@ export async function controladorSaldarTransferencia(
       idDeudor,
       idAcreedor,
       Number(monto),
-      deudaRepo
+      deudaRepo,
     );
 
     return NextResponse.json(
       { exito: true, mensaje: "Deuda saldada correctamente" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
-    const mensaje = error instanceof Error ? error.message : "Error en el servidor";
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
     return NextResponse.json({ exito: false, mensaje }, { status: 500 });
   }
 }
