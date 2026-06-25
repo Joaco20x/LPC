@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, startTransition } from "react";
+import { useState, useEffect, startTransition, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import "./detalles.css";
+import BalancesGrupo from "./BalancesGrupo";
 
 interface Gasto {
   id: string;
@@ -41,7 +42,7 @@ export default function PaginaDetalleGrupo() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const cargarDetalle = useCallback(() => {
     if (!id) return;
     startTransition(async () => {
       setCargando(true);
@@ -60,6 +61,17 @@ export default function PaginaDetalleGrupo() {
       }
     });
   }, [id]);
+
+  useEffect(() => {
+    cargarDetalle();
+
+    const handleGastoRegistrado = () => {
+      cargarDetalle();
+    };
+    window.addEventListener("gastoRegistrado", handleGastoRegistrado);
+    return () =>
+      window.removeEventListener("gastoRegistrado", handleGastoRegistrado);
+  }, [cargarDetalle]);
 
   const formatearFecha = (f: string) =>
     new Date(f).toLocaleDateString("es-CL", {
@@ -235,6 +247,8 @@ export default function PaginaDetalleGrupo() {
               </div>
             )}
           </div>
+
+          <BalancesGrupo idGrupo={grupo.id} />
         </main>
 
         {/* Columna Lateral: Miembros y Balance */}

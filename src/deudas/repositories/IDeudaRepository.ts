@@ -22,4 +22,5 @@ export interface IDeudaRepository {
     idUsuario: string,
     idGrupo?: string,
   ): Promise<DeudaConRelaciones[]>;
+  obtenerTodasPorGrupo(idGrupo: string): Promise<DeudaConRelaciones[]>;
 }
