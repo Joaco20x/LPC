@@ -4,6 +4,7 @@ import {
   obtenerGastos,
   obtenerOpcionesFormulario,
 } from "@/gastos/services/gasto.service";
+import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
 import { crearDependencias } from "@/shared/di/crearDependencias";
@@ -76,9 +77,18 @@ export async function controladorObtenerGastos(req: NextRequest) {
     const { error } = extraerPayload(req);
     if (error) return error;
 
+    const { searchParams } = new URL(req.url);
+    const idGrupo = searchParams.get("idGrupo");
+
+    // Si viene ?idGrupo= usamos Prisma directamente (no altera IGastoRepository)
+    if (idGrupo) {
+      const repo = new PrismaGastoRepository();
+      const gastos = await repo.obtenerPorGrupo(idGrupo);
+      return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
+    }
+
     const { gastoRepo } = crearDependencias();
     const gastos = await obtenerGastos(gastoRepo);
-
     return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
   } catch (error) {
     const mensaje =
