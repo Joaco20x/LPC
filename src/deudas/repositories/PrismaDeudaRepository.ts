@@ -7,7 +7,10 @@ import type {
 } from "./IDeudaRepository";
 
 export class PrismaDeudaRepository implements IDeudaRepository {
-  async crearMuchas(data: DatosCrearDeuda[], tx?: TransactionClient): Promise<void> {
+  async crearMuchas(
+    data: DatosCrearDeuda[],
+    tx?: TransactionClient,
+  ): Promise<void> {
     const client = tx ?? prisma;
     await client.deuda.createMany({ data });
   }

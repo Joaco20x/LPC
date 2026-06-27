@@ -108,7 +108,12 @@ export function useGastoForm() {
       ...f,
       divisiones: [
         ...f.divisiones,
-        { idUsuario: "", montoAsignado: "", tipoDivision: "igual", moneda: f.moneda },
+        {
+          idUsuario: "",
+          montoAsignado: "",
+          tipoDivision: "igual",
+          moneda: f.moneda,
+        },
       ],
     }));
   };

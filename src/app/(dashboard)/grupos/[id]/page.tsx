@@ -216,7 +216,10 @@ export default function PaginaDetalleGrupo() {
                       >
                         <span>{gasto.categoria}</span>
                         {gasto.moneda && gasto.moneda !== grupo.monedaBase && (
-                          <span className="gasto-moneda-indicador" title={`Registrado en ${gasto.moneda}`}>
+                          <span
+                            className="gasto-moneda-indicador"
+                            title={`Registrado en ${gasto.moneda}`}
+                          >
                             {gasto.moneda}
                           </span>
                         )}

@@ -9,5 +9,8 @@ export interface DatosCrearDivision {
 }
 
 export interface IDivisionGastoRepository {
-  crearMuchas(data: DatosCrearDivision[], tx?: TransactionClient): Promise<void>;
+  crearMuchas(
+    data: DatosCrearDivision[],
+    tx?: TransactionClient,
+  ): Promise<void>;
 }

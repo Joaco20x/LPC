@@ -18,7 +18,10 @@ export class PrismaMiembroGrupoRepository implements IMiembroGrupoRepository {
       select: { idUsuario: true },
     });
   }
-  async crearMuchas(data: DatosCrearMiembro[], tx?: TransactionClient): Promise<void> {
+  async crearMuchas(
+    data: DatosCrearMiembro[],
+    tx?: TransactionClient,
+  ): Promise<void> {
     const client = tx ?? prisma;
     await client.miembroGrupo.createMany({ data });
   }

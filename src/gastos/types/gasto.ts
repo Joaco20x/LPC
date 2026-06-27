@@ -4,7 +4,15 @@
 export const MONEDA_DEFAULT = "CLP";
 
 export const MONEDAS = [
-  "CLP", "USD", "EUR", "ARS", "MXN", "PEN", "COP", "BRL", "GBP",
+  "CLP",
+  "USD",
+  "EUR",
+  "ARS",
+  "MXN",
+  "PEN",
+  "COP",
+  "BRL",
+  "GBP",
 ] as const;
 
 export type Moneda = (typeof MONEDAS)[number];

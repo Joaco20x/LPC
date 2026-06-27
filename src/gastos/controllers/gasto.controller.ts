@@ -49,7 +49,11 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario, moneda: cuerpo.moneda || MONEDA_DEFAULT },
+      {
+        ...cuerpo,
+        idPagador: cuerpo.idPagador || payload.idUsuario,
+        moneda: cuerpo.moneda || MONEDA_DEFAULT,
+      },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,

@@ -6,7 +6,10 @@ import type {
 } from "./IDivisionGastoRepository";
 
 export class PrismaDivisionGastoRepository implements IDivisionGastoRepository {
-  async crearMuchas(data: DatosCrearDivision[], tx?: TransactionClient): Promise<void> {
+  async crearMuchas(
+    data: DatosCrearDivision[],
+    tx?: TransactionClient,
+  ): Promise<void> {
     const client = tx ?? prisma;
     await client.divisionGasto.createMany({ data });
   }

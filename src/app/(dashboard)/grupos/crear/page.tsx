@@ -89,7 +89,9 @@ export default function PaginaCrearGrupo() {
                 id="monedaBase"
                 className="campo-entrada__input"
                 value={datosGrupo.monedaBase}
-                onChange={(e) => actualizarDatosGrupo("monedaBase", e.target.value)}
+                onChange={(e) =>
+                  actualizarDatosGrupo("monedaBase", e.target.value)
+                }
               >
                 {MONEDAS.map((m) => (
                   <option key={m} value={m}>

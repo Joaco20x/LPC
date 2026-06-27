@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { guardarAccessToken, obtenerAccessToken } from "@/shared/servicios/almacenamientoTokens";
+import {
+  guardarAccessToken,
+  obtenerAccessToken,
+} from "@/shared/servicios/almacenamientoTokens";
 
 const INTERVALO_REFRESCO = 5 * 60 * 1000;
 const ULTIMA_ACTIVIDAD_MAXIMA = 5 * 60 * 1000;
@@ -50,7 +53,11 @@ export function useRefrescoActivo(): void {
     };
 
     const eventos: string[] = [
-      "click", "scroll", "mousemove", "keydown", "touchstart",
+      "click",
+      "scroll",
+      "mousemove",
+      "keydown",
+      "touchstart",
     ];
 
     eventos.forEach((evento) =>
@@ -69,7 +76,7 @@ export function useRefrescoActivo(): void {
       const decodificado = decodificarToken(token);
       if (!decodificado) return;
 
-      const tiempoRestante = (decodificado.exp * 1000) - ahora;
+      const tiempoRestante = decodificado.exp * 1000 - ahora;
       if (tiempoRestante > ANTICIPACION_EXPIRACION) return;
 
       refrescando.current = true;

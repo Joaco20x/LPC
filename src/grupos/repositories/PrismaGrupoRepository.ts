@@ -7,7 +7,10 @@ import type {
 } from "./IGrupoRepository";
 
 export class PrismaGrupoRepository implements IGrupoRepository {
-  async crear(data: DatosCrearGrupo, tx?: TransactionClient): Promise<{ id: string }> {
+  async crear(
+    data: DatosCrearGrupo,
+    tx?: TransactionClient,
+  ): Promise<{ id: string }> {
     const client = tx ?? prisma;
     return client.grupo.create({ data });
   }

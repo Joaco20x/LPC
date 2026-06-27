@@ -193,8 +193,12 @@ function FormularioGasto() {
                 <span className="conversion-resultado">
                   ≈ {conversion.montoConvertido}
                   {conversion.fuente === "cache" && (
-                    <span className="conversion-cache" title="Tasa cachead a (sin conexión)">
-                      {" "}◉ offline
+                    <span
+                      className="conversion-cache"
+                      title="Tasa cachead a (sin conexión)"
+                    >
+                      {" "}
+                      ◉ offline
                     </span>
                   )}
                 </span>
@@ -204,11 +208,12 @@ function FormularioGasto() {
                   Convirtiendo...
                 </span>
               )}
-              {formulario.moneda === formulario.monedaDestino && Number(formulario.monto) > 0 && (
-                <span className="conversion-resultado conversion-igual">
-                  Misma moneda — no se requiere conversión
-                </span>
-              )}
+              {formulario.moneda === formulario.monedaDestino &&
+                Number(formulario.monto) > 0 && (
+                  <span className="conversion-resultado conversion-igual">
+                    Misma moneda — no se requiere conversión
+                  </span>
+                )}
             </div>
 
             {/* Categoría */}
