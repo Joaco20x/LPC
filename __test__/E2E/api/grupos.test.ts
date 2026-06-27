@@ -152,7 +152,9 @@ describe("GET /api/grupos/[id]", () => {
     deps.grupoRepo.obtenerDetalle.mockResolvedValue({
       id: "g1",
       nombre: "Viaje",
-    });
+      monedaBase: "CLP",
+      gastos: [],
+    } as any);
 
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/grupos/g1",
