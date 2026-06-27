@@ -1,5 +1,5 @@
 import { prisma } from "@/shared/libs/prisma";
-import type { Prisma } from "@prisma/client";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 import type {
   IMiembroGrupoRepository,
   DatosCrearMiembro,
@@ -10,16 +10,16 @@ import type {
 export class PrismaMiembroGrupoRepository implements IMiembroGrupoRepository {
   async buscarPorGrupo(
     idGrupo: string,
-    tx?: unknown,
+    tx?: TransactionClient,
   ): Promise<{ idUsuario: string }[]> {
-    const client = (tx || prisma) as Prisma.TransactionClient;
+    const client = tx ?? prisma;
     return client.miembroGrupo.findMany({
       where: { idGrupo },
       select: { idUsuario: true },
     });
   }
-  async crearMuchas(data: DatosCrearMiembro[], tx?: unknown): Promise<void> {
-    const client = (tx || prisma) as Prisma.TransactionClient;
+  async crearMuchas(data: DatosCrearMiembro[], tx?: TransactionClient): Promise<void> {
+    const client = tx ?? prisma;
     await client.miembroGrupo.createMany({ data });
   }
   async buscarPorUsuario(idUsuario: string): Promise<MiembroConGrupoYConteo[]> {
@@ -28,7 +28,7 @@ export class PrismaMiembroGrupoRepository implements IMiembroGrupoRepository {
       include: {
         grupo: { include: { _count: { select: { miembros: true } } } },
       },
-    }) as Promise<MiembroConGrupoYConteo[]>;
+    });
   }
   async buscarMiembrosDeGrupos(
     idsGrupos: string[],
@@ -38,6 +38,6 @@ export class PrismaMiembroGrupoRepository implements IMiembroGrupoRepository {
       where: { idGrupo: { in: idsGrupos } },
       include: { usuario: { select: { id: true, nombre: true } } },
       distinct: ["idUsuario"],
-    }) as Promise<MiembroConUsuario[]>;
+    });
   }
 }

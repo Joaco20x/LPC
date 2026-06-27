@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { obtenerAccessToken } from "@/shared/servicios/almacenamientoTokens";
+import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 
 export interface Opcion {
   id: string;
   nombre: string;
+  monedaBase?: string;
 }
 
 export interface DivisionFormulario {
   idUsuario: string;
   montoAsignado: string;
   tipoDivision: "igual" | "exacto" | "porcentaje";
+  moneda: string;
 }
 
 export interface FormularioGasto {
   descripcion: string;
   monto: string;
+  moneda: string;
+  monedaDestino: string;
   categoria: string;
   idGrupo: string;
   urlBoleta: string;
@@ -25,6 +30,8 @@ export interface FormularioGasto {
 const FORMULARIO_VACIO: FormularioGasto = {
   descripcion: "",
   monto: "",
+  moneda: MONEDA_DEFAULT,
+  monedaDestino: MONEDA_DEFAULT,
   categoria: "",
   idGrupo: "",
   urlBoleta: "",
@@ -70,7 +77,8 @@ export function useGastoForm() {
         } else {
           setErrorGlobal(data.mensaje || "Error al cargar opciones.");
         }
-      } catch {
+      } catch (error) {
+        console.error("[useGastoForm]", error);
         setErrorGlobal("Error de red al cargar opciones.");
       } finally {
         setCargando(false);
@@ -84,7 +92,14 @@ export function useGastoForm() {
     >,
   ) => {
     const { name, value } = e.target;
-    setFormulario((f) => ({ ...f, [name]: value }));
+    setFormulario((f) => {
+      const actualizado = { ...f, [name]: value };
+      if (name === "idGrupo") {
+        const grupo = grupos.find((g) => g.id === value);
+        actualizado.monedaDestino = grupo?.monedaBase ?? MONEDA_DEFAULT;
+      }
+      return actualizado;
+    });
     if (errores[name]) setErrores((er) => ({ ...er, [name]: "" }));
   };
 
@@ -93,7 +108,7 @@ export function useGastoForm() {
       ...f,
       divisiones: [
         ...f.divisiones,
-        { idUsuario: "", montoAsignado: "", tipoDivision: "igual" },
+        { idUsuario: "", montoAsignado: "", tipoDivision: "igual", moneda: f.moneda },
       ],
     }));
   };
@@ -129,6 +144,7 @@ export function useGastoForm() {
       const cuerpo = {
         descripcion: formulario.descripcion || undefined,
         monto: formulario.monto ? Number(formulario.monto) : undefined,
+        moneda: formulario.moneda || undefined,
         categoria: formulario.categoria || undefined,
         idGrupo: formulario.idGrupo || undefined,
         urlBoleta: formulario.urlBoleta || null,
@@ -166,7 +182,8 @@ export function useGastoForm() {
       } else {
         setErrorGlobal(data.mensaje || "Error al guardar el gasto.");
       }
-    } catch {
+    } catch (error) {
+      console.error("[useGastoForm]", error);
       setErrorGlobal("Error de red. Inténtalo de nuevo.");
     } finally {
       setGuardando(false);

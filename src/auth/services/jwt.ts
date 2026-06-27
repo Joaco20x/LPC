@@ -5,14 +5,14 @@
 
 import jwt from "jsonwebtoken";
 
-const ACCESS_SECRET = process.env.JWT_SECRET!;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET!;
-
-if (!ACCESS_SECRET || !REFRESH_SECRET) {
-  throw new Error(
-    "Faltan variables de entorno JWT_SECRET y/o JWT_REFRESH_SECRET",
-  );
+function getEnvOrThrow(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`Falta variable de entorno ${key}`);
+  return value;
 }
+
+const ACCESS_SECRET = getEnvOrThrow("JWT_SECRET");
+const REFRESH_SECRET = getEnvOrThrow("JWT_REFRESH_SECRET");
 
 export interface PayloadJWT {
   idUsuario: string;

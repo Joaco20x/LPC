@@ -4,6 +4,7 @@ import { useState, useEffect, startTransition, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
+import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import "./detalles.css";
 import BalancesGrupo from "./BalancesGrupo";
 
@@ -11,6 +12,7 @@ interface Gasto {
   id: string;
   descripcion: string;
   monto: number;
+  moneda: string;
   categoria: string;
   creadoEn: string;
   pagador: { nombre: string };
@@ -34,6 +36,7 @@ interface GrupoDetalle {
   monedaBase: string;
   miembros: Integrante[];
   gastos: Gasto[];
+  totalEnBase: number;
 }
 
 export default function PaginaDetalleGrupo() {
@@ -79,11 +82,14 @@ export default function PaginaDetalleGrupo() {
       month: "long",
       year: "numeric",
     });
-  const formatearMonto = (m: number) =>
-    new Intl.NumberFormat("es-CL", {
+  const formatearMonto = (m: number, moneda?: string) => {
+    const mon = moneda || MONEDA_DEFAULT;
+    const locale = mon === "CLP" ? "es-CL" : "en-US";
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "CLP",
+      currency: mon,
     }).format(m);
+  };
 
   if (cargando)
     return (
@@ -100,10 +106,7 @@ export default function PaginaDetalleGrupo() {
       </div>
     );
 
-  const totalGastado = grupo.gastos.reduce(
-    (acc, g) => acc + Number(g.monto),
-    0,
-  );
+  const totalGastado = grupo.totalEnBase;
 
   return (
     <div className="dashboard-cuerpo detalles-grupo-raiz">
@@ -200,15 +203,23 @@ export default function PaginaDetalleGrupo() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <span className="gasto-monto">
-                        {formatearMonto(Number(gasto.monto))}
+                        {formatearMonto(Number(gasto.monto), gasto.moneda)}
                       </span>
                       <div
                         style={{
                           fontSize: "0.75rem",
                           color: "var(--color-texto-suave)",
+                          display: "flex",
+                          gap: "0.5rem",
+                          justifyContent: "flex-end",
                         }}
                       >
-                        {gasto.categoria}
+                        <span>{gasto.categoria}</span>
+                        {gasto.moneda && gasto.moneda !== grupo.monedaBase && (
+                          <span className="gasto-moneda-indicador" title={`Registrado en ${gasto.moneda}`}>
+                            {gasto.moneda}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -240,7 +251,7 @@ export default function PaginaDetalleGrupo() {
                         fontSize: "1.2rem",
                       }}
                     >
-                      {formatearMonto(totalGastado)}
+                      {formatearMonto(totalGastado, grupo.monedaBase)}
                     </span>
                   </div>
                 </div>
@@ -266,7 +277,7 @@ export default function PaginaDetalleGrupo() {
                 opacity: 0.8,
               }}
             >
-              Total Gastado
+              Total Gastado ({grupo.monedaBase})
             </h3>
             <p
               style={{
@@ -275,7 +286,7 @@ export default function PaginaDetalleGrupo() {
                 fontFamily: "var(--fuente-display)",
               }}
             >
-              {formatearMonto(totalGastado)}
+              {formatearMonto(totalGastado, grupo.monedaBase)}
             </p>
           </div>
 

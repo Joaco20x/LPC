@@ -1,5 +1,6 @@
 import { prisma } from "@/shared/libs/prisma";
-import type { Gasto, Prisma } from "@prisma/client";
+import type { Gasto } from "@prisma/client";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 import type {
   IGastoRepository,
   DatosCrearGasto,
@@ -7,8 +8,8 @@ import type {
 } from "./IGastoRepository";
 
 export class PrismaGastoRepository implements IGastoRepository {
-  async crear(data: DatosCrearGasto, tx?: unknown): Promise<Gasto> {
-    const client = (tx || prisma) as Prisma.TransactionClient;
+  async crear(data: DatosCrearGasto, tx?: TransactionClient): Promise<Gasto> {
+    const client = tx ?? prisma;
     return client.gasto.create({ data });
   }
   async obtenerTodos(): Promise<GastoConRelaciones[]> {
@@ -21,7 +22,7 @@ export class PrismaGastoRepository implements IGastoRepository {
           include: { usuario: { select: { id: true, nombre: true } } },
         },
       },
-    }) as Promise<GastoConRelaciones[]>;
+    });
   }
   async obtenerPorId(id: string): Promise<GastoConRelaciones | null> {
     return prisma.gasto.findUnique({
@@ -33,6 +34,6 @@ export class PrismaGastoRepository implements IGastoRepository {
           include: { usuario: { select: { id: true, nombre: true } } },
         },
       },
-    }) as Promise<GastoConRelaciones | null>;
+    });
   }
 }

@@ -49,9 +49,9 @@ export async function controladorBuscarUsuario(req: NextRequest) {
       { status: 200 },
     );
   } catch (error) {
-    const err = error as { name?: string };
     const esTokenInvalido =
-      err.name === "JsonWebTokenError" || err.name === "TokenExpiredError";
+      error instanceof Error &&
+      (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError");
     return NextResponse.json(
       {
         exito: false,

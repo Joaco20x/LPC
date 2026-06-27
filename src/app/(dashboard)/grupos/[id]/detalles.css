@@ -117,6 +117,18 @@
   font-size: 0.875rem;
 }
 
+.gasto-moneda-indicador {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: #fff3cd;
+  color: #856404;
+  line-height: 1.3;
+}
+
 @media (max-width: 992px) {
   .grid-detalles {
     grid-template-columns: 1fr;

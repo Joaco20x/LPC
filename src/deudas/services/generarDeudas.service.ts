@@ -1,5 +1,6 @@
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
 import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 
 interface DivisionInput {
   idUsuario: string;
@@ -18,7 +19,7 @@ export async function generarDeudas(
   datos: DatosGenerarDeudas,
   miembroRepo: IMiembroGrupoRepository,
   deudaRepo: IDeudaRepository,
-  tx: unknown,
+  tx: TransactionClient,
 ) {
   const miembrosGrupo = await miembroRepo.buscarPorGrupo(datos.idGrupo, tx);
   const totalMiembros = miembrosGrupo.length;
