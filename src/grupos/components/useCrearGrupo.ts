@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
+import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 interface Integrante {
   id: string;
   nombre: string;
@@ -15,6 +16,7 @@ interface DatosGrupo {
   pais: string;
   fechaInicio: string;
   fechaFin: string;
+  monedaBase: string;
 }
 
 const datosGrupoInicial: DatosGrupo = {
@@ -22,6 +24,7 @@ const datosGrupoInicial: DatosGrupo = {
   pais: "",
   fechaInicio: "",
   fechaFin: "",
+  monedaBase: MONEDA_DEFAULT,
 };
 
 export function useCrearGrupo() {
@@ -103,7 +106,7 @@ export function useCrearGrupo() {
           pais: datosGrupo.pais,
           fechaInicio: datosGrupo.fechaInicio,
           fechaFin: datosGrupo.fechaFin,
-          monedaBase: "CLP",
+          monedaBase: datosGrupo.monedaBase,
           correosIntegrantes: listaIntegrantes.map((i) => i.correo),
         }),
       });

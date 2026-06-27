@@ -30,7 +30,8 @@ export async function controladorRecuperarContrasena(req: NextRequest) {
       },
       { status: 200 },
     );
-  } catch {
+  } catch (error) {
+    console.error("[Recuperar]", error);
     return NextResponse.json(
       { exito: false, mensaje: "Error al procesar la solicitud" },
       { status: 500 },

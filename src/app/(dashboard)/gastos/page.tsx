@@ -1,7 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import { useGastoForm } from "@/gastos/components/useGastoForm";
+import { MONEDAS } from "@/gastos/types/gasto";
 import { DivisionesSection } from "./DivisionesSection";
 import "./gastos.css";
 
@@ -29,6 +30,54 @@ function FormularioGasto() {
     eliminarDivision,
     handleDivisionChange,
   } = useGastoForm();
+
+  const [conversion, setConversion] = useState<{
+    montoConvertido: string;
+    fuente: "api" | "cache" | null;
+  } | null>(null);
+  const [convirtiendo, setConvirtiendo] = useState(false);
+
+  const obtenerConversion = useCallback(async () => {
+    const monto = Number(formulario.monto);
+    if (
+      !monto ||
+      monto <= 0 ||
+      !formulario.moneda ||
+      !formulario.monedaDestino ||
+      formulario.moneda === formulario.monedaDestino
+    ) {
+      setConversion(null);
+      return;
+    }
+
+    setConvirtiendo(true);
+    try {
+      const res = await fetch(
+        `/api/tasas-cambio?from=${formulario.moneda}&to=${formulario.monedaDestino}`,
+      );
+      const data = await res.json();
+      if (data.exito) {
+        const convertido = monto * data.datos.tasa;
+        const locale = formulario.monedaDestino === "CLP" ? "es-CL" : "en-US";
+        setConversion({
+          montoConvertido: convertido.toLocaleString(locale, {
+            style: "currency",
+            currency: formulario.monedaDestino,
+          }),
+          fuente: data.datos.fuente,
+        });
+      }
+    } catch {
+      setConversion(null);
+    } finally {
+      setConvirtiendo(false);
+    }
+  }, [formulario.monto, formulario.moneda, formulario.monedaDestino]);
+
+  useEffect(() => {
+    const timer = setTimeout(obtenerConversion, 400);
+    return () => clearTimeout(timer);
+  }, [obtenerConversion]);
 
   return (
     <div className="gastos-container">
@@ -87,21 +136,78 @@ function FormularioGasto() {
               )}
             </div>
 
-            {/* Monto */}
+            {/* Monto y Moneda */}
             <div className="form-group">
-              <label htmlFor="monto">Monto (CLP)</label>
-              <input
-                id="monto"
-                type="number"
-                name="monto"
-                className="form-control"
-                placeholder="Ej: 15000"
-                min="0"
-                value={formulario.monto}
-                onChange={handleChange}
-              />
+              <label htmlFor="monto">Monto</label>
+              <div className="monto-con-moneda">
+                <input
+                  id="monto"
+                  type="number"
+                  name="monto"
+                  className="form-control"
+                  placeholder="Ej: 15000"
+                  min="0"
+                  value={formulario.monto}
+                  onChange={handleChange}
+                />
+                <select
+                  name="moneda"
+                  className="form-control selector-moneda"
+                  value={formulario.moneda}
+                  onChange={handleChange}
+                >
+                  {MONEDAS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
               {errores.monto && (
                 <span className="error-msg">{errores.monto}</span>
+              )}
+            </div>
+
+            {/* Conversión de moneda */}
+            <div className="form-group conversion-group">
+              <label>Convertir a</label>
+              <div className="conversion-selector">
+                <span className="conversion-monto-origen">
+                  {formulario.monto || "0"} {formulario.moneda}
+                </span>
+                <span className="conversion-flecha">→</span>
+                <select
+                  name="monedaDestino"
+                  className="form-control selector-moneda"
+                  value={formulario.monedaDestino}
+                  onChange={handleChange}
+                >
+                  {MONEDAS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {conversion && (
+                <span className="conversion-resultado">
+                  ≈ {conversion.montoConvertido}
+                  {conversion.fuente === "cache" && (
+                    <span className="conversion-cache" title="Tasa cachead a (sin conexión)">
+                      {" "}◉ offline
+                    </span>
+                  )}
+                </span>
+              )}
+              {convirtiendo && (
+                <span className="conversion-resultado conversion-cargando">
+                  Convirtiendo...
+                </span>
+              )}
+              {formulario.moneda === formulario.monedaDestino && Number(formulario.monto) > 0 && (
+                <span className="conversion-resultado conversion-igual">
+                  Misma moneda — no se requiere conversión
+                </span>
               )}
             </div>
 

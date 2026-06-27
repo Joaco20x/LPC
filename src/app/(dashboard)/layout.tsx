@@ -8,12 +8,14 @@ import {
   limpiarSesion,
   obtenerDatosUsuario,
 } from "@/shared/servicios/almacenamientoTokens";
+import { useRefrescoActivo } from "@/auth/components/useRefrescoActivo";
 
 export default function LayoutDashboard({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  useRefrescoActivo();
   const router = useRouter();
   const [nombreUsuario] = useState(
     () => obtenerDatosUsuario()?.nombre || "Usuario",

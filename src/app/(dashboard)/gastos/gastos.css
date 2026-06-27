@@ -247,6 +247,79 @@
   cursor: not-allowed;
 }
 
+/* Monto con selector de moneda */
+.monto-con-moneda {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.monto-con-moneda .form-control:first-child {
+  flex: 1;
+}
+
+.selector-moneda {
+  width: auto;
+  min-width: 6rem;
+  flex-shrink: 0;
+}
+
+/* Conversión de moneda */
+.conversion-group {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-input);
+  padding: 1rem 1.25rem;
+  background: var(--color-fondo);
+}
+
+.conversion-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.conversion-monto-origen {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-texto-principal);
+  white-space: nowrap;
+}
+
+.conversion-flecha {
+  color: var(--color-texto-suave);
+  font-size: 1.1rem;
+}
+
+.conversion-resultado {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-acento);
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.conversion-cargando {
+  color: var(--color-texto-suave);
+  font-style: italic;
+  font-weight: 300;
+}
+
+.conversion-igual {
+  color: var(--color-texto-suave);
+  font-weight: 300;
+  font-style: italic;
+}
+
+.conversion-cache {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #b8860b;
+  font-weight: 400;
+}
+
 /* Mensajes de error inline */
 .error-msg {
   font-size: 0.8125rem;

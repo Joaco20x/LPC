@@ -21,7 +21,8 @@ export async function controladorLogout(req: NextRequest) {
     });
 
     return respuesta;
-  } catch {
+  } catch (error) {
+    console.error("[Logout]", error);
     return NextResponse.json(
       { exito: false, mensaje: "Error al cerrar sesión" },
       { status: 500 },
