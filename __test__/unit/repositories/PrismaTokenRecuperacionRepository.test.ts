@@ -28,7 +28,10 @@ describe("PrismaTokenRecuperacionRepository", () => {
 
   it("crear crea un token de recuperacion", async () => {
     const data = { idUsuario: "u1", token: "tok", expiraEn: new Date() };
-    mockPrisma.tokenRecuperacion.create.mockResolvedValue({ id: "t1", ...data });
+    mockPrisma.tokenRecuperacion.create.mockResolvedValue({
+      id: "t1",
+      ...data,
+    });
     const result = await repo.crear(data);
     expect(result.id).toBe("t1");
     expect(mockPrisma.tokenRecuperacion.create).toHaveBeenCalledWith({ data });

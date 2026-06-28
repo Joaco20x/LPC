@@ -27,7 +27,11 @@ describe("PrismaMiembroGrupoRepository", () => {
   });
 
   it("buscarPorGrupo con tx usa el cliente de transaccion", async () => {
-    const tx = { miembroGrupo: { findMany: jest.fn().mockResolvedValue([{ idUsuario: "u1" }]) } };
+    const tx = {
+      miembroGrupo: {
+        findMany: jest.fn().mockResolvedValue([{ idUsuario: "u1" }]),
+      },
+    };
     const result = await repo.buscarPorGrupo("g1", tx as any);
     expect(result).toHaveLength(1);
     expect(tx.miembroGrupo.findMany).toHaveBeenCalledWith({
@@ -50,17 +54,23 @@ describe("PrismaMiembroGrupoRepository", () => {
   });
 
   it("buscarPorUsuario retorna membresias con grupos", async () => {
-    mockPrisma.miembroGrupo.findMany.mockResolvedValue([{ id: "m1", grupo: { id: "g1", _count: { miembros: 2 } } }]);
+    mockPrisma.miembroGrupo.findMany.mockResolvedValue([
+      { id: "m1", grupo: { id: "g1", _count: { miembros: 2 } } },
+    ]);
     const result = await repo.buscarPorUsuario("u1");
     expect(result).toHaveLength(1);
     expect(mockPrisma.miembroGrupo.findMany).toHaveBeenCalledWith({
       where: { idUsuario: "u1" },
-      include: { grupo: { include: { _count: { select: { miembros: true } } } } },
+      include: {
+        grupo: { include: { _count: { select: { miembros: true } } } },
+      },
     });
   });
 
   it("buscarMiembrosDeGrupos retorna miembros sin duplicados", async () => {
-    mockPrisma.miembroGrupo.findMany.mockResolvedValue([{ idUsuario: "u1", usuario: { id: "u1", nombre: "A" } }]);
+    mockPrisma.miembroGrupo.findMany.mockResolvedValue([
+      { idUsuario: "u1", usuario: { id: "u1", nombre: "A" } },
+    ]);
     const result = await repo.buscarMiembrosDeGrupos(["g1"]);
     expect(result).toHaveLength(1);
     expect(mockPrisma.miembroGrupo.findMany).toHaveBeenCalledWith({

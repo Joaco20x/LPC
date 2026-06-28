@@ -20,10 +20,15 @@ beforeEach(() => {
 
 describe("PrismaUsuarioRepository", () => {
   it("buscarPorCorreo retorna usuario", async () => {
-    mockPrisma.usuario.findUnique.mockResolvedValue({ id: "u1", correo: "a@b.com" });
+    mockPrisma.usuario.findUnique.mockResolvedValue({
+      id: "u1",
+      correo: "a@b.com",
+    });
     const result = await repo.buscarPorCorreo("a@b.com");
     expect(result?.id).toBe("u1");
-    expect(mockPrisma.usuario.findUnique).toHaveBeenCalledWith({ where: { correo: "a@b.com" } });
+    expect(mockPrisma.usuario.findUnique).toHaveBeenCalledWith({
+      where: { correo: "a@b.com" },
+    });
   });
 
   it("buscarPorCorreo retorna null si no existe", async () => {
@@ -54,7 +59,9 @@ describe("PrismaUsuarioRepository", () => {
   });
 
   it("buscarPorEmails retorna usuarios", async () => {
-    mockPrisma.usuario.findMany.mockResolvedValue([{ id: "u1", nombre: "A", correo: "a@b.com" }]);
+    mockPrisma.usuario.findMany.mockResolvedValue([
+      { id: "u1", nombre: "A", correo: "a@b.com" },
+    ]);
     const result = await repo.buscarPorEmails(["a@b.com"]);
     expect(result).toHaveLength(1);
     expect(mockPrisma.usuario.findMany).toHaveBeenCalledWith({
@@ -64,7 +71,12 @@ describe("PrismaUsuarioRepository", () => {
   });
 
   it("crear crea un usuario", async () => {
-    const data = { nombre: "A", correo: "a@b.com", contrasenaHash: "hash", verificado: false };
+    const data = {
+      nombre: "A",
+      correo: "a@b.com",
+      contrasenaHash: "hash",
+      verificado: false,
+    };
     mockPrisma.usuario.create.mockResolvedValue({ id: "u1", ...data });
     const result = await repo.crear(data);
     expect(result.id).toBe("u1");

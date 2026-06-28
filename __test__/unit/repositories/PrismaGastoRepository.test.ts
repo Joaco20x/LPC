@@ -20,11 +20,21 @@ describe("PrismaGastoRepository", () => {
   const include = {
     pagador: { select: { id: true, nombre: true } },
     grupo: { select: { id: true, nombre: true } },
-    divisiones: { include: { usuario: { select: { id: true, nombre: true } } } },
+    divisiones: {
+      include: { usuario: { select: { id: true, nombre: true } } },
+    },
   };
 
   it("crear sin tx usa prisma", async () => {
-    const data = { idGrupo: "g1", idPagador: "u1", monto: 100, moneda: "CLP", descripcion: "Test", categoria: "Comida", urlBoleta: null };
+    const data = {
+      idGrupo: "g1",
+      idPagador: "u1",
+      monto: 100,
+      moneda: "CLP",
+      descripcion: "Test",
+      categoria: "Comida",
+      urlBoleta: null,
+    };
     mockPrisma.gasto.create.mockResolvedValue({ id: "gasto-1", ...data });
     const result = await repo.crear(data);
     expect(result.id).toBe("gasto-1");
@@ -32,8 +42,18 @@ describe("PrismaGastoRepository", () => {
   });
 
   it("crear con tx usa el cliente de transaccion", async () => {
-    const tx = { gasto: { create: jest.fn().mockResolvedValue({ id: "gasto-1" }) } };
-    const data = { idGrupo: "g1", idPagador: "u1", monto: 100, moneda: "CLP", descripcion: "Test", categoria: "Comida", urlBoleta: null };
+    const tx = {
+      gasto: { create: jest.fn().mockResolvedValue({ id: "gasto-1" }) },
+    };
+    const data = {
+      idGrupo: "g1",
+      idPagador: "u1",
+      monto: 100,
+      moneda: "CLP",
+      descripcion: "Test",
+      categoria: "Comida",
+      urlBoleta: null,
+    };
     const result = await repo.crear(data, tx as any);
     expect(result.id).toBe("gasto-1");
     expect(tx.gasto.create).toHaveBeenCalledWith({ data });

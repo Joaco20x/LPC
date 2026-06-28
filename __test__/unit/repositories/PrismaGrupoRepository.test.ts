@@ -12,12 +12,16 @@ import { PrismaGrupoRepository } from "@/grupos/repositories/PrismaGrupoReposito
 const repo = new PrismaGrupoRepository();
 
 const includeDetalle = {
-  miembros: { include: { usuario: { select: { id: true, nombre: true, correo: true } } } },
+  miembros: {
+    include: { usuario: { select: { id: true, nombre: true, correo: true } } },
+  },
   gastos: {
     orderBy: { creadoEn: "desc" },
     include: {
       pagador: { select: { id: true, nombre: true } },
-      divisiones: { include: { usuario: { select: { id: true, nombre: true } } } },
+      divisiones: {
+        include: { usuario: { select: { id: true, nombre: true } } },
+      },
     },
   },
 };
@@ -28,7 +32,13 @@ beforeEach(() => {
 
 describe("PrismaGrupoRepository", () => {
   it("crear sin tx usa prisma", async () => {
-    const data = { nombre: "Viaje", destino: "Chile", fechaInicio: new Date(), fechaFin: new Date(), monedaBase: "CLP" };
+    const data = {
+      nombre: "Viaje",
+      destino: "Chile",
+      fechaInicio: new Date(),
+      fechaFin: new Date(),
+      monedaBase: "CLP",
+    };
     mockPrisma.grupo.create.mockResolvedValue({ id: "g1" });
     const result = await repo.crear(data);
     expect(result.id).toBe("g1");
@@ -37,7 +47,13 @@ describe("PrismaGrupoRepository", () => {
 
   it("crear con tx usa el cliente de transaccion", async () => {
     const tx = { grupo: { create: jest.fn().mockResolvedValue({ id: "g1" }) } };
-    const data = { nombre: "Viaje", destino: "Chile", fechaInicio: new Date(), fechaFin: new Date(), monedaBase: "CLP" };
+    const data = {
+      nombre: "Viaje",
+      destino: "Chile",
+      fechaInicio: new Date(),
+      fechaFin: new Date(),
+      monedaBase: "CLP",
+    };
     const result = await repo.crear(data, tx as any);
     expect(result.id).toBe("g1");
     expect(tx.grupo.create).toHaveBeenCalledWith({ data });

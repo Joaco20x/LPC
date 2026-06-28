@@ -17,14 +17,30 @@ beforeEach(() => {
 
 describe("PrismaDeudaRepository", () => {
   it("crearMuchas sin tx usa prisma directamente", async () => {
-    const data = [{ idGrupo: "g1", idDeudor: "u1", idAcreedor: "u2", monto: 100, saldada: false }];
+    const data = [
+      {
+        idGrupo: "g1",
+        idDeudor: "u1",
+        idAcreedor: "u2",
+        monto: 100,
+        saldada: false,
+      },
+    ];
     await repo.crearMuchas(data);
     expect(mockPrisma.deuda.createMany).toHaveBeenCalledWith({ data });
   });
 
   it("crearMuchas con tx usa el cliente de transaccion", async () => {
     const tx = { deuda: { createMany: jest.fn() } };
-    const data = [{ idGrupo: "g1", idDeudor: "u1", idAcreedor: "u2", monto: 100, saldada: false }];
+    const data = [
+      {
+        idGrupo: "g1",
+        idDeudor: "u1",
+        idAcreedor: "u2",
+        monto: 100,
+        saldada: false,
+      },
+    ];
     await repo.crearMuchas(data, tx as any);
     expect(tx.deuda.createMany).toHaveBeenCalledWith({ data });
     expect(mockPrisma.deuda.createMany).not.toHaveBeenCalled();
