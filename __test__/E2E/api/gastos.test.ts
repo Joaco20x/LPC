@@ -129,6 +129,34 @@ describe("POST /api/gastos", () => {
     const respuesta = await controladorCrearGasto(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 500 si falla al crear gasto", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockRejectedValue(new Error("Error de BD"));
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 100,
+        descripcion: "Cena",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 100,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 describe("GET /api/gastos", () => {
@@ -153,6 +181,20 @@ describe("GET /api/gastos", () => {
     const respuesta = await controladorObtenerGastos(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 500 si falla al obtener gastos", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.obtenerTodos.mockRejectedValue(new Error("Error de BD"));
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerGastos(req);
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 describe("GET /api/gastos/opciones", () => {
@@ -175,5 +217,21 @@ describe("GET /api/gastos/opciones", () => {
 
     const respuesta = await controladorObtenerOpciones(req);
     expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 500 si falla al obtener opciones", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.miembroGrupoRepo.buscarPorUsuario.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos/opciones",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerOpciones(req);
+    expect(respuesta.status).toBe(500);
   });
 });

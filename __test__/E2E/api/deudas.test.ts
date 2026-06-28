@@ -116,4 +116,31 @@ describe("GET /api/deudas", () => {
     const respuesta = await controladorDeudas(req);
     expect(respuesta.status).toBe(500);
   });
+
+  it("incluye deudas donde el usuario es acreedor", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.deudaRepo.obtenerPendientes.mockResolvedValue([
+      {
+        id: "d1",
+        idDeudor: "user-2",
+        idAcreedor: "user-test",
+        monto: 50,
+        grupo: { id: "g1", nombre: "Grupo Test" },
+        deudor: { id: "user-2", nombre: "Otro", correo: "otro@test.com" },
+        acreedor: { id: "user-test", nombre: "Yo", correo: "yo@test.com" },
+        actualizadoEn: new Date(),
+      },
+    ]);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/deudas",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorDeudas(req);
+    const body = await respuesta.json();
+    expect(respuesta.status).toBe(200);
+    expect(body.datos.me_deben).toHaveLength(1);
+  });
 });

@@ -57,6 +57,10 @@ jest.mock("@/shared/libs/prismaDatabaseService", () => ({
   PrismaDatabaseService: { transaction: jest.fn((fn: any) => fn({})) },
 }));
 
+jest.mock("@/shared/servicios/tasasCambio", () => ({
+  obtenerTasaCambio: jest.fn().mockResolvedValue({ tasa: 850, fuente: "api" }),
+}));
+
 const tokens = generarTokens({
   idUsuario: "user-test",
   correo: "test@test.com",
@@ -114,6 +118,66 @@ describe("POST /api/grupos", () => {
     const respuesta = await controladorCrearGrupo(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 401 con token inválido", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos",
+      token: "token-manipulado",
+      cuerpo: { nombre: "Viaje" },
+    });
+
+    const respuesta = await controladorCrearGrupo(req);
+    expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 500 si hay correos no registrados", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.usuarioRepo.buscarPorEmails.mockResolvedValue([
+      { id: "user-2", nombre: "Invitado", correo: "invitado@test.com" },
+    ]);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos",
+      token: tokens.accessToken,
+      cuerpo: {
+        nombre: "Viaje",
+        pais: "Chile",
+        fechaInicio: "2026-07-01",
+        fechaFin: "2026-07-10",
+        correosIntegrantes: ["invitado@test.com", "no-registrado@test.com"],
+      },
+    });
+
+    const respuesta = await controladorCrearGrupo(req);
+    expect(respuesta.status).toBe(500);
+  });
+
+  it("retorna 500 si falla la creación en el servicio", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.usuarioRepo.buscarPorEmails.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos",
+      token: tokens.accessToken,
+      cuerpo: {
+        nombre: "Viaje",
+        pais: "Chile",
+        fechaInicio: "2026-07-01",
+        fechaFin: "2026-07-10",
+        correosIntegrantes: ["invitado@test.com"],
+      },
+    });
+
+    const respuesta = await controladorCrearGrupo(req);
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 describe("GET /api/grupos", () => {
@@ -142,6 +206,22 @@ describe("GET /api/grupos", () => {
 
     const respuesta = await controladorObtenerGrupos(req);
     expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 500 si falla al obtener grupos", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.miembroGrupoRepo.buscarPorUsuario.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerGrupos(req);
+    expect(respuesta.status).toBe(500);
   });
 });
 
@@ -179,5 +259,44 @@ describe("GET /api/grupos/[id]", () => {
       id: "no-existe",
     });
     expect(respuesta.status).toBe(404);
+  });
+
+  it("retorna 500 si falla al obtener detalle", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockRejectedValue(
+      new Error("Error inesperado"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerDetalleGrupo(req, { id: "g1" });
+    expect(respuesta.status).toBe(500);
+  });
+
+  it("retorna 200 con gastos en multiples monedas", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Viaje",
+      monedaBase: "CLP",
+      gastos: [
+        { monto: 100, moneda: "USD" },
+        { monto: 50000, moneda: "CLP" },
+        { monto: 50, moneda: "EUR" },
+      ],
+    } as any);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerDetalleGrupo(req, { id: "g1" });
+    expect(respuesta.status).toBe(200);
   });
 });
