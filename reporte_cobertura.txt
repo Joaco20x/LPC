@@ -1,0 +1,48 @@
+--- REPORTE DE COBERTURA ---
+
+src/auth/controllers/login.controller.ts: 93.75%
+src/auth/controllers/logout.controller.ts: 84.52%
+src/auth/controllers/nueva-contrasena.controller.ts: 55.63%
+src/auth/controllers/recuperar.controller.ts: 77.50%
+src/auth/controllers/refresh.controller.ts: 89.16%
+src/auth/controllers/registro.controller.ts: 81.62%
+src/auth/controllers/usuarios.controller.ts: 77.24%
+src/auth/repositories/PrismaSesionRepository.ts: 39.28%
+src/auth/repositories/PrismaTokenRecuperacionRepository.ts: 41.66%
+src/auth/repositories/PrismaUsuarioRepository.ts: 37.50%
+src/auth/services/contraseña.ts: 100.00%
+src/auth/services/google.service.ts: 100.00%
+src/auth/services/jwt.ts: 85.83%
+src/auth/services/login.service.ts: 100.00%
+src/auth/services/logout.service.ts: 100.00%
+src/auth/services/nueva-contrasena.service.ts: 100.00%
+src/auth/services/recuperar.service.ts: 88.97%
+src/auth/services/refresh.service.ts: 100.00%
+src/auth/services/registro.service.ts: 100.00%
+src/auth/validaciones/autenticacion.ts: 100.00%
+src/auth/validaciones/servicioAuth.ts: 100.00%
+src/auth/validaciones/useFormulario.ts: 100.00%
+src/deudas/controllers/deudas.controller.ts: 96.88%
+src/deudas/repositories/PrismaDeudaRepository.ts: 16.66%
+src/deudas/services/deudas.service.ts: 100.00%
+src/deudas/services/generarDeudas.service.ts: 100.00%
+src/gastos/controllers/gasto.controller.ts: 84.47%
+src/gastos/repositories/PrismaDivisionGastoRepository.ts: 25.00%
+src/gastos/repositories/PrismaGastoRepository.ts: 16.66%
+src/gastos/services/gasto.service.ts: 95.83%
+src/gastos/validaciones/gasto.ts: 95.44%
+src/grupos/controllers/grupos.controller.ts: 81.81%
+src/grupos/repositories/PrismaGrupoRepository.ts: 20.00%
+src/grupos/repositories/PrismaMiembroGrupoRepository.ts: 10.55%
+src/grupos/services/grupos.service.ts: 60.52%
+src/grupos/validaciones/grupos.ts: 98.53%
+src/shared/di/crearDependencias.ts: 100.00%
+src/shared/libs/prisma.ts: 91.66%
+src/shared/libs/prismaDatabaseService.ts: 100.00%
+src/shared/servicios/almacenamientoTokens.ts: 85.44%
+src/shared/servicios/peticionAutenticada.ts: 94.23%
+src/shared/servicios/tasasCambio.ts: 100.00%
+
+--- RESUMEN GLOBAL ---
+Porcentaje Global: 81.05%
+Archivos bajo el umbral (70%): 18
