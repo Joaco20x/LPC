@@ -12,9 +12,8 @@ beforeEach(() => {
 
 describe("obtenerTasaCambio", () => {
   it("retorna tasa 1 para misma moneda", async () => {
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     const resultado = await obtenerTasaCambio("CLP", "CLP");
     expect(resultado).toEqual({ tasa: 1, fuente: "cache" });
     expect(mockFetch).not.toHaveBeenCalled();
@@ -28,9 +27,8 @@ describe("obtenerTasaCambio", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     const resultado = await obtenerTasaCambio("USD", "CLP");
 
     expect(resultado).toEqual({ tasa: 850, fuente: "api" });
@@ -48,9 +46,8 @@ describe("obtenerTasaCambio", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     await obtenerTasaCambio("USD", "CLP");
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -62,27 +59,28 @@ describe("obtenerTasaCambio", () => {
   it("lanza error si la API falla y no hay caché", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
+    await expect(obtenerTasaCambio("BRL", "CLP")).rejects.toThrow(
+      "No hay conexión y no hay tasa en caché",
     );
-    await expect(
-      obtenerTasaCambio("BRL", "CLP"),
-    ).rejects.toThrow("No hay conexión y no hay tasa en caché");
   });
 
   it("lanza error si la API retorna result distinto de success", async () => {
     mockFetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ result: "error", "error-type": "unsupported-code" }), {
-        status: 200,
-      }),
+      new Response(
+        JSON.stringify({ result: "error", "error-type": "unsupported-code" }),
+        {
+          status: 200,
+        },
+      ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
+    await expect(obtenerTasaCambio("INVALID", "CLP")).rejects.toThrow(
+      "No hay conexión y no hay tasa en caché",
     );
-    await expect(
-      obtenerTasaCambio("INVALID", "CLP"),
-    ).rejects.toThrow("No hay conexión y no hay tasa en caché");
   });
 
   it("lanza error si API retorna result error sin error-type", async () => {
@@ -90,12 +88,11 @@ describe("obtenerTasaCambio", () => {
       new Response(JSON.stringify({ result: "error" }), { status: 200 }),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
+    await expect(obtenerTasaCambio("USD", "CLP")).rejects.toThrow(
+      "No hay conexión y no hay tasa en caché",
     );
-    await expect(
-      obtenerTasaCambio("USD", "CLP"),
-    ).rejects.toThrow("No hay conexión y no hay tasa en caché");
   });
 
   it("lanza error si conversion_rate no es número (sin caché)", async () => {
@@ -106,23 +103,21 @@ describe("obtenerTasaCambio", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
+    await expect(obtenerTasaCambio("USD", "ARS")).rejects.toThrow(
+      "No hay conexión y no hay tasa en caché",
     );
-    await expect(
-      obtenerTasaCambio("USD", "ARS"),
-    ).rejects.toThrow("No hay conexión y no hay tasa en caché");
   });
 
   it("lanza error si no hay API key configurada", async () => {
     delete process.env["EXCHANGERATE-API"];
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
+    await expect(obtenerTasaCambio("USD", "CLP")).rejects.toThrow(
+      "No hay conexión y no hay tasa en caché",
     );
-    await expect(
-      obtenerTasaCambio("USD", "CLP"),
-    ).rejects.toThrow("No hay conexión y no hay tasa en caché");
   });
 });
 
@@ -146,9 +141,8 @@ describe("obtenerTasaCambio — fallback a caché expirada", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     await obtenerTasaCambio("EUR", "CLP");
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -167,9 +161,8 @@ describe("obtenerTasaCambio — fallback a caché expirada", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     await obtenerTasaCambio("MXN", "CLP");
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -193,9 +186,8 @@ describe("obtenerTasaCambio — fallback a caché expirada", () => {
       ),
     );
 
-    const { obtenerTasaCambio } = await import(
-      "@/shared/servicios/tasasCambio"
-    );
+    const { obtenerTasaCambio } =
+      await import("@/shared/servicios/tasasCambio");
     await obtenerTasaCambio("MXN", "CLP");
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
