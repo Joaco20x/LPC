@@ -1,3 +1,5 @@
 cobertura/
 src/shared/types/routes.d.ts
 next.config.ts
+reporte_cobertura.txt
+generar-reporte.js

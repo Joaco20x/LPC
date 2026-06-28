@@ -1,15 +1,14 @@
-
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Configuración necesaria para emular __dirname en ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const UMBRAL = 70; 
-const COVERAGE_FILE = path.join(__dirname, 'coverage', 'coverage-summary.json');
-const OUTPUT_FILE = path.join(__dirname, 'reporte_cobertura.txt');
+const UMBRAL = 70;
+const COVERAGE_FILE = path.join(__dirname, "coverage", "coverage-summary.json");
+const OUTPUT_FILE = path.join(__dirname, "reporte_cobertura.txt");
 
 try {
   if (!fs.existsSync(COVERAGE_FILE)) {
