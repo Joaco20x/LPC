@@ -1,1 +1,3 @@
 cobertura/
+src/shared/types/routes.d.ts
+next.config.ts
