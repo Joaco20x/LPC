@@ -23,8 +23,17 @@ const config = {
     "!src/**/IDatabaseService.ts",
     "!src/**/components/**",
   ],
-  coverageReporters: ["lcovonly", "text", "cobertura"],
+  coverageReporters: ["lcovonly", "text"],
   coverageDirectory: "<rootDir>/coverage",
+  collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      lines: 70,
+      functions: 70,
+      branches: 70,
+      statements: 70,
+    },
+  },
 };
 
 module.exports = config;
