@@ -7,6 +7,7 @@ import type { ITokenRecuperacionRepository } from "@/auth/repositories/ITokenRec
 import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGastoRepository";
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
 import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
+import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
 
 import { PrismaUsuarioRepository } from "@/auth/repositories/PrismaUsuarioRepository";
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
@@ -16,6 +17,7 @@ import { PrismaSesionRepository } from "@/auth/repositories/PrismaSesionReposito
 import { PrismaTokenRecuperacionRepository } from "@/auth/repositories/PrismaTokenRecuperacionRepository";
 import { PrismaDivisionGastoRepository } from "@/gastos/repositories/PrismaDivisionGastoRepository";
 import { PrismaMiembroGrupoRepository } from "@/grupos/repositories/PrismaMiembroGrupoRepository";
+import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 export interface Dependencias {
@@ -27,6 +29,7 @@ export interface Dependencias {
   tokenRecuperacionRepo: ITokenRecuperacionRepository;
   divisionGastoRepo: IDivisionGastoRepository;
   miembroGrupoRepo: IMiembroGrupoRepository;
+  notificacionRepo: INotificacionRepository; // ← NUEVO
   db: IDatabaseService;
 }
 
@@ -44,6 +47,7 @@ export function crearDependencias(): Dependencias {
     tokenRecuperacionRepo: new PrismaTokenRecuperacionRepository(),
     divisionGastoRepo: new PrismaDivisionGastoRepository(),
     miembroGrupoRepo: new PrismaMiembroGrupoRepository(),
+    notificacionRepo: new PrismaNotificacionRepository(), // ← NUEVO
     db: PrismaDatabaseService,
   };
 

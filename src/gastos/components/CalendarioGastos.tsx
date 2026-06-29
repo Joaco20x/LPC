@@ -4,29 +4,43 @@
 // Vista mensual en cuadrícula, filtros por categoría e integrante, detalle al hacer clic
 
 import {
-    useCalendarioGastos,
-    CATEGORIAS,
-    COLOR_CATEGORIA,
-    type DiaCalendario,
+  useCalendarioGastos,
+  CATEGORIAS,
+  COLOR_CATEGORIA,
+  type DiaCalendario,
 } from "./useCalendarioGastos";
 
 const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 const MESES = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
 ];
 
 function formatMonto(monto: number) {
-    return monto.toLocaleString("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 });
+  return monto.toLocaleString("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  });
 }
 
 interface Props {
-    idGrupo: string;
+  idGrupo: string;
 }
 
 export default function CalendarioGastos({ idGrupo }: Props) {
-    const {
+  const {
     cargando,
     error,
     mesActual,
@@ -40,188 +54,205 @@ export default function CalendarioGastos({ idGrupo }: Props) {
     setDiaSeleccionado,
     irMesAnterior,
     irMesSiguiente,
-    } = useCalendarioGastos(idGrupo);
+  } = useCalendarioGastos(idGrupo);
 
-    if (cargando) return <div className="cal-cargando">Cargando calendario...</div>;
-    if (error) return <div className="cal-error">{error}</div>;
+  if (cargando)
+    return <div className="cal-cargando">Cargando calendario...</div>;
+  if (error) return <div className="cal-error">{error}</div>;
 
-    return (
+  return (
     <div className="cal-contenedor">
-        {/* ── Filtros ── */}
-        <div className="cal-filtros">
+      {/* ── Filtros ── */}
+      <div className="cal-filtros">
         <select
-            className="cal-select"
-            value={filtroCategoria}
-            onChange={(e) => setFiltroCategoria(e.target.value)}
+          className="cal-select"
+          value={filtroCategoria}
+          onChange={(e) => setFiltroCategoria(e.target.value)}
         >
-            <option value="todas">Todas las categorías</option>
-            {CATEGORIAS.map((c) => (
-            <option key={c} value={c}>{c}</option>
-            ))}
+          <option value="todas">Todas las categorías</option>
+          {CATEGORIAS.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
         </select>
 
         <select
-            className="cal-select"
-            value={filtroIntegrante}
-            onChange={(e) => setFiltroIntegrante(e.target.value)}
+          className="cal-select"
+          value={filtroIntegrante}
+          onChange={(e) => setFiltroIntegrante(e.target.value)}
         >
-            <option value="todos">Todos los integrantes</option>
-            {integrantes.map((i) => (
-            <option key={i.id} value={i.id}>{i.nombre}</option>
-            ))}
+          <option value="todos">Todos los integrantes</option>
+          {integrantes.map((i) => (
+            <option key={i.id} value={i.id}>
+              {i.nombre}
+            </option>
+          ))}
         </select>
 
         {/* Leyenda categorías */}
         <div className="cal-leyenda">
-            {CATEGORIAS.map((c) => (
+          {CATEGORIAS.map((c) => (
             <span key={c} className="cal-leyenda-item">
-                <span
+              <span
                 className="cal-punto"
                 style={{ background: COLOR_CATEGORIA[c] ?? "#aaa" }}
-                />
-                {c}
+              />
+              {c}
             </span>
-            ))}
+          ))}
         </div>
-        </div>
+      </div>
 
-        {/* ── Navegación mes ── */}
-        <div className="cal-nav">
-        <button className="cal-nav-btn" onClick={irMesAnterior}>←</button>
+      {/* ── Navegación mes ── */}
+      <div className="cal-nav">
+        <button className="cal-nav-btn" onClick={irMesAnterior}>
+          ←
+        </button>
         <h2 className="cal-titulo-mes">
-            {MESES[mesActual.getMonth()]} {mesActual.getFullYear()}
+          {MESES[mesActual.getMonth()]} {mesActual.getFullYear()}
         </h2>
-        <button className="cal-nav-btn" onClick={irMesSiguiente}>→</button>
-        </div>
+        <button className="cal-nav-btn" onClick={irMesSiguiente}>
+          →
+        </button>
+      </div>
 
-        {/* ── Cuadrícula ── */}
-        <div className="cal-grid">
+      {/* ── Cuadrícula ── */}
+      <div className="cal-grid">
         {/* Encabezados días semana */}
         {DIAS_SEMANA.map((d) => (
-            <div key={d} className="cal-dia-semana">{d}</div>
+          <div key={d} className="cal-dia-semana">
+            {d}
+          </div>
         ))}
 
         {/* Celdas de días */}
         {diasCalendario.map((dia, i) => (
-            <CeldaDia
+          <CeldaDia
             key={i}
             dia={dia}
-            seleccionado={diaSeleccionado?.fecha.getTime() === dia.fecha.getTime()}
-            onClick={() =>
-                setDiaSeleccionado(
-                diaSeleccionado?.fecha.getTime() === dia.fecha.getTime() ? null : dia,
-                )
+            seleccionado={
+              diaSeleccionado?.fecha.getTime() === dia.fecha.getTime()
             }
-            />
+            onClick={() =>
+              setDiaSeleccionado(
+                diaSeleccionado?.fecha.getTime() === dia.fecha.getTime()
+                  ? null
+                  : dia,
+              )
+            }
+          />
         ))}
-        </div>
+      </div>
 
-        {/* ── Panel detalle día ── */}
-        {diaSeleccionado && (
+      {/* ── Panel detalle día ── */}
+      {diaSeleccionado && (
         <PanelDetalle
-            dia={diaSeleccionado}
-            onCerrar={() => setDiaSeleccionado(null)}
+          dia={diaSeleccionado}
+          onCerrar={() => setDiaSeleccionado(null)}
         />
-        )}
+      )}
     </div>
-    );
+  );
 }
 
 // ── Celda de día ─────────────────────────────────────────────────────────────
 function CeldaDia({
-    dia,
-    seleccionado,
-    onClick,
+  dia,
+  seleccionado,
+  onClick,
 }: {
-    dia: DiaCalendario;
-    seleccionado: boolean;
-    onClick: () => void;
+  dia: DiaCalendario;
+  seleccionado: boolean;
+  onClick: () => void;
 }) {
-    const tieneGastos = dia.gastos.length > 0;
+  const tieneGastos = dia.gastos.length > 0;
 
-    return (
+  return (
     <button
-        className={[
+      className={[
         "cal-celda",
         !dia.esMesActual && "cal-celda--fuera",
         dia.esHoy && "cal-celda--hoy",
         seleccionado && "cal-celda--seleccionada",
         tieneGastos && "cal-celda--con-gastos",
-        ]
+      ]
         .filter(Boolean)
         .join(" ")}
-        onClick={onClick}
-    > 
-        <span className="cal-celda-numero">{dia.fecha.getDate()}</span>
+      onClick={onClick}
+    >
+      <span className="cal-celda-numero">{dia.fecha.getDate()}</span>
 
-        {tieneGastos && (
+      {tieneGastos && (
         <>
-            <span className="cal-celda-monto">{formatMonto(dia.totalMonto)}</span>
-            <div className="cal-celda-puntos">
+          <span className="cal-celda-monto">{formatMonto(dia.totalMonto)}</span>
+          <div className="cal-celda-puntos">
             {dia.categoriasPrincipal.map((cat) => (
-                <span
+              <span
                 key={cat}
                 className="cal-punto"
                 style={{ background: COLOR_CATEGORIA[cat] ?? "#aaa" }}
                 title={cat}
-                />
+              />
             ))}
-            </div>
+          </div>
         </>
-        )}
+      )}
     </button>
-    );
+  );
 }
 
 // ── Panel lateral de detalle ─────────────────────────────────────────────────
 function PanelDetalle({
-    dia,
-    onCerrar,
+  dia,
+  onCerrar,
 }: {
-    dia: DiaCalendario;
-    onCerrar: () => void;
+  dia: DiaCalendario;
+  onCerrar: () => void;
 }) {
-    const fecha = dia.fecha.toLocaleDateString("es-CL", {
+  const fecha = dia.fecha.toLocaleDateString("es-CL", {
     weekday: "long",
     day: "numeric",
     month: "long",
-    });
+  });
 
-    return (
+  return (
     <div className="cal-panel">
-        <div className="cal-panel-header">
+      <div className="cal-panel-header">
         <h3 className="cal-panel-fecha">{fecha}</h3>
-        <button className="cal-panel-cerrar" onClick={onCerrar}>✕</button>
-        </div>
+        <button className="cal-panel-cerrar" onClick={onCerrar}>
+          ✕
+        </button>
+      </div>
 
-        {dia.gastos.length === 0 ? (
+      {dia.gastos.length === 0 ? (
         <p className="cal-panel-vacio">Sin gastos este día.</p>
-        ) : (
+      ) : (
         <>
-            <p className="cal-panel-total">
+          <p className="cal-panel-total">
             Total: <strong>{formatMonto(dia.totalMonto)}</strong>
-            </p>
-            <ul className="cal-panel-lista">
+          </p>
+          <ul className="cal-panel-lista">
             {dia.gastos.map((g) => (
-                <li key={g.id} className="cal-panel-item">
+              <li key={g.id} className="cal-panel-item">
                 <span
-                    className="cal-punto cal-punto--md"
-                    style={{ background: COLOR_CATEGORIA[g.categoria] ?? "#aaa" }}
+                  className="cal-punto cal-punto--md"
+                  style={{ background: COLOR_CATEGORIA[g.categoria] ?? "#aaa" }}
                 />
                 <div className="cal-panel-item-info">
-                    <span className="cal-panel-item-desc">{g.descripcion}</span>
-                    <span className="cal-panel-item-meta">
+                  <span className="cal-panel-item-desc">{g.descripcion}</span>
+                  <span className="cal-panel-item-meta">
                     {g.categoria} · pagó {g.pagador.nombre}
-                    </span>
+                  </span>
                 </div>
                 <span className="cal-panel-item-monto">
-                    {formatMonto(Number(g.monto))}
+                  {formatMonto(Number(g.monto))}
                 </span>
-                </li>
+              </li>
             ))}
-            </ul>
+          </ul>
         </>
-        )}
+      )}
     </div>
-    );
+  );
 }

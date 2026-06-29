@@ -142,7 +142,9 @@ export default function PaginaDetalleGrupo() {
                 gap: "1rem",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+              >
                 <h2 className="titulo-seccion" style={{ margin: 0 }}>
                   <svg
                     width="24"
@@ -155,7 +157,9 @@ export default function PaginaDetalleGrupo() {
                     <rect x="2" y="5" width="20" height="14" rx="2" />
                     <line x1="2" y1="10" x2="22" y2="10" />
                   </svg>
-                  {vista === "lista" ? "Historial de Gastos" : "Calendario de Gastos"}
+                  {vista === "lista"
+                    ? "Historial de Gastos"
+                    : "Calendario de Gastos"}
                 </h2>
 
                 {/* Selector lista / calendario */}
@@ -165,7 +169,14 @@ export default function PaginaDetalleGrupo() {
                     onClick={() => setVista("lista")}
                     title="Vista lista"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <line x1="8" y1="6" x2="21" y2="6" />
                       <line x1="8" y1="12" x2="21" y2="12" />
                       <line x1="8" y1="18" x2="21" y2="18" />
@@ -180,7 +191,14 @@ export default function PaginaDetalleGrupo() {
                     onClick={() => setVista("calendario")}
                     title="Vista calendario"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
                       <rect x="3" y="4" width="18" height="18" rx="2" />
                       <line x1="16" y1="2" x2="16" y2="6" />
                       <line x1="8" y1="2" x2="8" y2="6" />
@@ -216,9 +234,15 @@ export default function PaginaDetalleGrupo() {
             </div>
 
             {/* ── Vista lista ── */}
-            {vista === "lista" && (
-              grupo.gastos.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "3rem", color: "var(--color-texto-suave)" }}>
+            {vista === "lista" &&
+              (grupo.gastos.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "3rem",
+                    color: "var(--color-texto-suave)",
+                  }}
+                >
                   <p>Aún no hay gastos registrados en este viaje.</p>
                 </div>
               ) : (
@@ -226,7 +250,9 @@ export default function PaginaDetalleGrupo() {
                   {grupo.gastos.map((gasto) => (
                     <div key={gasto.id} className="gasto-item">
                       <div className="gasto-info-principal">
-                        <span className="gasto-descripcion">{gasto.descripcion}</span>
+                        <span className="gasto-descripcion">
+                          {gasto.descripcion}
+                        </span>
                         <span className="gasto-meta">
                           Pagado por <strong>{gasto.pagador.nombre}</strong> •{" "}
                           {new Date(gasto.creadoEn).toLocaleDateString()}
@@ -236,7 +262,12 @@ export default function PaginaDetalleGrupo() {
                         <span className="gasto-monto">
                           {formatearMonto(Number(gasto.monto))}
                         </span>
-                        <div style={{ fontSize: "0.75rem", color: "var(--color-texto-suave)" }}>
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "var(--color-texto-suave)",
+                          }}
+                        >
                           {gasto.categoria}
                         </div>
                       </div>
@@ -256,23 +287,28 @@ export default function PaginaDetalleGrupo() {
                     <div className="gasto-info-principal">
                       <span className="gasto-descripcion">Total del viaje</span>
                       <span className="gasto-meta">
-                        {grupo.gastos.length} gasto{grupo.gastos.length !== 1 ? "s" : ""} registrado{grupo.gastos.length !== 1 ? "s" : ""}
+                        {grupo.gastos.length} gasto
+                        {grupo.gastos.length !== 1 ? "s" : ""} registrado
+                        {grupo.gastos.length !== 1 ? "s" : ""}
                       </span>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <span className="gasto-monto" style={{ color: "var(--color-acento)", fontSize: "1.2rem" }}>
+                      <span
+                        className="gasto-monto"
+                        style={{
+                          color: "var(--color-acento)",
+                          fontSize: "1.2rem",
+                        }}
+                      >
                         {formatearMonto(totalGastado)}
                       </span>
                     </div>
                   </div>
                 </div>
-              )
-            )}
+              ))}
 
             {/* ── Vista calendario ── */}
-            {vista === "calendario" && (
-              <CalendarioGastos idGrupo={grupo.id} />
-            )}
+            {vista === "calendario" && <CalendarioGastos idGrupo={grupo.id} />}
           </div>
 
           <BalancesGrupo idGrupo={grupo.id} />
@@ -308,7 +344,14 @@ export default function PaginaDetalleGrupo() {
 
           <div className="seccion-detalles">
             <h2 className="titulo-seccion" style={{ fontSize: "1.25rem" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                 <circle cx="9" cy="7" r="4" />
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -327,7 +370,12 @@ export default function PaginaDetalleGrupo() {
                       {miembro.usuario.nombre}{" "}
                       {miembro.rol === "admin" && "(Admin)"}
                     </span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-texto-suave)" }}>
+                    <span
+                      style={{
+                        fontSize: "0.75rem",
+                        color: "var(--color-texto-suave)",
+                      }}
+                    >
                       {miembro.usuario.correo}
                     </span>
                   </div>

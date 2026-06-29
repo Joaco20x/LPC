@@ -8,6 +8,7 @@ import {
   limpiarSesion,
   obtenerDatosUsuario,
 } from "@/shared/servicios/almacenamientoTokens";
+import CampanaNotificaciones from "@/notificaciones/components/CampanaNotificaciones";
 
 export default function LayoutDashboard({
   children,
@@ -42,6 +43,9 @@ export default function LayoutDashboard({
           </div>
         </div>
         <div className="dashboard-nav__usuario">
+          {/* ── Campana de notificaciones ── */}
+          <CampanaNotificaciones />
+
           <span className="dashboard-nav__nombre">{nombreUsuario}</span>
           <button
             onClick={manejarCerrarSesion}
