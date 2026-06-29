@@ -23,12 +23,20 @@ interface Notificacion {
   creadoEn: string;
 }
 
-const TIPOS_CONFIG: { tipo: TipoNotificacion; etiqueta: string; icono: string }[] = [
+const TIPOS_CONFIG: {
+  tipo: TipoNotificacion;
+  etiqueta: string;
+  icono: string;
+}[] = [
   { tipo: "nuevo_gasto", etiqueta: "Nuevo gasto", icono: "💸" },
   { tipo: "pago_deuda", etiqueta: "Pago de deuda", icono: "✅" },
   { tipo: "alerta_deuda", etiqueta: "Alerta de deuda", icono: "⚠️" },
   { tipo: "cierre_viaje", etiqueta: "Cierre de viaje", icono: "✈️" },
-  { tipo: "presupuesto_superado", etiqueta: "Presupuesto superado", icono: "🚨" },
+  {
+    tipo: "presupuesto_superado",
+    etiqueta: "Presupuesto superado",
+    icono: "🚨",
+  },
   { tipo: "integrante_anadido", etiqueta: "Nuevo integrante", icono: "👤" },
 ];
 
@@ -36,21 +44,26 @@ const CLAVE_CONFIG = "lpc_notif_config";
 const INTERVALO_POLLING = 30_000;
 
 function cargarConfig(): Record<TipoNotificacion, boolean> {
-  if (typeof window === "undefined") return {} as Record<TipoNotificacion, boolean>;
+  if (typeof window === "undefined")
+    return {} as Record<TipoNotificacion, boolean>;
   try {
     const raw = localStorage.getItem(CLAVE_CONFIG);
     if (raw) return JSON.parse(raw);
   } catch {}
-  return Object.fromEntries(
-    TIPOS_CONFIG.map((t) => [t.tipo, true]),
-  ) as Record<TipoNotificacion, boolean>;
+  return Object.fromEntries(TIPOS_CONFIG.map((t) => [t.tipo, true])) as Record<
+    TipoNotificacion,
+    boolean
+  >;
 }
 
 function guardarConfig(config: Record<TipoNotificacion, boolean>) {
   localStorage.setItem(CLAVE_CONFIG, JSON.stringify(config));
 }
 
-function formatearMensaje(tipo: TipoNotificacion, metadata: Record<string, unknown>): string {
+function formatearMensaje(
+  tipo: TipoNotificacion,
+  metadata: Record<string, unknown>,
+): string {
   switch (tipo) {
     case "nuevo_gasto":
       return `${metadata.pagador} pagó ${formatMonto(Number(metadata.monto))} en "${metadata.descripcion}" (${metadata.nombreGrupo})`;
@@ -91,7 +104,8 @@ export default function CampanaNotificaciones() {
   const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
   const [abierto, setAbierto] = useState(false);
   const [mostrarConfig, setMostrarConfig] = useState(false);
-  const [config, setConfig] = useState<Record<TipoNotificacion, boolean>>(cargarConfig);
+  const [config, setConfig] =
+    useState<Record<TipoNotificacion, boolean>>(cargarConfig);
   const [marcandoTodas, setMarcandoTodas] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -194,7 +208,9 @@ export default function CampanaNotificaciones() {
           <path d="M13.73 21a2 2 0 0 1-3.46 0" />
         </svg>
         {noLeidas > 0 && (
-          <span className="notif-badge">{noLeidas > 99 ? "99+" : noLeidas}</span>
+          <span className="notif-badge">
+            {noLeidas > 99 ? "99+" : noLeidas}
+          </span>
         )}
       </button>
 
@@ -202,7 +218,9 @@ export default function CampanaNotificaciones() {
         <div className="notif-panel">
           <div className="notif-panel-header">
             <span className="notif-panel-titulo">Notificaciones</span>
-            <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <div
+              style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}
+            >
               <button
                 className="notif-btn-leer-todas"
                 onClick={marcarTodasLeidas}
@@ -240,7 +258,9 @@ export default function CampanaNotificaciones() {
                         <p className="notif-mensaje">
                           {formatearMensaje(n.tipo, n.metadata)}
                         </p>
-                        <span className="notif-tiempo">{formatTiempo(n.creadoEn)}</span>
+                        <span className="notif-tiempo">
+                          {formatTiempo(n.creadoEn)}
+                        </span>
                       </div>
                       {!n.leida && <div className="notif-punto" />}
                     </div>

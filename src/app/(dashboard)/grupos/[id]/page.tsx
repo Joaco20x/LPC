@@ -276,14 +276,15 @@ export default function PaginaDetalleGrupo() {
                           }}
                         >
                           <span>{gasto.categoria}</span>
-                          {gasto.moneda && gasto.moneda !== grupo.monedaBase && (
-                            <span
-                              className="gasto-moneda-indicador"
-                              title={`Registrado en ${gasto.moneda}`}
-                            >
-                              {gasto.moneda}
-                            </span>
-                          )}
+                          {gasto.moneda &&
+                            gasto.moneda !== grupo.monedaBase && (
+                              <span
+                                className="gasto-moneda-indicador"
+                                title={`Registrado en ${gasto.moneda}`}
+                              >
+                                {gasto.moneda}
+                              </span>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -323,9 +324,7 @@ export default function PaginaDetalleGrupo() {
               ))}
 
             {/* Vista calendario */}
-            {vista === "calendario" && (
-              <CalendarioGastos idGrupo={grupo.id} />
-            )}
+            {vista === "calendario" && <CalendarioGastos idGrupo={grupo.id} />}
           </div>
 
           <BalancesGrupo idGrupo={grupo.id} />
