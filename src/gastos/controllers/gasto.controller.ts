@@ -4,14 +4,10 @@ import {
   obtenerGastos,
   obtenerOpcionesFormulario,
 } from "@/gastos/services/gasto.service";
-import {
-  notificarNuevoGasto,
-  notificarPresupuestoSuperado,
-} from "@/notificaciones/services/notificacion.service";
+import { notificarNuevoGasto } from "@/notificaciones/services/notificacion.service";
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
-import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import { crearDependencias } from "@/shared/di/crearDependencias";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
@@ -54,11 +50,7 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      {
-        ...cuerpo,
-        idPagador: cuerpo.idPagador || payload.idUsuario,
-        moneda: cuerpo.moneda || MONEDA_DEFAULT,
-      },
+      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
@@ -81,34 +73,6 @@ export async function controladorCrearGasto(req: NextRequest) {
           deps.miembroGrupoRepo,
           deps.notificacionRepo,
         );
-
-        // Verificar si se superó el presupuesto del grupo
-        if (nuevoGasto.grupo.presupuestoPorPersona) {
-          const miembros = await deps.miembroGrupoRepo.buscarPorGrupo(
-            nuevoGasto.grupo.id,
-          );
-          const gastosGrupo = await new PrismaGastoRepository().obtenerPorGrupo(
-            nuevoGasto.grupo.id,
-          );
-          const totalGastado = gastosGrupo.reduce(
-            (acc, g) => acc + Number(g.monto),
-            0,
-          );
-
-          await notificarPresupuestoSuperado(
-            {
-              idGrupo: nuevoGasto.grupo.id,
-              nombreGrupo: nuevoGasto.grupo.nombre,
-              totalGastado,
-              presupuestoPorPersona: Number(
-                nuevoGasto.grupo.presupuestoPorPersona,
-              ),
-              totalMiembros: miembros.length,
-            },
-            deps.miembroGrupoRepo,
-            deps.notificacionRepo,
-          );
-        }
       } catch (errNotif) {
         console.warn("[Notificaciones] Error no crítico:", errNotif);
       }
@@ -160,7 +124,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload.idUsuario,
+      payload!.idUsuario,
       miembroGrupoRepo,
     );
 

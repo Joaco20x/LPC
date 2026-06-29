@@ -84,6 +84,7 @@ export default function PaginaDetalleGrupo() {
       month: "long",
       year: "numeric",
     });
+
   const formatearMonto = (m: number, moneda?: string) => {
     const mon = moneda || MONEDA_DEFAULT;
     const locale = mon === "CLP" ? "es-CL" : "en-US";
@@ -134,7 +135,7 @@ export default function PaginaDetalleGrupo() {
         {/* Columna Principal */}
         <main>
           <div className="seccion-detalles">
-            {/* ── Cabecera con selector de vista ── */}
+            {/* Cabecera con selector de vista */}
             <div
               style={{
                 display: "flex",
@@ -236,7 +237,7 @@ export default function PaginaDetalleGrupo() {
               </div>
             </div>
 
-            {/* ── Vista lista ── */}
+            {/* Vista lista */}
             {vista === "lista" &&
               (grupo.gastos.length === 0 ? (
                 <div
@@ -263,21 +264,33 @@ export default function PaginaDetalleGrupo() {
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <span className="gasto-monto">
-                          {formatearMonto(Number(gasto.monto))}
+                          {formatearMonto(Number(gasto.monto), gasto.moneda)}
                         </span>
                         <div
                           style={{
                             fontSize: "0.75rem",
                             color: "var(--color-texto-suave)",
+                            display: "flex",
+                            gap: "0.5rem",
+                            justifyContent: "flex-end",
                           }}
                         >
-                          {gasto.categoria}
+                          <span>{gasto.categoria}</span>
+                          {gasto.moneda &&
+                            gasto.moneda !== grupo.monedaBase && (
+                              <span
+                                className="gasto-moneda-indicador"
+                                title={`Registrado en ${gasto.moneda}`}
+                              >
+                                {gasto.moneda}
+                              </span>
+                            )}
                         </div>
                       </div>
                     </div>
                   ))}
 
-                  {/* Total */}
+                  {/* Total al pie del historial */}
                   <div
                     className="gasto-item"
                     style={{
@@ -296,7 +309,6 @@ export default function PaginaDetalleGrupo() {
                       </span>
                     </div>
                     <div style={{ textAlign: "right" }}>
-<<<<<<< HEAD
                       <span
                         className="gasto-monto"
                         style={{
@@ -304,71 +316,14 @@ export default function PaginaDetalleGrupo() {
                           fontSize: "1.2rem",
                         }}
                       >
-                        {formatearMonto(totalGastado)}
+                        {formatearMonto(totalGastado, grupo.monedaBase)}
                       </span>
                     </div>
                   </div>
-=======
-                      <span className="gasto-monto">
-                        {formatearMonto(Number(gasto.monto), gasto.moneda)}
-                      </span>
-                      <div
-                        style={{
-                          fontSize: "0.75rem",
-                          color: "var(--color-texto-suave)",
-                          display: "flex",
-                          gap: "0.5rem",
-                          justifyContent: "flex-end",
-                        }}
-                      >
-                        <span>{gasto.categoria}</span>
-                        {gasto.moneda && gasto.moneda !== grupo.monedaBase && (
-                          <span
-                            className="gasto-moneda-indicador"
-                            title={`Registrado en ${gasto.moneda}`}
-                          >
-                            {gasto.moneda}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Total al pie del historial */}
-                <div
-                  className="gasto-item"
-                  style={{
-                    borderTop: "2px solid var(--color-borde)",
-                    marginTop: "0.5rem",
-                    paddingTop: "1rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  <div className="gasto-info-principal">
-                    <span className="gasto-descripcion">Total del viaje</span>
-                    <span className="gasto-meta">
-                      {grupo.gastos.length} gasto
-                      {grupo.gastos.length !== 1 ? "s" : ""} registrado
-                      {grupo.gastos.length !== 1 ? "s" : ""}
-                    </span>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span
-                      className="gasto-monto"
-                      style={{
-                        color: "var(--color-acento)",
-                        fontSize: "1.2rem",
-                      }}
-                    >
-                      {formatearMonto(totalGastado, grupo.monedaBase)}
-                    </span>
-                  </div>
->>>>>>> origin/testing
                 </div>
               ))}
 
-            {/* ── Vista calendario ── */}
+            {/* Vista calendario */}
             {vista === "calendario" && <CalendarioGastos idGrupo={grupo.id} />}
           </div>
 

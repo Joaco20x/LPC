@@ -8,11 +8,8 @@ import {
   limpiarSesion,
   obtenerDatosUsuario,
 } from "@/shared/servicios/almacenamientoTokens";
-<<<<<<< HEAD
 import CampanaNotificaciones from "@/notificaciones/components/CampanaNotificaciones";
-=======
 import { useRefrescoActivo } from "@/auth/components/useRefrescoActivo";
->>>>>>> origin/testing
 
 export default function LayoutDashboard({
   children,
@@ -48,9 +45,7 @@ export default function LayoutDashboard({
           </div>
         </div>
         <div className="dashboard-nav__usuario">
-          {/* ── Campana de notificaciones ── */}
           <CampanaNotificaciones />
-
           <span className="dashboard-nav__nombre">{nombreUsuario}</span>
           <button
             onClick={manejarCerrarSesion}
