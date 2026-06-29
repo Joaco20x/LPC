@@ -11,6 +11,7 @@ import {
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
+import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import { crearDependencias } from "@/shared/di/crearDependencias";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
@@ -53,7 +54,11 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
+      {
+        ...cuerpo,
+        idPagador: cuerpo.idPagador || payload.idUsuario,
+        moneda: cuerpo.moneda || MONEDA_DEFAULT,
+      },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
@@ -155,7 +160,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 

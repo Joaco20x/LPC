@@ -2,7 +2,6 @@
 // Debe contener <html> y <body>
 
 import type { Metadata } from "next";
-import "./global.css";
 
 export const metadata: Metadata = {
   title: "LPC — Gestión de Gastos de Viaje",

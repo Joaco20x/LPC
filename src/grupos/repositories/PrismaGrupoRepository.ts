@@ -1,5 +1,5 @@
 import { prisma } from "@/shared/libs/prisma";
-import type { Prisma } from "@prisma/client";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 import type {
   IGrupoRepository,
   DatosCrearGrupo,
@@ -7,8 +7,11 @@ import type {
 } from "./IGrupoRepository";
 
 export class PrismaGrupoRepository implements IGrupoRepository {
-  async crear(data: DatosCrearGrupo, tx?: unknown): Promise<{ id: string }> {
-    const client = (tx || prisma) as Prisma.TransactionClient;
+  async crear(
+    data: DatosCrearGrupo,
+    tx?: TransactionClient,
+  ): Promise<{ id: string }> {
+    const client = tx ?? prisma;
     return client.grupo.create({ data });
   }
   async obtenerDetalle(id: string): Promise<GrupoConDetalles | null> {
@@ -30,6 +33,6 @@ export class PrismaGrupoRepository implements IGrupoRepository {
           },
         },
       },
-    }) as Promise<GrupoConDetalles | null>;
+    });
   }
 }

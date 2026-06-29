@@ -42,7 +42,7 @@ export async function controladorCrearGrupo(req: NextRequest) {
     if (error) return error;
 
     const cuerpo = await req.json();
-    const datosCompletos = { ...cuerpo, idCreador: payload!.idUsuario };
+    const datosCompletos = { ...cuerpo, idCreador: payload.idUsuario };
     const errores = validarCreacionGrupo(datosCompletos);
 
     if (errores.length > 0) {
@@ -70,15 +70,18 @@ export async function controladorCrearGrupo(req: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
-    const err = error as { name?: string; message?: string };
     const esTokenInvalido =
-      err.name === "JsonWebTokenError" || err.name === "TokenExpiredError";
+      error instanceof Error &&
+      (error.name === "JsonWebTokenError" ||
+        error.name === "TokenExpiredError");
     return NextResponse.json(
       {
         exito: false,
         mensaje: esTokenInvalido
           ? "Token inválido o expirado"
-          : err.message || "Error interno al crear el grupo",
+          : error instanceof Error
+            ? error.message
+            : "Error interno al crear el grupo",
       },
       { status: esTokenInvalido ? 401 : 500 },
     );
@@ -92,7 +95,7 @@ export async function controladorObtenerGrupos(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const grupos = await obtenerGruposDelUsuario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 

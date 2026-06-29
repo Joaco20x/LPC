@@ -4,6 +4,7 @@ import { useState, useEffect, startTransition, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
+import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import "./detalles.css";
 import BalancesGrupo from "./BalancesGrupo";
 import CalendarioGastos from "@/gastos/components/CalendarioGastos";
@@ -13,6 +14,7 @@ interface Gasto {
   id: string;
   descripcion: string;
   monto: number;
+  moneda: string;
   categoria: string;
   creadoEn: string;
   pagador: { nombre: string };
@@ -36,6 +38,7 @@ interface GrupoDetalle {
   monedaBase: string;
   miembros: Integrante[];
   gastos: Gasto[];
+  totalEnBase: number;
 }
 
 type Vista = "lista" | "calendario";
@@ -81,11 +84,14 @@ export default function PaginaDetalleGrupo() {
       month: "long",
       year: "numeric",
     });
-  const formatearMonto = (m: number) =>
-    new Intl.NumberFormat("es-CL", {
+  const formatearMonto = (m: number, moneda?: string) => {
+    const mon = moneda || MONEDA_DEFAULT;
+    const locale = mon === "CLP" ? "es-CL" : "en-US";
+    return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: "CLP",
+      currency: mon,
     }).format(m);
+  };
 
   if (cargando)
     return (
@@ -102,10 +108,7 @@ export default function PaginaDetalleGrupo() {
       </div>
     );
 
-  const totalGastado = grupo.gastos.reduce(
-    (acc, g) => acc + Number(g.monto),
-    0,
-  );
+  const totalGastado = grupo.totalEnBase;
 
   return (
     <div className="dashboard-cuerpo detalles-grupo-raiz">
@@ -293,6 +296,7 @@ export default function PaginaDetalleGrupo() {
                       </span>
                     </div>
                     <div style={{ textAlign: "right" }}>
+<<<<<<< HEAD
                       <span
                         className="gasto-monto"
                         style={{
@@ -304,6 +308,63 @@ export default function PaginaDetalleGrupo() {
                       </span>
                     </div>
                   </div>
+=======
+                      <span className="gasto-monto">
+                        {formatearMonto(Number(gasto.monto), gasto.moneda)}
+                      </span>
+                      <div
+                        style={{
+                          fontSize: "0.75rem",
+                          color: "var(--color-texto-suave)",
+                          display: "flex",
+                          gap: "0.5rem",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <span>{gasto.categoria}</span>
+                        {gasto.moneda && gasto.moneda !== grupo.monedaBase && (
+                          <span
+                            className="gasto-moneda-indicador"
+                            title={`Registrado en ${gasto.moneda}`}
+                          >
+                            {gasto.moneda}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Total al pie del historial */}
+                <div
+                  className="gasto-item"
+                  style={{
+                    borderTop: "2px solid var(--color-borde)",
+                    marginTop: "0.5rem",
+                    paddingTop: "1rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  <div className="gasto-info-principal">
+                    <span className="gasto-descripcion">Total del viaje</span>
+                    <span className="gasto-meta">
+                      {grupo.gastos.length} gasto
+                      {grupo.gastos.length !== 1 ? "s" : ""} registrado
+                      {grupo.gastos.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <span
+                      className="gasto-monto"
+                      style={{
+                        color: "var(--color-acento)",
+                        fontSize: "1.2rem",
+                      }}
+                    >
+                      {formatearMonto(totalGastado, grupo.monedaBase)}
+                    </span>
+                  </div>
+>>>>>>> origin/testing
                 </div>
               ))}
 
@@ -329,7 +390,7 @@ export default function PaginaDetalleGrupo() {
                 opacity: 0.8,
               }}
             >
-              Total Gastado
+              Total Gastado ({grupo.monedaBase})
             </h3>
             <p
               style={{
@@ -338,7 +399,7 @@ export default function PaginaDetalleGrupo() {
                 fontFamily: "var(--fuente-display)",
               }}
             >
-              {formatearMonto(totalGastado)}
+              {formatearMonto(totalGastado, grupo.monedaBase)}
             </p>
           </div>
 

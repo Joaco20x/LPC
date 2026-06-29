@@ -11,8 +11,15 @@ function obtenerUrlCallback() {
 }
 
 export function controladorGoogleIniciar() {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) {
+    return NextResponse.json(
+      { exito: false, mensaje: "Google OAuth no configurado" },
+      { status: 500 },
+    );
+  }
   const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID!,
+    client_id: clientId,
     redirect_uri: obtenerUrlCallback(),
     response_type: "code",
     scope: "openid email profile",
@@ -35,13 +42,20 @@ export async function controladorGoogleCallback(req: NextRequest) {
   }
 
   try {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+    if (!clientId || !clientSecret) {
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_URL}/login?error=oauth_fallido`,
+      );
+    }
     const tokenRes = await fetch(GOOGLE_TOKEN_URL, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
-        client_id: process.env.GOOGLE_CLIENT_ID!,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: obtenerUrlCallback(),
         grant_type: "authorization_code",
       }),

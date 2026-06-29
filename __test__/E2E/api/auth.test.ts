@@ -123,6 +123,23 @@ describe("POST /api/auth/login", () => {
     const respuesta = await controladorLogin(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 401 si el servicio lanza un error", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.usuarioRepo.buscarPorCorreo.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/login",
+      cuerpo: { correo: "juan@test.com", contrasena: "password123" },
+    });
+
+    const respuesta = await controladorLogin(req);
+    expect(respuesta.status).toBe(401);
+  });
 });
 
 describe("POST /api/auth/registro", () => {
@@ -169,6 +186,30 @@ describe("POST /api/auth/registro", () => {
     const respuesta = await controladorRegistro(req);
     expect(respuesta.status).toBe(400);
   });
+
+  it("retorna 400 si el correo ya está registrado", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.usuarioRepo.buscarPorCorreo.mockResolvedValue({
+      id: "existing",
+      nombre: "Existente",
+      correo: "existente@test.com",
+    });
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/registro",
+      cuerpo: {
+        nombre: "Otro",
+        correo: "existente@test.com",
+        contrasena: "password123",
+        confirmarContrasena: "password123",
+      },
+    });
+
+    const respuesta = await controladorRegistro(req);
+    expect(respuesta.status).toBe(400);
+  });
 });
 
 describe("POST /api/auth/refresh", () => {
@@ -200,6 +241,22 @@ describe("POST /api/auth/refresh", () => {
     const respuesta = await controladorRefresh(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 401 si la sesion no existe", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.sesionRepo.buscarPorTokenHash.mockResolvedValue(null);
+
+    const { refreshToken } = tokens;
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/refresh",
+      cookies: { refreshToken },
+    });
+
+    const respuesta = await controladorRefresh(req);
+    expect(respuesta.status).toBe(401);
+  });
 });
 
 describe("POST /api/auth/logout", () => {
@@ -212,6 +269,33 @@ describe("POST /api/auth/logout", () => {
 
     const respuesta = await controladorLogout(req);
     expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 200 incluso sin refresh token", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/logout",
+    });
+
+    const respuesta = await controladorLogout(req);
+    expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 500 si falla al cerrar sesion", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.sesionRepo.eliminarPorTokenHash.mockImplementation(() => {
+      throw new Error("Error de BD");
+    });
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/logout",
+      cookies: { refreshToken: "some-token" },
+    });
+
+    const respuesta = await controladorLogout(req);
+    expect(respuesta.status).toBe(500);
   });
 });
 
@@ -230,6 +314,17 @@ describe("POST /api/auth/recuperar-contrasena", () => {
     const respuesta = await controladorRecuperarContrasena(req);
     expect(respuesta.status).toBe(200);
   });
+
+  it("retorna 400 para cuerpo invalido", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/recuperar-contrasena",
+      cuerpo: { correo: "" },
+    });
+
+    const respuesta = await controladorRecuperarContrasena(req);
+    expect(respuesta.status).toBe(400);
+  });
 });
 
 describe("POST /api/auth/nueva-contrasena", () => {
@@ -238,6 +333,32 @@ describe("POST /api/auth/nueva-contrasena", () => {
       metodo: "POST",
       url: "http://localhost:3000/api/auth/nueva-contrasena",
       cuerpo: { contrasena: "nueva-pass" },
+    });
+
+    const respuesta = await controladorNuevaContrasena(req);
+    expect(respuesta.status).toBe(400);
+  });
+
+  it("retorna 400 si contrasena invalida", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/nueva-contrasena",
+      cuerpo: { token: "valido", contrasena: "12" },
+    });
+
+    const respuesta = await controladorNuevaContrasena(req);
+    expect(respuesta.status).toBe(400);
+  });
+
+  it("retorna 400 si el token de recuperacion no es valido", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.tokenRecuperacionRepo.buscarTokenValido.mockResolvedValue(null);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/auth/nueva-contrasena",
+      cuerpo: { token: "invalido", contrasena: "password123" },
     });
 
     const respuesta = await controladorNuevaContrasena(req);
@@ -253,6 +374,30 @@ describe("GET /api/auth/usuarios/buscar", () => {
 
     const respuesta = await controladorBuscarUsuario(req);
     expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 400 sin correo en query", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/auth/usuarios/buscar",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorBuscarUsuario(req);
+    expect(respuesta.status).toBe(400);
+  });
+
+  it("retorna 404 si usuario no existe", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.usuarioRepo.buscarPorCorreo.mockResolvedValue(null);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/auth/usuarios/buscar?correo=no@existe.com",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorBuscarUsuario(req);
+    expect(respuesta.status).toBe(404);
   });
 
   it("retorna 200 con token válido", async () => {
@@ -271,5 +416,15 @@ describe("GET /api/auth/usuarios/buscar", () => {
 
     const respuesta = await controladorBuscarUsuario(req);
     expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 401 con token expirado", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/auth/usuarios/buscar?correo=test@test.com",
+      token: "token.invalido.xyz",
+    });
+
+    const respuesta = await controladorBuscarUsuario(req);
+    expect(respuesta.status).toBe(401);
   });
 });
