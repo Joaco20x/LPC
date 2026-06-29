@@ -1,5 +1,5 @@
 import { prisma } from "@/shared/libs/prisma";
-import type { Notificacion } from "@prisma/client";
+import type { Notificacion, Prisma } from "@prisma/client";
 import type {
   INotificacionRepository,
   DatosCrearNotificacion,
@@ -7,12 +7,22 @@ import type {
 
 export class PrismaNotificacionRepository implements INotificacionRepository {
   async crear(datos: DatosCrearNotificacion): Promise<Notificacion> {
-    return prisma.notificacion.create({ data: datos });
+    return prisma.notificacion.create({
+      data: {
+        ...datos,
+        metadata: datos.metadata as Prisma.InputJsonValue,
+      },
+    });
   }
 
   async crearMuchas(datos: DatosCrearNotificacion[]): Promise<void> {
     if (datos.length === 0) return;
-    await prisma.notificacion.createMany({ data: datos });
+    await prisma.notificacion.createMany({
+      data: datos.map((d) => ({
+        ...d,
+        metadata: d.metadata as Prisma.InputJsonValue,
+      })),
+    });
   }
 
   async obtenerPorUsuario(idUsuario: string): Promise<Notificacion[]> {
