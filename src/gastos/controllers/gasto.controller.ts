@@ -4,6 +4,11 @@ import {
   obtenerGastos,
   obtenerOpcionesFormulario,
 } from "@/gastos/services/gasto.service";
+import {
+  notificarNuevoGasto,
+  notificarPresupuestoSuperado,
+} from "@/notificaciones/services/notificacion.service";
+import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
 import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
@@ -61,6 +66,54 @@ export async function controladorCrearGasto(req: NextRequest) {
       PrismaDatabaseService,
     );
 
+    // ── Notificaciones (no críticas: errores no rompen el flujo principal) ──
+    if (nuevoGasto && deps.notificacionRepo) {
+      try {
+        await notificarNuevoGasto(
+          {
+            idGrupo: nuevoGasto.grupo.id,
+            nombreGrupo: nuevoGasto.grupo.nombre,
+            idPagador: nuevoGasto.pagador.id,
+            nombrePagador: nuevoGasto.pagador.nombre,
+            descripcion: nuevoGasto.descripcion,
+            monto: Number(nuevoGasto.monto),
+          },
+          deps.miembroGrupoRepo,
+          deps.notificacionRepo,
+        );
+
+        // Verificar si se superó el presupuesto del grupo
+        if (nuevoGasto.grupo.presupuestoPorPersona) {
+          const miembros = await deps.miembroGrupoRepo.buscarPorGrupo(
+            nuevoGasto.grupo.id,
+          );
+          const gastosGrupo = await new PrismaGastoRepository().obtenerPorGrupo(
+            nuevoGasto.grupo.id,
+          );
+          const totalGastado = gastosGrupo.reduce(
+            (acc, g) => acc + Number(g.monto),
+            0,
+          );
+
+          await notificarPresupuestoSuperado(
+            {
+              idGrupo: nuevoGasto.grupo.id,
+              nombreGrupo: nuevoGasto.grupo.nombre,
+              totalGastado,
+              presupuestoPorPersona: Number(
+                nuevoGasto.grupo.presupuestoPorPersona,
+              ),
+              totalMiembros: miembros.length,
+            },
+            deps.miembroGrupoRepo,
+            deps.notificacionRepo,
+          );
+        }
+      } catch (errNotif) {
+        console.warn("[Notificaciones] Error no crítico:", errNotif);
+      }
+    }
+
     return NextResponse.json(
       {
         exito: true,
@@ -81,9 +134,17 @@ export async function controladorObtenerGastos(req: NextRequest) {
     const { error } = extraerPayload(req);
     if (error) return error;
 
+    const { searchParams } = new URL(req.url);
+    const idGrupo = searchParams.get("idGrupo");
+
+    if (idGrupo) {
+      const repo = new PrismaGastoRepository();
+      const gastos = await repo.obtenerPorGrupo(idGrupo);
+      return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
+    }
+
     const { gastoRepo } = crearDependencias();
     const gastos = await obtenerGastos(gastoRepo);
-
     return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
   } catch (error) {
     const mensaje =

@@ -25,4 +25,5 @@ export interface IGastoRepository {
   crear(data: DatosCrearGasto, tx?: TransactionClient): Promise<Gasto>;
   obtenerTodos(): Promise<GastoConRelaciones[]>;
   obtenerPorId(id: string): Promise<GastoConRelaciones | null>;
+  obtenerPorGrupo(idGrupo: string): Promise<GastoConRelaciones[]>; // ← NUEVO
 }
