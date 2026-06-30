@@ -27,19 +27,26 @@ const MESES = [
   "Diciembre",
 ];
 
-function formatMonto(monto: number) {
-  return monto.toLocaleString("es-CL", {
+function formatMonto(monto: number, moneda: string) {
+  const locale = moneda === "CLP" ? "es-CL" : "en-US";
+  return monto.toLocaleString(locale, {
     style: "currency",
-    currency: "CLP",
+    currency: moneda,
     maximumFractionDigits: 0,
   });
 }
 
 interface Props {
   idGrupo: string;
+  totalGastado: number;
+  monedaBase: string;
 }
 
-export default function CalendarioGastos({ idGrupo }: Props) {
+export default function CalendarioGastos({
+  idGrupo,
+  totalGastado,
+  monedaBase,
+}: Props) {
   const {
     cargando,
     error,
@@ -54,7 +61,7 @@ export default function CalendarioGastos({ idGrupo }: Props) {
     setDiaSeleccionado,
     irMesAnterior,
     irMesSiguiente,
-  } = useCalendarioGastos(idGrupo);
+  } = useCalendarioGastos(idGrupo, monedaBase);
 
   if (cargando)
     return <div className="cal-cargando">Cargando calendario...</div>;
@@ -104,6 +111,12 @@ export default function CalendarioGastos({ idGrupo }: Props) {
         </div>
       </div>
 
+      {/* ── Total del viaje ── */}
+      <div className="cal-total-viaje">
+        Total del viaje:{" "}
+        <strong>{formatMonto(totalGastado, monedaBase)}</strong>
+      </div>
+
       {/* ── Navegación mes ── */}
       <div className="cal-nav">
         <button className="cal-nav-btn" onClick={irMesAnterior}>
@@ -141,6 +154,7 @@ export default function CalendarioGastos({ idGrupo }: Props) {
                   : dia,
               )
             }
+            monedaBase={monedaBase}
           />
         ))}
       </div>
@@ -150,6 +164,7 @@ export default function CalendarioGastos({ idGrupo }: Props) {
         <PanelDetalle
           dia={diaSeleccionado}
           onCerrar={() => setDiaSeleccionado(null)}
+          monedaBase={monedaBase}
         />
       )}
     </div>
@@ -161,10 +176,12 @@ function CeldaDia({
   dia,
   seleccionado,
   onClick,
+  monedaBase,
 }: {
   dia: DiaCalendario;
   seleccionado: boolean;
   onClick: () => void;
+  monedaBase: string;
 }) {
   const tieneGastos = dia.gastos.length > 0;
 
@@ -185,7 +202,9 @@ function CeldaDia({
 
       {tieneGastos && (
         <>
-          <span className="cal-celda-monto">{formatMonto(dia.totalMonto)}</span>
+          <span className="cal-celda-monto">
+            {formatMonto(dia.totalMonto, monedaBase)}
+          </span>
           <div className="cal-celda-puntos">
             {dia.categoriasPrincipal.map((cat) => (
               <span
@@ -206,9 +225,11 @@ function CeldaDia({
 function PanelDetalle({
   dia,
   onCerrar,
+  monedaBase = "CLP",
 }: {
   dia: DiaCalendario;
   onCerrar: () => void;
+  monedaBase?: string;
 }) {
   const fecha = dia.fecha.toLocaleDateString("es-CL", {
     weekday: "long",
@@ -230,7 +251,7 @@ function PanelDetalle({
       ) : (
         <>
           <p className="cal-panel-total">
-            Total: <strong>{formatMonto(dia.totalMonto)}</strong>
+            Total: <strong>{formatMonto(dia.totalMonto, monedaBase)}</strong>
           </p>
           <ul className="cal-panel-lista">
             {dia.gastos.map((g) => (
@@ -246,7 +267,7 @@ function PanelDetalle({
                   </span>
                 </div>
                 <span className="cal-panel-item-monto">
-                  {formatMonto(Number(g.monto))}
+                  {formatMonto(Number(g.monto), g.moneda || monedaBase)}
                 </span>
               </li>
             ))}

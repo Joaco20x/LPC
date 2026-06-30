@@ -3,7 +3,7 @@
 import "./dashboard.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   limpiarSesion,
   obtenerDatosUsuario,
@@ -18,8 +18,10 @@ export default function LayoutDashboard({
 }) {
   useRefrescoActivo();
   const router = useRouter();
-  const [nombreUsuario] = useState(
-    () => obtenerDatosUsuario()?.nombre || "Usuario",
+  const nombreUsuario = useSyncExternalStore(
+    () => () => {},
+    () => obtenerDatosUsuario()?.nombre ?? "Usuario",
+    () => null,
   );
 
   const manejarCerrarSesion = () => {
@@ -46,7 +48,7 @@ export default function LayoutDashboard({
         </div>
         <div className="dashboard-nav__usuario">
           <CampanaNotificaciones />
-          <span className="dashboard-nav__nombre">{nombreUsuario}</span>
+          <span className="dashboard-nav__nombre">{nombreUsuario ?? ""}</span>
           <button
             onClick={manejarCerrarSesion}
             className="dashboard-nav__cerrar-sesion"

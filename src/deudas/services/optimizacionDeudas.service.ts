@@ -109,17 +109,5 @@ export async function saldarTransferenciaSugerida(
   monto: number,
   deudaRepo: IDeudaRepository,
 ) {
-  // Crear una deuda inversa para reflejar el pago
-  // El acreedor original (el que recibe el dinero) ahora es el deudor de este registro de pago
-  // El deudor original (el que paga el dinero) ahora es el acreedor de este registro de pago
-  // Así el balance general queda saldado matemáticamente.
-  await deudaRepo.crearMuchas([
-    {
-      idGrupo,
-      idDeudor: idAcreedor,
-      idAcreedor: idDeudor,
-      monto,
-      saldada: false, // Se deja como false para que cuente en el cálculo de balances y los anule
-    },
-  ]);
+  await deudaRepo.marcarComoSaldadas(idGrupo, idDeudor, idAcreedor);
 }

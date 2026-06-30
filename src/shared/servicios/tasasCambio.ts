@@ -28,7 +28,7 @@ export async function obtenerTasaCambio(
     if (!apiKey) throw new Error("EXCHANGERATE-API no configurada");
 
     const url = `https://v6.exchangerate-api.com/v6/${apiKey}/pair/${origen}/${destino}`;
-    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
     const data = await res.json();
 
     if (data.result !== "success") {

@@ -50,7 +50,7 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
+      { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
@@ -73,8 +73,8 @@ export async function controladorCrearGasto(req: NextRequest) {
           deps.miembroGrupoRepo,
           deps.notificacionRepo,
         );
-      } catch (errNotif) {
-        console.warn("[Notificaciones] Error no crítico:", errNotif);
+      } catch (err_) {
+        console.warn("[Notificaciones] Error no crítico:", err_);
       }
     }
 
@@ -124,7 +124,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 
