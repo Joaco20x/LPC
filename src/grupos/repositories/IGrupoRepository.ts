@@ -27,7 +27,12 @@ export type GrupoConDetalles = Prisma.GrupoGetPayload<{
   };
 }>;
 
+export type GrupoActivoPayload = Prisma.GrupoGetPayload<{
+  include: { miembros: true };
+}>;
+
 export interface IGrupoRepository {
   crear(data: DatosCrearGrupo, tx?: unknown): Promise<{ id: string }>;
   obtenerDetalle(id: string): Promise<GrupoConDetalles | null>;
+  obtenerTodosActivos(): Promise<GrupoActivoPayload[]>;
 }

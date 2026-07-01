@@ -80,6 +80,7 @@ model Grupo {
   gastos       Gasto[]
   deudas       Deuda[]
   invitaciones Invitacion[]
+  resumenesMensuales ResumenMensual[]
 
   @@map("grupos")
 }
@@ -177,4 +178,20 @@ model Invitacion {
   grupo Grupo @relation(fields: [idGrupo], references: [id], onDelete: Cascade)
 
   @@map("invitaciones")
+}
+
+// ── RESUMEN MENSUAL ───────────────────────────────────────
+model ResumenMensual {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  idGrupo       String   @map("id_grupo") @db.Uuid
+  mes           Int
+  anio          Int
+  totalGastos   Decimal  @map("total_gastos") @db.Decimal(12, 2)
+  datosJson     Json     @map("datos_json")
+  creadoEn      DateTime @default(now()) @map("creado_en")
+
+  grupo         Grupo    @relation(fields: [idGrupo], references: [id], onDelete: Cascade)
+
+  @@unique([idGrupo, mes, anio])
+  @@map("resumenes_mensuales")
 }

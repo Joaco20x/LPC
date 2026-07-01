@@ -4,6 +4,7 @@ import type {
   IGrupoRepository,
   DatosCrearGrupo,
   GrupoConDetalles,
+  GrupoActivoPayload,
 } from "./IGrupoRepository";
 
 export class PrismaGrupoRepository implements IGrupoRepository {
@@ -31,5 +32,12 @@ export class PrismaGrupoRepository implements IGrupoRepository {
         },
       },
     }) as Promise<GrupoConDetalles | null>;
+  }
+
+  async obtenerTodosActivos(): Promise<GrupoActivoPayload[]> {
+    return prisma.grupo.findMany({
+      where: { estado: "activo" },
+      include: { miembros: true },
+    }) as Promise<GrupoActivoPayload[]>;
   }
 }
