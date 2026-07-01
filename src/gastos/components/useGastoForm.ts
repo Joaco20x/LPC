@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { obtenerAccessToken } from "@/shared/servicios/almacenamientoTokens";
+import { encolarOperacion } from "@/shared/servicios/colaOffline";
 import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 
 export interface Opcion {
@@ -161,6 +162,21 @@ export function useGastoForm() {
             tipoDivision: d.tipoDivision,
           })),
       };
+
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        encolarOperacion({
+          tipo: "crear",
+          endpoint: "/api/gastos",
+          metodo: "POST",
+          cuerpo,
+        });
+        setMensajeExito(
+          "¡Gasto guardado offline! Se sincronizará cuando tengas conexión.",
+        );
+        setFormulario({ ...FORMULARIO_VACIO, idGrupo: formulario.idGrupo });
+        setTimeout(() => setMensajeExito(""), 5000);
+        return;
+      }
 
       const res = await fetch("/api/gastos", {
         method: "POST",

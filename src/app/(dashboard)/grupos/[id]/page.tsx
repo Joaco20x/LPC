@@ -348,7 +348,13 @@ export default function PaginaDetalleGrupo() {
               ))}
 
             {/* Vista calendario */}
-            {vista === "calendario" && <CalendarioGastos idGrupo={grupo.id} />}
+            {vista === "calendario" && (
+              <CalendarioGastos
+                idGrupo={grupo.id}
+                totalGastado={totalGastado}
+                monedaBase={grupo.monedaBase}
+              />
+            )}
           </div>
 
           <BalancesGrupo idGrupo={grupo.id} />

@@ -2,6 +2,7 @@ const mockPrisma = {
   deuda: {
     createMany: jest.fn(),
     findMany: jest.fn(),
+    updateMany: jest.fn(),
   },
 };
 
@@ -80,5 +81,25 @@ describe("PrismaDeudaRepository", () => {
       where: { idGrupo: "g1", saldada: false },
       include: expect.any(Object),
     });
+  });
+
+  it("marcarComoSaldadas actualiza deudas pendientes entre deudor y acreedor", async () => {
+    await repo.marcarComoSaldadas("g1", "u1", "u2");
+    expect(mockPrisma.deuda.updateMany).toHaveBeenCalledWith({
+      where: {
+        idGrupo: "g1",
+        idDeudor: "u1",
+        idAcreedor: "u2",
+        saldada: false,
+      },
+      data: { saldada: true },
+    });
+  });
+
+  it("marcarComoSaldadas con tx usa el cliente de transaccion", async () => {
+    const tx = { deuda: { updateMany: jest.fn() } };
+    await repo.marcarComoSaldadas("g1", "u1", "u2", tx as any);
+    expect(tx.deuda.updateMany).toHaveBeenCalled();
+    expect(mockPrisma.deuda.updateMany).not.toHaveBeenCalled();
   });
 });

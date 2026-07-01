@@ -1,15 +1,13 @@
-Soportar la conversión entre múltiples monedas consultando una API externa de tasas de cambio, con respaldo en caché local para uso offline.
+Detectar reconexión y sincronizar los datos registrados offline, informando el resultado al usuario.
 
 Criterios de aceptación
 
-Integrar una API externa de tasas de cambio (ej. exchangerate.host o Fixer.io)
+Detectar cambios de estado de red con navigator.onLine
 
-Almacenar en caché las tasas con timestamp para uso offline
+Encolar operaciones offline (crear, editar, eliminar gastos)
 
-Seleccionar la moneda base y destino desde el UI al registrar un gasto
+Al recuperar conexión, ejecutar la cola en orden
 
-Mostrar el monto convertido en tiempo real al ingresar el valor
+Mostrar indicador visual online/offline en la UI
 
-Si no hay conexión, usar la última tasa almacenada en caché con indicador visual
-Dependencias
-Sin dependencias previas. Puede iniciarse de inmediato.
+Notificar cuántos registros se sincronizaron o si hubo errores

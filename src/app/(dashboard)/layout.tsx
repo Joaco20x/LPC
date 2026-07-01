@@ -3,13 +3,21 @@
 import "./dashboard.css";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useSyncExternalStore, useState, useEffect } from "react";
 import {
   limpiarSesion,
   obtenerDatosUsuario,
 } from "@/shared/servicios/almacenamientoTokens";
 import CampanaNotificaciones from "@/notificaciones/components/CampanaNotificaciones";
 import { useRefrescoActivo } from "@/auth/components/useRefrescoActivo";
+import { useOnlineStatus } from "@/shared/hooks/useOnlineStatus";
+import {
+  procesarCola,
+  obtenerCantidadPendientes,
+  suscribirCola,
+} from "@/shared/servicios/colaOffline";
+import IndicadorOffline from "@/shared/components/IndicadorOffline";
+import SyncToast from "@/shared/components/SyncToast";
 
 export default function LayoutDashboard({
   children,
@@ -18,9 +26,32 @@ export default function LayoutDashboard({
 }) {
   useRefrescoActivo();
   const router = useRouter();
-  const [nombreUsuario] = useState(
-    () => obtenerDatosUsuario()?.nombre || "Usuario",
+  const online = useOnlineStatus();
+  const [resultadoSync, setResultadoSync] = useState<{
+    exitosos: number;
+    errores: string[];
+  } | null>(null);
+  const nombreUsuario = useSyncExternalStore(
+    () => () => {},
+    () => obtenerDatosUsuario()?.nombre ?? "Usuario",
+    () => null,
   );
+
+  const pendientes = useSyncExternalStore(
+    suscribirCola,
+    obtenerCantidadPendientes,
+    () => 0,
+  );
+
+  useEffect(() => {
+    if (online && pendientes > 0) {
+      procesarCola().then((resultado) => {
+        if (resultado.exitosos > 0 || resultado.errores.length > 0) {
+          setResultadoSync(resultado);
+        }
+      });
+    }
+  }, [online, pendientes]);
 
   const manejarCerrarSesion = () => {
     limpiarSesion();
@@ -45,8 +76,9 @@ export default function LayoutDashboard({
           </div>
         </div>
         <div className="dashboard-nav__usuario">
+          <IndicadorOffline />
           <CampanaNotificaciones />
-          <span className="dashboard-nav__nombre">{nombreUsuario}</span>
+          <span className="dashboard-nav__nombre">{nombreUsuario ?? ""}</span>
           <button
             onClick={manejarCerrarSesion}
             className="dashboard-nav__cerrar-sesion"
@@ -55,6 +87,13 @@ export default function LayoutDashboard({
           </button>
         </div>
       </nav>
+      {resultadoSync && (
+        <SyncToast
+          exitosos={resultadoSync.exitosos}
+          errores={resultadoSync.errores}
+          onCerrar={() => setResultadoSync(null)}
+        />
+      )}
       {children}
     </div>
   );

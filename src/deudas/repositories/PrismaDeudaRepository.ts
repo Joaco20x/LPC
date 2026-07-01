@@ -14,6 +14,20 @@ export class PrismaDeudaRepository implements IDeudaRepository {
     const client = tx ?? prisma;
     await client.deuda.createMany({ data });
   }
+
+  async marcarComoSaldadas(
+    idGrupo: string,
+    idDeudor: string,
+    idAcreedor: string,
+    tx?: TransactionClient,
+  ): Promise<void> {
+    const client = tx ?? prisma;
+    await client.deuda.updateMany({
+      where: { idGrupo, idDeudor, idAcreedor, saldada: false },
+      data: { saldada: true },
+    });
+  }
+
   async obtenerPendientes(
     idUsuario: string,
     idGrupo?: string,

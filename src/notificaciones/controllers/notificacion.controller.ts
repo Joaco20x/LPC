@@ -37,7 +37,7 @@ export async function controladorObtenerNotificaciones(req: NextRequest) {
 
     const { notificacionRepo } = crearDependencias();
     const notificaciones = await obtenerNotificaciones(
-      payload!.idUsuario,
+      payload.idUsuario,
       notificacionRepo,
     );
 
@@ -58,7 +58,7 @@ export async function controladorMarcarTodasLeidas(req: NextRequest) {
     if (error) return error;
 
     const { notificacionRepo } = crearDependencias();
-    await marcarTodasLeidas(payload!.idUsuario, notificacionRepo);
+    await marcarTodasLeidas(payload.idUsuario, notificacionRepo);
 
     return NextResponse.json(
       { exito: true, mensaje: "Notificaciones marcadas como leídas" },
@@ -77,7 +77,7 @@ export async function controladorMarcarUnaLeida(req: NextRequest, id: string) {
     if (error) return error;
 
     const { notificacionRepo } = crearDependencias();
-    await marcarLeida(id, payload!.idUsuario, notificacionRepo);
+    await marcarLeida(id, payload.idUsuario, notificacionRepo);
 
     return NextResponse.json(
       { exito: true, mensaje: "Notificación marcada como leída" },

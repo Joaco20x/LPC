@@ -6,6 +6,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { obtenerAccessToken } from "@/shared/servicios/almacenamientoTokens";
 import type { GastoConRelaciones } from "@/gastos/repositories/IGastoRepository";
+import { calcularTotalDia } from "@/gastos/utils/calcularTotalDia";
 
 export const CATEGORIAS = [
   "Alojamiento",
@@ -32,7 +33,7 @@ export interface DiaCalendario {
   esMesActual: boolean;
 }
 
-export function useCalendarioGastos(idGrupo: string) {
+export function useCalendarioGastos(idGrupo: string, monedaBase: string) {
   const [gastos, setGastos] = useState<GastoConRelaciones[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function useCalendarioGastos(idGrupo: string) {
   const [diaSeleccionado, setDiaSeleccionado] = useState<DiaCalendario | null>(
     null,
   );
+  const [tasas, setTasas] = useState<Map<string, number>>(new Map());
 
   // Cargar gastos del grupo
   useEffect(() => {
@@ -91,6 +93,42 @@ export function useCalendarioGastos(idGrupo: string) {
     });
   }, [gastos, filtroCategoria, filtroIntegrante]);
 
+  // Obtener tasas de cambio para monedas distintas a la base
+  useEffect(() => {
+    const monedasUnicas = [
+      ...new Set(gastosFiltrados.map((g) => g.moneda).filter(Boolean)),
+    ];
+    const monedasAConvertir = monedasUnicas.filter((m) => m !== monedaBase);
+    if (monedasAConvertir.length === 0) return;
+
+    const token = obtenerAccessToken();
+    let cancelado = false;
+
+    async function cargarTasas() {
+      const entradas = await Promise.all(
+        monedasAConvertir.map(async (from) => {
+          try {
+            const res = await fetch(
+              `/api/tasas-cambio?from=${from}&to=${monedaBase}`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            if (!res.ok) return [from, 1] as const;
+            const data = await res.json();
+            return [from, data.datos?.tasa ?? 1] as const;
+          } catch {
+            return [from, 1] as const;
+          }
+        }),
+      );
+      if (!cancelado) setTasas(new Map(entradas));
+    }
+
+    cargarTasas();
+    return () => {
+      cancelado = true;
+    };
+  }, [gastosFiltrados, monedaBase]);
+
   // Construir la cuadrícula del mes
   const diasCalendario = useMemo((): DiaCalendario[] => {
     const hoy = new Date();
@@ -100,34 +138,36 @@ export function useCalendarioGastos(idGrupo: string) {
     const primerDia = new Date(año, mes, 1);
     const ultimoDia = new Date(año, mes + 1, 0);
 
-    // Lunes = 0 para la cuadrícula
     const inicioSemana = (primerDia.getDay() + 6) % 7;
 
     const dias: DiaCalendario[] = [];
 
-    // Días del mes anterior para completar la primera semana
     for (let i = inicioSemana - 1; i >= 0; i--) {
       const fecha = new Date(año, mes, -i);
-      dias.push(construirDia(fecha, gastosFiltrados, hoy, false));
+      dias.push(
+        construirDia(fecha, gastosFiltrados, hoy, false, monedaBase, tasas),
+      );
     }
 
-    // Días del mes actual
     for (let d = 1; d <= ultimoDia.getDate(); d++) {
       const fecha = new Date(año, mes, d);
-      dias.push(construirDia(fecha, gastosFiltrados, hoy, true));
+      dias.push(
+        construirDia(fecha, gastosFiltrados, hoy, true, monedaBase, tasas),
+      );
     }
 
-    // Días del mes siguiente para completar la última semana
     const restantes = 7 - (dias.length % 7);
     if (restantes < 7) {
       for (let d = 1; d <= restantes; d++) {
         const fecha = new Date(año, mes + 1, d);
-        dias.push(construirDia(fecha, gastosFiltrados, hoy, false));
+        dias.push(
+          construirDia(fecha, gastosFiltrados, hoy, false, monedaBase, tasas),
+        );
       }
     }
 
     return dias;
-  }, [mesActual, gastosFiltrados]);
+  }, [mesActual, gastosFiltrados, monedaBase, tasas]);
 
   function irMesAnterior() {
     setMesActual((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1));
@@ -161,6 +201,8 @@ function construirDia(
   gastos: GastoConRelaciones[],
   hoy: Date,
   esMesActual: boolean,
+  monedaBase: string,
+  tasas: Map<string, number>,
 ): DiaCalendario {
   const gastosDelDia = gastos.filter((g) => {
     const f = new Date(g.creadoEn);
@@ -171,7 +213,7 @@ function construirDia(
     );
   });
 
-  const totalMonto = gastosDelDia.reduce((acc, g) => acc + Number(g.monto), 0);
+  const totalMonto = calcularTotalDia(gastosDelDia, monedaBase, tasas);
 
   const categoriasPrincipal = [
     ...new Set(gastosDelDia.map((g) => g.categoria)),
