@@ -74,7 +74,7 @@ function formatearMensaje(
     case "cierre_viaje":
       return `El viaje "${metadata.nombreGrupo}" ha sido cerrado`;
     case "presupuesto_superado":
-      return `¡Presupuesto superado en ${metadata.nombreGrupo}! Total: ${formatMonto(Number(metadata.totalGastado))}`;
+      return `${metadata.nombreIntegrante} alcanzó el ${metadata.porcentajeUsado}% de su presupuesto en ${metadata.nombreGrupo} (${formatMonto(Number(metadata.gastoAcumulado))} de ${formatMonto(Number(metadata.presupuestoPorPersona))})`;
     case "integrante_anadido":
       return `${metadata.nuevoIntegrante} se unió a ${metadata.nombreGrupo}`;
     default:

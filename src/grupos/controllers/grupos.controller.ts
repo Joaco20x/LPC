@@ -3,6 +3,7 @@ import {
   crearGrupoViaje,
   obtenerGruposDelUsuario,
   obtenerDetalleGrupo,
+  actualizarPresupuestoGrupo,
 } from "@/grupos/services/grupos.service";
 import { validarCreacionGrupo } from "@/grupos/validaciones/grupos";
 import { verificarAccessToken } from "@/auth/services/jwt";
@@ -42,7 +43,7 @@ export async function controladorCrearGrupo(req: NextRequest) {
     if (error) return error;
 
     const cuerpo = await req.json();
-    const datosCompletos = { ...cuerpo, idCreador: payload.idUsuario };
+    const datosCompletos = { ...cuerpo, idCreador: payload!.idUsuario };
     const errores = validarCreacionGrupo(datosCompletos);
 
     if (errores.length > 0) {
@@ -70,18 +71,15 @@ export async function controladorCrearGrupo(req: NextRequest) {
       { status: 201 },
     );
   } catch (error) {
+    const err = error as { name?: string; message?: string };
     const esTokenInvalido =
-      error instanceof Error &&
-      (error.name === "JsonWebTokenError" ||
-        error.name === "TokenExpiredError");
+      err.name === "JsonWebTokenError" || err.name === "TokenExpiredError";
     return NextResponse.json(
       {
         exito: false,
         mensaje: esTokenInvalido
           ? "Token inválido o expirado"
-          : error instanceof Error
-            ? error.message
-            : "Error interno al crear el grupo",
+          : err.message || "Error interno al crear el grupo",
       },
       { status: esTokenInvalido ? 401 : 500 },
     );
@@ -95,7 +93,7 @@ export async function controladorObtenerGrupos(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const grupos = await obtenerGruposDelUsuario(
-      payload.idUsuario,
+      payload!.idUsuario,
       miembroGrupoRepo,
     );
 
@@ -133,6 +131,59 @@ export async function controladorObtenerDetalleGrupo(
     return NextResponse.json(
       { exito: false, mensaje },
       { status: mensaje === "Grupo no encontrado" ? 404 : 500 },
+    );
+  }
+}
+
+// ── NUEVO: PATCH /api/grupos/[id]/presupuesto (solo Admin) ───────────────────
+export async function controladorActualizarPresupuesto(
+  req: NextRequest,
+  params: { id: string },
+) {
+  try {
+    const { payload, error } = extraerPayload(req);
+    if (error) return error;
+
+    const cuerpo = await req.json();
+    const presupuestoPorPersona =
+      cuerpo.presupuestoPorPersona === null ||
+      cuerpo.presupuestoPorPersona === undefined ||
+      cuerpo.presupuestoPorPersona === ""
+        ? null
+        : Number(cuerpo.presupuestoPorPersona);
+    const umbralAlerta =
+      cuerpo.umbralAlerta === null ||
+      cuerpo.umbralAlerta === undefined ||
+      cuerpo.umbralAlerta === ""
+        ? null
+        : Number(cuerpo.umbralAlerta);
+
+    const { grupoRepo } = crearDependencias();
+    const resultado = await actualizarPresupuestoGrupo(
+      params.id,
+      payload!.idUsuario,
+      { presupuestoPorPersona, umbralAlerta },
+      grupoRepo,
+    );
+
+    return NextResponse.json(
+      {
+        exito: true,
+        mensaje: "Presupuesto actualizado correctamente",
+        datos: resultado,
+      },
+      { status: 200 },
+    );
+  } catch (error) {
+    const mensaje =
+      error instanceof Error
+        ? error.message
+        : "Error al actualizar el presupuesto";
+    const esPermiso = mensaje.includes("administrador");
+    const esNoEncontrado = mensaje === "Grupo no encontrado";
+    return NextResponse.json(
+      { exito: false, mensaje },
+      { status: esPermiso ? 403 : esNoEncontrado ? 404 : 400 },
     );
   }
 }

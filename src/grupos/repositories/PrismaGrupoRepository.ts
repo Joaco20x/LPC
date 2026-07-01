@@ -1,19 +1,18 @@
 import { prisma } from "@/shared/libs/prisma";
-import type { TransactionClient } from "@/shared/libs/IDatabaseService";
+import type { Prisma } from "@prisma/client";
 import type {
   IGrupoRepository,
   DatosCrearGrupo,
+  DatosActualizarPresupuesto,
   GrupoConDetalles,
 } from "./IGrupoRepository";
 
 export class PrismaGrupoRepository implements IGrupoRepository {
-  async crear(
-    data: DatosCrearGrupo,
-    tx?: TransactionClient,
-  ): Promise<{ id: string }> {
-    const client = tx ?? prisma;
+  async crear(data: DatosCrearGrupo, tx?: unknown): Promise<{ id: string }> {
+    const client = (tx || prisma) as Prisma.TransactionClient;
     return client.grupo.create({ data });
   }
+
   async obtenerDetalle(id: string): Promise<GrupoConDetalles | null> {
     return prisma.grupo.findUnique({
       where: { id },
@@ -32,6 +31,20 @@ export class PrismaGrupoRepository implements IGrupoRepository {
             },
           },
         },
+      },
+    }) as Promise<GrupoConDetalles | null>;
+  }
+
+  // ── NUEVO ────────────────────────────────────────────────────────────────
+  async actualizarPresupuesto(
+    id: string,
+    datos: DatosActualizarPresupuesto,
+  ): Promise<void> {
+    await prisma.grupo.update({
+      where: { id },
+      data: {
+        presupuestoPorPersona: datos.presupuestoPorPersona,
+        umbralAlerta: datos.umbralAlerta,
       },
     });
   }

@@ -1,7 +1,10 @@
 // Servicio de notificaciones
 // Encapsula la lógica de creación de cada tipo de evento
 
-import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import type {
+  INotificacionRepository,
+  DatosCrearNotificacion,
+} from "@/notificaciones/repositories/INotificacionRepository";
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
 
 // ── Obtener notificaciones del usuario ────────────────────────────────────────
@@ -71,36 +74,67 @@ export async function notificarNuevoGasto(
   );
 }
 
-// ── Evento: presupuesto superado ──────────────────────────────────────────────
-// Notifica a todos los miembros cuando el total supera el presupuesto
+// ── Evento: presupuesto por persona superado ──────────────────────────────────
+// Notifica al integrante afectado y a el/los Admin del grupo cuando el gasto
+// acumulado de ese integrante supera el umbral configurado (ej. 80% del
+// presupuesto máximo por persona definido por el Admin).
 export async function notificarPresupuestoSuperado(
   datos: {
     idGrupo: string;
     nombreGrupo: string;
-    totalGastado: number;
     presupuestoPorPersona: number;
-    totalMiembros: number;
+    umbralAlerta: number; // porcentaje, ej. 80
+    miembrosInvolucrados: { id: string; nombre: string }[];
+    gastoAcumuladoPorUsuario: Record<string, number>;
+    idsAdmin: string[];
   },
-  miembroRepo: IMiembroGrupoRepository,
   notificacionRepo: INotificacionRepository,
 ) {
-  const miembros = await miembroRepo.buscarPorGrupo(datos.idGrupo);
-  const presupuestoTotal = datos.presupuestoPorPersona * datos.totalMiembros;
+  if (datos.presupuestoPorPersona <= 0) return;
 
-  if (datos.totalGastado <= presupuestoTotal) return;
+  const montoUmbral = (datos.presupuestoPorPersona * datos.umbralAlerta) / 100;
 
-  await notificacionRepo.crearMuchas(
-    miembros.map((m) => ({
-      idUsuario: m.idUsuario,
-      tipo: "presupuesto_superado" as const,
-      metadata: {
-        idGrupo: datos.idGrupo,
-        nombreGrupo: datos.nombreGrupo,
-        totalGastado: datos.totalGastado,
-        presupuestoTotal,
-      },
-    })),
-  );
+  const destinatarios: DatosCrearNotificacion[] = [];
+
+  for (const miembro of datos.miembrosInvolucrados) {
+    const acumulado = datos.gastoAcumuladoPorUsuario[miembro.id] ?? 0;
+    if (acumulado < montoUmbral) continue;
+
+    const porcentajeUsado = Math.round(
+      (acumulado / datos.presupuestoPorPersona) * 100,
+    );
+
+    const metadata = {
+      idGrupo: datos.idGrupo,
+      nombreGrupo: datos.nombreGrupo,
+      nombreIntegrante: miembro.nombre,
+      gastoAcumulado: acumulado,
+      presupuestoPorPersona: datos.presupuestoPorPersona,
+      porcentajeUsado,
+    };
+
+    // Notificar al propio integrante
+    destinatarios.push({
+      idUsuario: miembro.id,
+      tipo: "presupuesto_superado",
+      metadata,
+    });
+
+    // Notificar a cada Admin del grupo (sin duplicar si el admin es el mismo integrante)
+    for (const idAdmin of datos.idsAdmin) {
+      if (idAdmin !== miembro.id) {
+        destinatarios.push({
+          idUsuario: idAdmin,
+          tipo: "presupuesto_superado",
+          metadata,
+        });
+      }
+    }
+  }
+
+  if (destinatarios.length > 0) {
+    await notificacionRepo.crearMuchas(destinatarios);
+  }
 }
 
 // ── Evento: integrante añadido ────────────────────────────────────────────────
