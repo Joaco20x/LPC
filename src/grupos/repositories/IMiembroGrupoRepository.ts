@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 
 export interface DatosCrearMiembro {
   idGrupo: string;
@@ -19,9 +20,9 @@ export type MiembroConUsuario = Prisma.MiembroGrupoGetPayload<{
 export interface IMiembroGrupoRepository {
   buscarPorGrupo(
     idGrupo: string,
-    tx?: unknown,
+    tx?: TransactionClient,
   ): Promise<{ idUsuario: string }[]>;
-  crearMuchas(data: DatosCrearMiembro[], tx?: unknown): Promise<void>;
+  crearMuchas(data: DatosCrearMiembro[], tx?: TransactionClient): Promise<void>;
   buscarPorUsuario(idUsuario: string): Promise<MiembroConGrupoYConteo[]>;
   buscarMiembrosDeGrupos(idsGrupos: string[]): Promise<MiembroConUsuario[]>;
 }

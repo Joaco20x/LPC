@@ -1,6 +1,11 @@
 // Validaciones del módulo de gastos
 
-import { DatosGasto, ErrorCampoGasto } from "@/gastos/types/gasto";
+import {
+  DatosGasto,
+  ErrorCampoGasto,
+  esMonedaValida,
+  MONEDA_DEFAULT,
+} from "@/gastos/types/gasto";
 
 export function validarMonto(monto: number | null | undefined): string | null {
   if (monto === undefined || monto === null || monto === 0) return null; // opcional por ahora
@@ -59,6 +64,15 @@ export function validarGasto(datos: DatosGasto): ErrorCampoGasto[] {
   const errorGrupo = validarGrupo(datos.idGrupo);
   if (errorGrupo) errores.push({ campo: "idGrupo", mensaje: errorGrupo });
 
+  const errorMoneda =
+    datos.moneda && !esMonedaValida(datos.moneda) ? "Moneda no válida" : null;
+  if (errorMoneda) errores.push({ campo: "moneda", mensaje: errorMoneda });
+
+  const moneda =
+    datos.moneda && esMonedaValida(datos.moneda)
+      ? datos.moneda
+      : MONEDA_DEFAULT;
+
   // Validar divisiones si se proporcionan
   if (datos.divisiones && datos.divisiones.length > 0) {
     datos.divisiones.forEach((div, i) => {
@@ -88,13 +102,14 @@ export function validarGasto(datos: DatosGasto): ErrorCampoGasto[] {
           0,
         );
         if (Math.abs(sumaExacta - montoTotal) > 0.01) {
-          const fmtSuma = sumaExacta.toLocaleString("es-CL", {
+          const locale = moneda === "CLP" ? "es-CL" : "en-US";
+          const fmtSuma = sumaExacta.toLocaleString(locale, {
             style: "currency",
-            currency: "CLP",
+            currency: moneda,
           });
-          const fmtTotal = montoTotal.toLocaleString("es-CL", {
+          const fmtTotal = montoTotal.toLocaleString(locale, {
             style: "currency",
-            currency: "CLP",
+            currency: moneda,
           });
           errores.push({
             campo: "divisiones",

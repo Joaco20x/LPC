@@ -83,7 +83,7 @@ export async function generarResumenesMensuales(
         },
       }));
 
-      await notificacionRepo.crearMultiples(notificaciones);
+      await notificacionRepo.crearMuchas(notificaciones);
     }
   }
 

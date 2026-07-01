@@ -4,6 +4,7 @@ import {
   calcularBalancesYOptimizacion,
   saldarTransferenciaSugerida,
 } from "@/deudas/services/optimizacionDeudas.service";
+import { notificarPagoDeuda } from "@/notificaciones/services/notificacion.service";
 import { crearDependencias } from "@/shared/di/crearDependencias";
 
 export async function controladorObtenerBalancesGrupo(
@@ -64,7 +65,8 @@ export async function controladorSaldarTransferencia(
       );
     }
 
-    const { deudaRepo } = crearDependencias();
+    const { deudaRepo, notificacionRepo, usuarioRepo, grupoRepo } =
+      crearDependencias();
     await saldarTransferenciaSugerida(
       idGrupo,
       idDeudor,
@@ -72,6 +74,26 @@ export async function controladorSaldarTransferencia(
       Number(monto),
       deudaRepo,
     );
+
+    try {
+      const [deudor, grupo] = await Promise.all([
+        usuarioRepo.buscarPorId(idDeudor),
+        grupoRepo.obtenerDetalle(idGrupo),
+      ]);
+      if (deudor && grupo) {
+        await notificarPagoDeuda(
+          {
+            idAcreedor,
+            nombreDeudor: deudor.nombre,
+            nombreGrupo: grupo.nombre,
+            monto: Number(monto),
+          },
+          notificacionRepo,
+        );
+      }
+    } catch (err_) {
+      console.warn("[Notificaciones] Error no crítico:", err_);
+    }
 
     return NextResponse.json(
       { exito: true, mensaje: "Deuda saldada correctamente" },

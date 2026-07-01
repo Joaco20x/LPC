@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 
 export interface DatosCrearDeuda {
   idGrupo: string;
@@ -17,10 +18,16 @@ export type DeudaConRelaciones = Prisma.DeudaGetPayload<{
 }>;
 
 export interface IDeudaRepository {
-  crearMuchas(data: DatosCrearDeuda[], tx?: unknown): Promise<void>;
+  crearMuchas(data: DatosCrearDeuda[], tx?: TransactionClient): Promise<void>;
   obtenerPendientes(
     idUsuario: string,
     idGrupo?: string,
   ): Promise<DeudaConRelaciones[]>;
   obtenerTodasPorGrupo(idGrupo: string): Promise<DeudaConRelaciones[]>;
+  marcarComoSaldadas(
+    idGrupo: string,
+    idDeudor: string,
+    idAcreedor: string,
+    tx?: TransactionClient,
+  ): Promise<void>;
 }

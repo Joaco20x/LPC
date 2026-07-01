@@ -1,4 +1,5 @@
 import { controladorDeudas } from "@/deudas/controllers/deudas.controller";
+import { controladorSaldarTransferencia } from "@/deudas/controllers/optimizacion.controller";
 import { generarTokens } from "@/auth/services/jwt";
 import { crearMockNextRequest } from "../helpers";
 
@@ -6,6 +7,8 @@ jest.mock("@/shared/di/crearDependencias", () => {
   const mockDeudaRepo = {
     crearMuchas: jest.fn(),
     obtenerPendientes: jest.fn(),
+    obtenerTodasPorGrupo: jest.fn(),
+    marcarComoSaldadas: jest.fn(),
   };
 
   return {
@@ -115,5 +118,77 @@ describe("GET /api/deudas", () => {
 
     const respuesta = await controladorDeudas(req);
     expect(respuesta.status).toBe(500);
+  });
+
+  it("incluye deudas donde el usuario es acreedor", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.deudaRepo.obtenerPendientes.mockResolvedValue([
+      {
+        id: "d1",
+        idDeudor: "user-2",
+        idAcreedor: "user-test",
+        monto: 50,
+        grupo: { id: "g1", nombre: "Grupo Test" },
+        deudor: { id: "user-2", nombre: "Otro", correo: "otro@test.com" },
+        acreedor: { id: "user-test", nombre: "Yo", correo: "yo@test.com" },
+        actualizadoEn: new Date(),
+      },
+    ]);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/deudas",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorDeudas(req);
+    const body = await respuesta.json();
+    expect(respuesta.status).toBe(200);
+    expect(body.datos.me_deben).toHaveLength(1);
+  });
+});
+
+describe("POST /api/grupos/[id]/deudas (saldar transferencia)", () => {
+  it("retorna 200 al saldar una transferencia", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos/g1/deudas",
+      token: tokens.accessToken,
+      cuerpo: { idDeudor: "user-2", idAcreedor: "user-test", monto: 100 },
+    });
+
+    const respuesta = await controladorSaldarTransferencia(req, "g1");
+    expect(respuesta.status).toBe(200);
+    expect(deps.deudaRepo.marcarComoSaldadas).toHaveBeenCalledWith(
+      "g1",
+      "user-2",
+      "user-test",
+    );
+    expect(deps.deudaRepo.crearMuchas).not.toHaveBeenCalled();
+  });
+
+  it("retorna 400 si faltan datos", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos/g1/deudas",
+      token: tokens.accessToken,
+      cuerpo: {},
+    });
+
+    const respuesta = await controladorSaldarTransferencia(req, "g1");
+    expect(respuesta.status).toBe(400);
+  });
+
+  it("retorna 401 sin token", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos/g1/deudas",
+    });
+
+    const respuesta = await controladorSaldarTransferencia(req, "g1");
+    expect(respuesta.status).toBe(401);
   });
 });

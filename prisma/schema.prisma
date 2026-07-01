@@ -106,6 +106,7 @@ model Gasto {
   idGrupo       String   @map("id_grupo") @db.Uuid
   idPagador     String   @map("id_pagador") @db.Uuid
   monto         Decimal  @db.Decimal(12, 2)
+  moneda        String   @default("CLP") @db.VarChar(10)
   descripcion   String   @db.VarChar(255)
   categoria     String   @db.VarChar(50)
   urlBoleta     String?  @map("url_boleta")
@@ -126,6 +127,7 @@ model DivisionGasto {
   idUsuario     String  @map("id_usuario") @db.Uuid
   montoAsignado Decimal @map("monto_asignado") @db.Decimal(12, 2)
   tipoDivision  String  @map("tipo_division") @db.VarChar(15)
+  moneda        String  @default("CLP") @db.VarChar(10)
 
   gasto   Gasto   @relation(fields: [idGasto], references: [id], onDelete: Cascade)
   usuario Usuario @relation(fields: [idUsuario], references: [id])

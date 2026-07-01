@@ -1,4 +1,4 @@
-import type { DatosGasto } from "@/gastos/types/gasto";
+import { DatosGasto, MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import type { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
 import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGastoRepository";
 import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
@@ -14,15 +14,19 @@ export async function registrarGasto(
   db: IDatabaseService,
 ) {
   return await db.transaction(async (tx) => {
-    if (!datos.idGrupo || !datos.idPagador) {
+    const idGrupo = datos.idGrupo;
+    if (!idGrupo || !datos.idPagador) {
       throw new Error("Faltan identificadores requeridos (Grupo o Pagador)");
     }
 
+    const moneda = datos.moneda || MONEDA_DEFAULT;
+
     const nuevoGasto = await gastoRepo.crear(
       {
-        idGrupo: datos.idGrupo,
+        idGrupo,
         idPagador: datos.idPagador,
         monto: datos.monto ?? 0,
+        moneda,
         descripcion: datos.descripcion ?? "",
         categoria: datos.categoria ?? "",
         urlBoleta: datos.urlBoleta ?? null,
@@ -37,13 +41,14 @@ export async function registrarGasto(
           idUsuario: div.idUsuario,
           montoAsignado: div.montoAsignado,
           tipoDivision: div.tipoDivision,
+          moneda: div.moneda || moneda,
         })),
         tx,
       );
     }
 
     if (datos.divisiones && datos.divisiones.length > 0) {
-      const miembrosGrupo = await miembroRepo.buscarPorGrupo(datos.idGrupo, tx);
+      const miembrosGrupo = await miembroRepo.buscarPorGrupo(idGrupo, tx);
       const totalMiembros = miembrosGrupo.length;
 
       if (totalMiembros > 1) {
@@ -61,7 +66,7 @@ export async function registrarGasto(
 
           const nuevasDeudas = deudores.flatMap((idDeudor) =>
             [...idsEnDivisiones].map((idAcreedor) => ({
-              idGrupo: datos.idGrupo!,
+              idGrupo,
               idDeudor,
               idAcreedor,
               monto: montoPorAcreedor,
@@ -90,6 +95,7 @@ export async function obtenerOpcionesFormulario(
   const grupos = miembrosGrupo.map((m) => ({
     id: m.grupo.id,
     nombre: m.grupo.nombre,
+    monedaBase: m.grupo.monedaBase,
   }));
   const idGrupos = grupos.map((g) => g.id);
   const miembros = await miembroRepo.buscarMiembrosDeGrupos(idGrupos);

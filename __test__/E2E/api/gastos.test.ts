@@ -5,55 +5,75 @@ import {
 } from "@/gastos/controllers/gasto.controller";
 import { generarTokens } from "@/auth/services/jwt";
 import { crearMockNextRequest } from "../helpers";
+import { prisma } from "@/shared/libs/prisma";
 
-jest.mock("@/shared/di/crearDependencias", () => {
-  const mockGastoRepo = {
-    crear: jest.fn(),
-    obtenerTodos: jest.fn(),
-    obtenerPorId: jest.fn(),
-  };
-  const mockDivisionRepo = { crearMuchas: jest.fn() };
-  const mockDeudaRepo = {
-    crearMuchas: jest.fn(),
-    obtenerPendientes: jest.fn(),
-  };
-  const mockMiembroRepo = {
-    buscarPorGrupo: jest.fn(),
-    crearMuchas: jest.fn(),
-    buscarPorUsuario: jest.fn(),
-    buscarMiembrosDeGrupos: jest.fn(),
-  };
+const mockGastoRepo = {
+  crear: jest.fn(),
+  obtenerTodos: jest.fn(),
+  obtenerPorId: jest.fn(),
+  obtenerPorGrupo: jest.fn(),
+};
+const mockDivisionRepo = { crearMuchas: jest.fn() };
+const mockDeudaRepo = {
+  crearMuchas: jest.fn(),
+  obtenerPendientes: jest.fn(),
+};
+const mockMiembroRepo = {
+  buscarPorGrupo: jest.fn(),
+  crearMuchas: jest.fn(),
+  buscarPorUsuario: jest.fn(),
+  buscarMiembrosDeGrupos: jest.fn(),
+};
+const mockNotificacionRepo = {
+  obtenerPorUsuario: jest.fn(),
+  contarNoLeidas: jest.fn(),
+  marcarLeida: jest.fn(),
+  marcarTodasLeidas: jest.fn(),
+  crear: jest.fn(),
+  crearMuchas: jest.fn(),
+};
 
+jest.mock("@/shared/di/crearDependencias", () => ({
+  crearDependencias: jest.fn(() => ({
+    gastoRepo: mockGastoRepo,
+    divisionGastoRepo: mockDivisionRepo,
+    deudaRepo: mockDeudaRepo,
+    miembroGrupoRepo: mockMiembroRepo,
+    notificacionRepo: mockNotificacionRepo,
+    usuarioRepo: {
+      buscarPorCorreo: jest.fn(),
+      buscarPorId: jest.fn(),
+      buscarPorEmails: jest.fn(),
+      buscarPorOauth: jest.fn(),
+      crear: jest.fn(),
+      actualizarContrasena: jest.fn(),
+    },
+    sesionRepo: {
+      crear: jest.fn(),
+      buscarPorTokenHash: jest.fn(),
+      actualizarTokenHash: jest.fn(),
+      eliminarPorTokenHash: jest.fn(),
+      eliminarPorIdUsuario: jest.fn(),
+    },
+    grupoRepo: { crear: jest.fn(), obtenerDetalle: jest.fn() },
+    tokenRecuperacionRepo: {
+      invalidarPorIdUsuario: jest.fn(),
+      crear: jest.fn(),
+      buscarTokenValido: jest.fn(),
+      marcarComoUsado: jest.fn(),
+    },
+    db: { transaction: jest.fn((fn: any) => fn({})) },
+  })),
+}));
+
+jest.mock("@/shared/libs/prisma", () => {
+  const mockFindMany = jest.fn();
   return {
-    crearDependencias: jest.fn(() => ({
-      gastoRepo: mockGastoRepo,
-      divisionGastoRepo: mockDivisionRepo,
-      deudaRepo: mockDeudaRepo,
-      miembroGrupoRepo: mockMiembroRepo,
-      usuarioRepo: {
-        buscarPorCorreo: jest.fn(),
-        buscarPorId: jest.fn(),
-        buscarPorEmails: jest.fn(),
-        buscarPorOauth: jest.fn(),
-        crear: jest.fn(),
-        actualizarContrasena: jest.fn(),
+    prisma: {
+      gasto: {
+        findMany: mockFindMany,
       },
-      sesionRepo: {
-        crear: jest.fn(),
-        buscarPorTokenHash: jest.fn(),
-        actualizarTokenHash: jest.fn(),
-        eliminarPorTokenHash: jest.fn(),
-        eliminarPorIdUsuario: jest.fn(),
-      },
-      grupoRepo: { crear: jest.fn(), obtenerDetalle: jest.fn() },
-      tokenRecuperacionRepo: {
-        invalidarPorIdUsuario: jest.fn(),
-        crear: jest.fn(),
-        buscarTokenValido: jest.fn(),
-        marcarComoUsado: jest.fn(),
-      },
-      db: { transaction: jest.fn((fn: any) => fn({})) },
-    })),
+    },
   };
 });
 
@@ -129,6 +149,46 @@ describe("POST /api/gastos", () => {
     const respuesta = await controladorCrearGasto(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 401 con token invalido", async () => {
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: "token-manipulado",
+      cuerpo: { idGrupo: "g1", monto: 100 },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 500 si falla al crear gasto", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockRejectedValue(new Error("Error de BD"));
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 100,
+        descripcion: "Cena",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 100,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 describe("GET /api/gastos", () => {
@@ -153,6 +213,29 @@ describe("GET /api/gastos", () => {
     const respuesta = await controladorObtenerGastos(req);
     expect(respuesta.status).toBe(401);
   });
+
+  it("retorna 401 con token invalido", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos",
+      token: "token-manipulado",
+    });
+    const respuesta = await controladorObtenerGastos(req);
+    expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 500 si falla al obtener gastos", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.obtenerTodos.mockRejectedValue(new Error("Error de BD"));
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerGastos(req);
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 describe("GET /api/gastos/opciones", () => {
@@ -175,5 +258,138 @@ describe("GET /api/gastos/opciones", () => {
 
     const respuesta = await controladorObtenerOpciones(req);
     expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 401 con token invalido", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos/opciones",
+      token: "token-manipulado",
+    });
+
+    const respuesta = await controladorObtenerOpciones(req);
+    expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 500 si falla al obtener opciones", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.miembroGrupoRepo.buscarPorUsuario.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos/opciones",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerOpciones(req);
+    expect(respuesta.status).toBe(500);
+  });
+});
+
+describe("GET /api/gastos con idGrupo", () => {
+  it("retorna 200 con gastos filtrados por grupo", async () => {
+    (prisma.gasto.findMany as jest.Mock).mockResolvedValue([
+      { id: "g1", monto: 100 },
+    ]);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos?idGrupo=grupo-1",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerGastos(req);
+    expect(respuesta.status).toBe(200);
+    expect(prisma.gasto.findMany).toHaveBeenCalled();
+  });
+
+  it("retorna 500 si falla al obtener gastos por grupo", async () => {
+    (prisma.gasto.findMany as jest.Mock).mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/gastos?idGrupo=grupo-1",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerGastos(req);
+    expect(respuesta.status).toBe(500);
+  });
+});
+
+describe("POST /api/gastos con idPagador fallback", () => {
+  it("usa el id del token cuando no se envia idPagador", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockResolvedValue({ id: "gasto-1" });
+    deps.gastoRepo.obtenerPorId.mockResolvedValue({
+      id: "gasto-1",
+      monto: 100,
+      pagador: { id: "user-test", nombre: "Test" },
+      grupo: { id: "g1", nombre: "Grupo" },
+    });
+    deps.miembroGrupoRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "user-test" },
+    ]);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 100,
+        descripcion: "Cena",
+        categoria: "Comida",
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(201);
+  });
+});
+
+describe("POST /api/gastos con fallo en notificacion", () => {
+  it("continua aunque falle la notificacion", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockResolvedValue({ id: "gasto-1" });
+    deps.gastoRepo.obtenerPorId.mockResolvedValue({
+      id: "gasto-1",
+      monto: 100,
+      pagador: { id: "user-test", nombre: "Test" },
+      grupo: { id: "g1", nombre: "Grupo" },
+      descripcion: "Cena",
+    });
+    deps.miembroGrupoRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "user-test" },
+      { idUsuario: "user-2" },
+    ]);
+    mockNotificacionRepo.crearMuchas.mockRejectedValue(
+      new Error("Fallo en notificacion"),
+    );
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 100,
+        descripcion: "Cena",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 100,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(201);
   });
 });

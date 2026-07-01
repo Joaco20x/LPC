@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
 import "./crear-grupo.css";
 import CampoEntrada from "@/auth/components/CampoEntrada";
 import { useCrearGrupo } from "@/grupos/components/useCrearGrupo";
+import { MONEDAS } from "@/gastos/types/gasto";
 
 export default function PaginaCrearGrupo() {
   const {
@@ -79,6 +79,26 @@ export default function PaginaCrearGrupo() {
                 valor={datosGrupo.fechaFin}
                 onChange={(v) => actualizarDatosGrupo("fechaFin", v)}
               />
+            </div>
+
+            <div className="campo-moneda-base">
+              <label htmlFor="monedaBase" className="campo-entrada__etiqueta">
+                Moneda base del viaje
+              </label>
+              <select
+                id="monedaBase"
+                className="campo-entrada__input"
+                value={datosGrupo.monedaBase}
+                onChange={(e) =>
+                  actualizarDatosGrupo("monedaBase", e.target.value)
+                }
+              >
+                {MONEDAS.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="acciones-wizard">

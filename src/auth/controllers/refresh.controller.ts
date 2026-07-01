@@ -30,7 +30,8 @@ export async function controladorRefresh(req: NextRequest) {
     });
 
     return respuesta;
-  } catch {
+  } catch (error) {
+    console.error("[Refresh]", error);
     return NextResponse.json(
       { exito: false, mensaje: "Sesión inválida o expirada" },
       { status: 401 },

@@ -108,7 +108,12 @@ describe("obtenerGruposDelUsuario", () => {
 describe("obtenerDetalleGrupo", () => {
   it("retorna detalle del grupo si existe", async () => {
     const { grupoRepo } = crearMocks();
-    grupoRepo.obtenerDetalle.mockResolvedValue({ id: "g1", nombre: "Viaje" });
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Viaje",
+      monedaBase: "CLP",
+      gastos: [],
+    } as any);
 
     const grupo = await obtenerDetalleGrupo("g1", grupoRepo);
     expect(grupo.id).toBe("g1");

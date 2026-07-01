@@ -12,19 +12,26 @@ const config = {
   },
   testMatch: ["**/*.test.ts", "**/*.test.tsx"],
   collectCoverageFrom: [
-    "src/**/*.ts",
-    "!src/app/**",
+    "src/**/*.{ts,tsx}",
     "!src/**/*.d.ts",
-    "!src/**/validator.ts",
-    "!src/**/swagger.ts",
+    "!src/**/*.test.ts",
+    "!src/app/**",
     "!src/**/types/**",
-    "!src/**/api/**",
-    "!src/**/I*.ts",
-    "!src/**/IDatabaseService.ts",
     "!src/**/components/**",
+    "!src/**/swagger.ts",
+    "!src/**/I*.ts",
   ],
-  coverageReporters: ["lcovonly", "text", "cobertura"],
+  coverageReporters: ["lcovonly", "text"],
   coverageDirectory: "<rootDir>/coverage",
+  collectCoverage: true,
+  coverageThreshold: {
+    global: {
+      lines: 70,
+      functions: 70,
+      branches: 70,
+      statements: 70,
+    },
+  },
 };
 
 module.exports = config;

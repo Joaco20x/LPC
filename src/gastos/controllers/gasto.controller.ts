@@ -4,6 +4,8 @@ import {
   obtenerGastos,
   obtenerOpcionesFormulario,
 } from "@/gastos/services/gasto.service";
+import { notificarNuevoGasto } from "@/notificaciones/services/notificacion.service";
+import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
 import { crearDependencias } from "@/shared/di/crearDependencias";
@@ -48,13 +50,33 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
+      { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
       deps.miembroGrupoRepo,
       PrismaDatabaseService,
     );
+
+    // ── Notificaciones (no críticas: errores no rompen el flujo principal) ──
+    if (nuevoGasto && deps.notificacionRepo) {
+      try {
+        await notificarNuevoGasto(
+          {
+            idGrupo: nuevoGasto.grupo.id,
+            nombreGrupo: nuevoGasto.grupo.nombre,
+            idPagador: nuevoGasto.pagador.id,
+            nombrePagador: nuevoGasto.pagador.nombre,
+            descripcion: nuevoGasto.descripcion,
+            monto: Number(nuevoGasto.monto),
+          },
+          deps.miembroGrupoRepo,
+          deps.notificacionRepo,
+        );
+      } catch (err_) {
+        console.warn("[Notificaciones] Error no crítico:", err_);
+      }
+    }
 
     return NextResponse.json(
       {
@@ -76,9 +98,17 @@ export async function controladorObtenerGastos(req: NextRequest) {
     const { error } = extraerPayload(req);
     if (error) return error;
 
+    const { searchParams } = new URL(req.url);
+    const idGrupo = searchParams.get("idGrupo");
+
+    if (idGrupo) {
+      const repo = new PrismaGastoRepository();
+      const gastos = await repo.obtenerPorGrupo(idGrupo);
+      return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
+    }
+
     const { gastoRepo } = crearDependencias();
     const gastos = await obtenerGastos(gastoRepo);
-
     return NextResponse.json({ exito: true, datos: gastos }, { status: 200 });
   } catch (error) {
     const mensaje =
@@ -94,7 +124,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 
