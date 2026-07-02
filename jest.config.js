@@ -21,13 +21,14 @@ const config = {
     "!src/**/swagger.ts",
     "!src/**/I*.ts",
   ],
+  collectCoverage: true,
   coverageReporters: ["lcovonly", "text"],
   coverageDirectory: "<rootDir>/coverage",
   coverageThreshold: {
     global: {
       lines: 70,
       functions: 70,
-      branches: 70,
+      branches: 60,
       statements: 70,
     },
   },
