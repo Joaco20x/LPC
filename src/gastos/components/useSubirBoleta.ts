@@ -77,9 +77,7 @@ function extraerMonto(texto: string): number | null {
       if (!isNaN(num) && num > 0) numeros.push(num);
     }
   }
-  return numeros.length > 0
-    ? Math.max(...numeros)
-    : null;
+  return numeros.length > 0 ? Math.max(...numeros) : null;
 }
 
 function extraerFecha(texto: string): string | null {
@@ -149,7 +147,8 @@ export function useSubirBoleta() {
         nombre: file.name,
       });
     } catch (error) {
-      const mensaje = error instanceof Error ? error.message : "Error desconocido";
+      const mensaje =
+        error instanceof Error ? error.message : "Error desconocido";
       setEstado({ tipo: "error", mensaje });
     }
   }, []);
@@ -168,7 +167,8 @@ export function useSubirBoleta() {
       const fecha = extraerFecha(texto);
       setOcr({ tipo: "completado", monto, fecha });
     } catch (error) {
-      const mensaje = error instanceof Error ? error.message : "Error al procesar OCR";
+      const mensaje =
+        error instanceof Error ? error.message : "Error al procesar OCR";
       setOcr({ tipo: "error", mensaje });
     }
   }, [estado]);

@@ -18,7 +18,7 @@ export default function SubirBoleta({
   const { estado, ocr, subir, limpiar, ejecutarOCR } = useSubirBoleta();
 
   const urlFinal =
-    estado.tipo === "completado" ? estado.url : urlActual ?? null;
+    estado.tipo === "completado" ? estado.url : (urlActual ?? null);
 
   const manejarArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

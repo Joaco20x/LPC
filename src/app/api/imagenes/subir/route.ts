@@ -5,11 +5,7 @@ import { randomUUID } from "node:crypto";
 import { verificarAccessToken } from "@/auth/services/jwt";
 
 const MAX_BYTES = 700 * 1024;
-const TIPOS_PERMITIDOS = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
+const TIPOS_PERMITIDOS = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,7 +47,10 @@ export async function POST(req: NextRequest) {
 
     if (archivo.size > MAX_BYTES) {
       return NextResponse.json(
-        { exito: false, mensaje: `La imagen supera los ${MAX_BYTES / 1024} KB` },
+        {
+          exito: false,
+          mensaje: `La imagen supera los ${MAX_BYTES / 1024} KB`,
+        },
         { status: 400 },
       );
     }
@@ -71,10 +70,7 @@ export async function POST(req: NextRequest) {
 
     const url = `/uploads/gastos/${nombreArchivo}`;
 
-    return NextResponse.json(
-      { exito: true, datos: { url } },
-      { status: 201 },
-    );
+    return NextResponse.json({ exito: true, datos: { url } }, { status: 201 });
   } catch (error) {
     console.error("[Subir imagen]", error);
     return NextResponse.json(

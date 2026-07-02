@@ -343,7 +343,9 @@
   color: var(--color-texto-principal);
   font-size: 0.875rem;
   cursor: pointer;
-  transition: border-color var(--transicion), background-color var(--transicion);
+  transition:
+    border-color var(--transicion),
+    background-color var(--transicion);
   width: 100%;
   justify-content: center;
 }
@@ -379,7 +381,9 @@
 }
 
 @keyframes subir-boleta-girar {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .subir-boleta-error {
