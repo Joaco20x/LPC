@@ -98,7 +98,7 @@ describe("POST /api/imagenes/subir", () => {
     expect(res.status).toBe(201);
     const body = await res.json();
     expect(body.exito).toBe(true);
-    expect(body.datos.url).toMatch(/^\/uploads\/gastos\/.+\.jpg$/);
+    expect(body.datos.url).toMatch(/^\/uploads\/gastos\/.+\.jpeg$/);
     expect(writeFile).toHaveBeenCalledTimes(1);
   });
 

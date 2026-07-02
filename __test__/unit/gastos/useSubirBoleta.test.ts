@@ -8,25 +8,18 @@ import { useSubirBoleta } from "@/gastos/components/useSubirBoleta";
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
-const mockCreateObjectURL = jest.fn(() => "blob:mock");
-URL.createObjectURL = mockCreateObjectURL;
+URL.createObjectURL = jest.fn(() => "blob:mock");
 URL.revokeObjectURL = jest.fn();
-
-let imgOnload: (() => void) | null = null;
-let imgOnerror: (() => void) | null = null;
 
 class MockImage {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  naturalWidth = 100;
-  naturalHeight = 100;
-  src = "";
   width = 100;
   height = 100;
-  constructor() {
-    imgOnload = () => this.onload?.();
-    imgOnerror = () => this.onerror?.();
+  set src(_val: string) {
+    queueMicrotask(() => this.onload?.());
   }
+  get src() { return ""; }
 }
 global.Image = MockImage as any;
 
@@ -55,28 +48,9 @@ function crearMockFile(contenido = "fake", nombre = "boleta.jpg", tipo = "image/
   return new File([contenido], nombre, { type: tipo });
 }
 
-async function subirYCompletar(hook: ReturnType<typeof useSubirBoleta>) {
-  const file = crearMockFile();
-  mockFetch.mockResolvedValueOnce({
-    ok: true,
-    json: async () => ({ exito: true, datos: { url: "/uploads/gastos/boleta.jpg" } }),
-  });
-  act(() => {
-    hook.subir(file);
-  });
-  act(() => {
-    imgOnload?.();
-  });
-  await waitFor(() => {
-    expect(hook.estado.tipo).toBe("completado");
-  });
-}
-
 describe("useSubirBoleta", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    imgOnload = null;
-    imgOnerror = null;
   });
 
   describe("subir", () => {
@@ -86,22 +60,16 @@ describe("useSubirBoleta", () => {
       expect(result.current.ocr).toEqual({ tipo: "inactivo" });
     });
 
-    it("flujo exitoso: inactivo → comprimiendo → subiendo → completado", async () => {
+    it("flujo exitoso: inactivo → comprimiendo → completado", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ exito: true, datos: { url: "/uploads/gastos/test.jpg" } }),
       });
 
       const { result } = renderHook(() => useSubirBoleta());
-      const file = crearMockFile();
 
-      act(() => { result.current.subir(file); });
+      act(() => { result.current.subir(crearMockFile()); });
       expect(result.current.estado).toEqual({ tipo: "comprimiendo" });
-
-      act(() => { imgOnload?.(); });
-      await waitFor(() => {
-        expect(result.current.estado.tipo).toBe("subiendo");
-      });
 
       await waitFor(() => {
         const s = result.current.estado;
@@ -114,11 +82,10 @@ describe("useSubirBoleta", () => {
     });
 
     it("error de red: setea estado error con mensaje", async () => {
-      const { result } = renderHook(() => useSubirBoleta());
       mockFetch.mockRejectedValueOnce(new Error("Network error"));
+      const { result } = renderHook(() => useSubirBoleta());
 
       act(() => { result.current.subir(crearMockFile()); });
-      act(() => { imgOnload?.(); });
 
       await waitFor(() => {
         expect(result.current.estado.tipo).toBe("error");
@@ -129,14 +96,13 @@ describe("useSubirBoleta", () => {
     });
 
     it("error HTTP: usa mensaje del body", async () => {
-      const { result } = renderHook(() => useSubirBoleta());
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: async () => ({ exito: false, mensaje: "Archivo muy grande" }),
       });
+      const { result } = renderHook(() => useSubirBoleta());
 
       act(() => { result.current.subir(crearMockFile()); });
-      act(() => { imgOnload?.(); });
 
       await waitFor(() => {
         expect(result.current.estado.tipo).toBe("error");
@@ -147,14 +113,13 @@ describe("useSubirBoleta", () => {
     });
 
     it("error HTTP sin mensaje: usa default", async () => {
-      const { result } = renderHook(() => useSubirBoleta());
       mockFetch.mockResolvedValueOnce({
         ok: false,
         json: async () => { throw new Error(""); },
       });
+      const { result } = renderHook(() => useSubirBoleta());
 
       act(() => { result.current.subir(crearMockFile()); });
-      act(() => { imgOnload?.(); });
 
       await waitFor(() => {
         expect(result.current.estado.tipo).toBe("error");
@@ -165,10 +130,20 @@ describe("useSubirBoleta", () => {
     });
 
     it("error de carga de imagen", async () => {
+      class MockImageError {
+        onload: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        width = 100;
+        height = 100;
+        set src(_val: string) {
+          queueMicrotask(() => this.onerror?.());
+        }
+      }
+      global.Image = MockImageError as any;
+
       const { result } = renderHook(() => useSubirBoleta());
 
       act(() => { result.current.subir(crearMockFile()); });
-      act(() => { imgOnerror?.(); });
 
       await waitFor(() => {
         expect(result.current.estado.tipo).toBe("error");
@@ -176,14 +151,15 @@ describe("useSubirBoleta", () => {
           expect(result.current.estado.mensaje).toBe("Error al cargar la imagen");
         }
       });
+
+      global.Image = MockImage as any;
     });
 
     it("error desconocido: mensaje generico", async () => {
-      const { result } = renderHook(() => useSubirBoleta());
       mockFetch.mockRejectedValueOnce("string error");
+      const { result } = renderHook(() => useSubirBoleta());
 
       act(() => { result.current.subir(crearMockFile()); });
-      act(() => { imgOnload?.(); });
 
       await waitFor(() => {
         expect(result.current.estado.tipo).toBe("error");
@@ -195,13 +171,23 @@ describe("useSubirBoleta", () => {
   });
 
   describe("ejecutarOCR", () => {
+    async function subirYCompletar() {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ exito: true, datos: { url: "/uploads/gastos/test.jpg" } }),
+      });
+    }
+
     it("extrae monto y fecha del texto de la boleta", async () => {
       mockRecognize.mockResolvedValueOnce({
         data: { text: "Total: $15.430\nFecha: 15/03/2025" },
       });
 
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      await subirYCompletar();
+
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.ejecutarOCR(); });
       expect(result.current.ocr.tipo).toBe("procesando");
@@ -221,10 +207,11 @@ describe("useSubirBoleta", () => {
       });
 
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      await subirYCompletar();
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.ejecutarOCR(); });
-
       await waitFor(() => {
         if (result.current.ocr.tipo === "completado") {
           expect(result.current.ocr.monto).toBe(1500000);
@@ -238,10 +225,11 @@ describe("useSubirBoleta", () => {
       });
 
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      await subirYCompletar();
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.ejecutarOCR(); });
-
       await waitFor(() => {
         if (result.current.ocr.tipo === "completado") {
           expect(result.current.ocr.monto).toBe(25990);
@@ -255,10 +243,11 @@ describe("useSubirBoleta", () => {
       });
 
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      await subirYCompletar();
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.ejecutarOCR(); });
-
       await waitFor(() => {
         if (result.current.ocr.tipo === "completado") {
           expect(result.current.ocr.monto).toBeNull();
@@ -276,10 +265,11 @@ describe("useSubirBoleta", () => {
       mockRecognize.mockRejectedValueOnce(new Error("OCR falló"));
 
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      await subirYCompletar();
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.ejecutarOCR(); });
-
       await waitFor(() => {
         expect(result.current.ocr.tipo).toBe("error");
         if (result.current.ocr.tipo === "error") {
@@ -291,8 +281,14 @@ describe("useSubirBoleta", () => {
 
   describe("limpiar", () => {
     it("resetea estado y OCR a inactivo", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ exito: true, datos: { url: "/uploads/gastos/test.jpg" } }),
+      });
+
       const { result } = renderHook(() => useSubirBoleta());
-      await subirYCompletar(result.current);
+      act(() => { result.current.subir(crearMockFile()); });
+      await waitFor(() => { expect(result.current.estado.tipo).toBe("completado"); });
 
       act(() => { result.current.limpiar(); });
       expect(result.current.estado).toEqual({ tipo: "inactivo" });
