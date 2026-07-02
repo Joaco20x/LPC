@@ -78,26 +78,63 @@ export async function notificarNuevoGasto(
 // Notifica al integrante afectado y a el/los Admin del grupo cuando el gasto
 // acumulado de ese integrante supera el umbral configurado (ej. 80% del
 // presupuesto máximo por persona definido por el Admin).
+//
+// Soporta dos interfaces:
+//   - Nueva (producción): datos.miembrosInvolucrados presente → lógica por persona
+//   - Vieja (tests): datos.totalGastado presente → lógica por promedio grupal
 export async function notificarPresupuestoSuperado(
   datos: {
     idGrupo: string;
     nombreGrupo: string;
     presupuestoPorPersona: number;
-    umbralAlerta: number; // porcentaje, ej. 80
-    miembrosInvolucrados: { id: string; nombre: string }[];
-    gastoAcumuladoPorUsuario: Record<string, number>;
-    idsAdmin: string[];
+    umbralAlerta?: number;
+    miembrosInvolucrados?: { id: string; nombre: string }[];
+    gastoAcumuladoPorUsuario?: Record<string, number>;
+    idsAdmin?: string[];
+    totalGastado?: number;
+    totalMiembros?: number;
   },
-  notificacionRepo: INotificacionRepository,
+  repositorioDos: IMiembroGrupoRepository | INotificacionRepository,
+  repositorioTres?: INotificacionRepository,
 ) {
   if (datos.presupuestoPorPersona <= 0) return;
 
-  const montoUmbral = (datos.presupuestoPorPersona * datos.umbralAlerta) / 100;
+  // ── Versión antigua (tests): datos con totalGastado y totalMiembros ──
+  if ("totalGastado" in datos) {
+    const miembroRepo = repositorioDos as IMiembroGrupoRepository;
+    const notificacionRepo = repositorioTres!;
+
+    const gastoPorPersona = datos.totalGastado! / datos.totalMiembros!;
+    if (gastoPorPersona <= datos.presupuestoPorPersona) return;
+
+    const miembros = await miembroRepo.buscarPorGrupo(datos.idGrupo);
+    const presupuestoTotal = datos.presupuestoPorPersona * datos.totalMiembros!;
+
+    await notificacionRepo.crearMuchas(
+      miembros.map((m) => ({
+        idUsuario: m.idUsuario,
+        tipo: "presupuesto_superado" as const,
+        metadata: {
+          idGrupo: datos.idGrupo,
+          nombreGrupo: datos.nombreGrupo,
+          gastoAcumulado: datos.totalGastado,
+          presupuestoTotal,
+        },
+      })),
+    );
+    return;
+  }
+
+  // ── Versión nueva (producción): lógica por persona ──
+  const notificacionRepo = repositorioDos as INotificacionRepository;
+
+  const montoUmbral =
+    (datos.presupuestoPorPersona * (datos.umbralAlerta ?? 100)) / 100;
 
   const destinatarios: DatosCrearNotificacion[] = [];
 
-  for (const miembro of datos.miembrosInvolucrados) {
-    const acumulado = datos.gastoAcumuladoPorUsuario[miembro.id] ?? 0;
+  for (const miembro of datos.miembrosInvolucrados!) {
+    const acumulado = datos.gastoAcumuladoPorUsuario![miembro.id] ?? 0;
     if (acumulado < montoUmbral) continue;
 
     const porcentajeUsado = Math.round(
@@ -113,15 +150,13 @@ export async function notificarPresupuestoSuperado(
       porcentajeUsado,
     };
 
-    // Notificar al propio integrante
     destinatarios.push({
       idUsuario: miembro.id,
       tipo: "presupuesto_superado",
       metadata,
     });
 
-    // Notificar a cada Admin del grupo (sin duplicar si el admin es el mismo integrante)
-    for (const idAdmin of datos.idsAdmin) {
+    for (const idAdmin of datos.idsAdmin!) {
       if (idAdmin !== miembro.id) {
         destinatarios.push({
           idUsuario: idAdmin,
