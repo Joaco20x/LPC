@@ -2,6 +2,7 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import { useGastoForm } from "@/gastos/components/useGastoForm";
+import SubirBoleta from "@/gastos/components/SubirBoleta";
 import { MONEDAS } from "@/gastos/types/gasto";
 import { DivisionesSection } from "./DivisionesSection";
 import "./gastos.css";
@@ -241,16 +242,22 @@ function FormularioGasto() {
             {/* Boleta */}
             <div className="form-group">
               <label htmlFor="urlBoleta">
-                Enlace de boleta <span className="opcional">(opcional)</span>
+                Boleta <span className="opcional">(opcional)</span>
               </label>
-              <input
-                id="urlBoleta"
-                type="url"
-                name="urlBoleta"
-                className="form-control"
-                placeholder="https://ejemplo.com/boleta.pdf"
-                value={formulario.urlBoleta}
-                onChange={handleChange}
+              <SubirBoleta
+                onUrlCambio={(url) =>
+                  handleChange({
+                    target: { name: "urlBoleta", value: url ?? "" },
+                  } as unknown as React.ChangeEvent<HTMLInputElement>)
+                }
+                onDatosOCR={(monto) => {
+                  if (monto !== null) {
+                    handleChange({
+                      target: { name: "monto", value: String(monto) },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }
+                }}
+                urlActual={formulario.urlBoleta || undefined}
               />
             </div>
 

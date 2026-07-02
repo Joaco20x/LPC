@@ -265,6 +265,16 @@ function PanelDetalle({
                   <span className="cal-panel-item-meta">
                     {g.categoria} · pagó {g.pagador.nombre}
                   </span>
+                  {g.urlBoleta && (
+                    <div className="cal-panel-item-boleta">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={g.urlBoleta}
+                        alt="Boleta"
+                        className="cal-panel-item-boleta-img"
+                      />
+                    </div>
+                  )}
                 </div>
                 <span className="cal-panel-item-monto">
                   {formatMonto(Number(g.monto), g.moneda || monedaBase)}

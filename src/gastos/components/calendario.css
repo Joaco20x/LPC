@@ -361,3 +361,23 @@
   background: var(--color-acento-hover);
   color: #fff;
 }
+
+/* ── Thumbnail boleta en detalle ───────────────────────── */
+.cal-panel-item-boleta {
+  margin-top: 0.5rem;
+}
+
+.cal-panel-item-boleta-img {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 2px;
+  border: 1px solid var(--color-borde);
+  object-fit: contain;
+  background: var(--color-superficie);
+  cursor: pointer;
+  transition: opacity var(--transicion);
+}
+
+.cal-panel-item-boleta-img:hover {
+  opacity: 0.85;
+}
