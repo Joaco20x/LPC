@@ -3,9 +3,8 @@ import { controladorObtenerResumenesPorGrupo } from "@/resumen/controllers/resum
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } },
+  context: { params: Promise<{ id: string }> },
 ) {
-  // Await the params before passing to the controller to comply with Next.js 15+ constraints
   const params = await context.params;
-  return controladorObtenerResumenesPorGrupo(req, { params });
+  return controladorObtenerResumenesPorGrupo(req, params);
 }

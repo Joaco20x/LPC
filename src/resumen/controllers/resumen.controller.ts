@@ -4,9 +4,9 @@ import { PrismaGrupoRepository } from "@/grupos/repositories/PrismaGrupoReposito
 
 export async function controladorObtenerResumenesPorGrupo(
   req: NextRequest,
-  context: { params: { id: string } },
+  params: { id: string },
 ) {
-  const { id } = context.params;
+  const { id } = params;
 
   try {
     const grupoRepo = new PrismaGrupoRepository();

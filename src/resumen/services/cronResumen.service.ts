@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { IGrupoRepository } from "@/grupos/repositories/IGrupoRepository";
 import { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
 import { IResumenRepository } from "../repositories/IResumenRepository";
@@ -63,7 +64,7 @@ export async function generarResumenesMensuales(
       mes: mesAnterior,
       anio: anioAnterior,
       totalGastos: stats.totalGastos,
-      datosJson: stats,
+      datosJson: stats as unknown as Prisma.InputJsonValue,
     });
 
     generados++;
