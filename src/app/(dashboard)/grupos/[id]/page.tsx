@@ -453,6 +453,7 @@ export default function PaginaDetalleGrupo() {
               esAdmin={!!esAdmin}
               onActualizado={manejarPresupuestoActualizado}
             />
+          </div>
           <div className="seccion-detalles" style={{ marginTop: "1.5rem" }}>
             <h2 className="titulo-seccion" style={{ fontSize: "1.25rem" }}>
               <svg
