@@ -35,6 +35,24 @@ export class PrismaGastoRepository implements IGastoRepository {
     }) as Promise<GastoConRelaciones | null>;
   }
 
+  async obtenerPorGrupoYRangoFecha(
+    idGrupo: string,
+    inicio: Date,
+    fin: Date,
+  ): Promise<GastoConRelaciones[]> {
+    return prisma.gasto.findMany({
+      where: {
+        idGrupo,
+        creadoEn: {
+          gte: inicio,
+          lte: fin,
+        },
+      },
+      orderBy: { creadoEn: "desc" },
+      include: INCLUDE_RELACIONES,
+    }) as Promise<GastoConRelaciones[]>;
+  }
+
   async obtenerPorGrupo(idGrupo: string): Promise<GastoConRelaciones[]> {
     return prisma.gasto.findMany({
       where: { idGrupo },

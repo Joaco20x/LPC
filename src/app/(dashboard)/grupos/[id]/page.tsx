@@ -8,6 +8,7 @@ import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
 import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import "./detalles.css";
 import BalancesGrupo from "./BalancesGrupo";
+import HistorialResumenes from "./HistorialResumenes";
 import CalendarioGastos from "@/gastos/components/CalendarioGastos";
 import "@/gastos/components/calendario.css";
 import PresupuestoGrupo from "@/grupos/components/PresupuestoGrupo";
@@ -360,7 +361,7 @@ export default function PaginaDetalleGrupo() {
           <BalancesGrupo idGrupo={grupo.id} />
         </main>
 
-        {/* Columna Lateral */}
+        {/* Columna Lateral: Miembros, Balance y Resúmenes */}
         <aside>
           <div
             className="seccion-detalles"
@@ -429,7 +430,6 @@ export default function PaginaDetalleGrupo() {
               ))}
             </div>
           </div>
-
           {/* Presupuesto por persona + indicadores (Admin configura, todos ven) */}
           <div className="seccion-detalles">
             <PresupuestoGrupo
@@ -453,6 +453,25 @@ export default function PaginaDetalleGrupo() {
               esAdmin={!!esAdmin}
               onActualizado={manejarPresupuestoActualizado}
             />
+          <div className="seccion-detalles" style={{ marginTop: "1.5rem" }}>
+            <h2 className="titulo-seccion" style={{ fontSize: "1.25rem" }}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                style={{ marginRight: "0.5rem" }}
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              Resúmenes Mensuales
+            </h2>
+            <HistorialResumenes idGrupo={grupo.id} />
           </div>
         </aside>
       </div>

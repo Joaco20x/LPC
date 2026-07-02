@@ -33,6 +33,10 @@ export type GrupoConDetalles = Prisma.GrupoGetPayload<{
   };
 }>;
 
+export type GrupoActivoPayload = Prisma.GrupoGetPayload<{
+  include: { miembros: true };
+}>;
+
 export interface IGrupoRepository {
   crear(data: DatosCrearGrupo, tx?: unknown): Promise<{ id: string }>;
   obtenerDetalle(id: string): Promise<GrupoConDetalles | null>;
@@ -40,4 +44,5 @@ export interface IGrupoRepository {
     id: string,
     datos: DatosActualizarPresupuesto,
   ): Promise<void>; // ← NUEVO
+  obtenerTodosActivos(): Promise<GrupoActivoPayload[]>;
 }

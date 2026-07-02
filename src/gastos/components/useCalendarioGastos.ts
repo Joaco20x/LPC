@@ -96,7 +96,11 @@ export function useCalendarioGastos(idGrupo: string, monedaBase: string) {
   // Obtener tasas de cambio para monedas distintas a la base
   useEffect(() => {
     const monedasUnicas = [
-      ...new Set(gastosFiltrados.map((g) => g.moneda).filter(Boolean)),
+      ...new Set(
+        gastosFiltrados
+          .map((g) => g.moneda)
+          .filter((m): m is string => Boolean(m)),
+      ),
     ];
     const monedasAConvertir = monedasUnicas.filter((m) => m !== monedaBase);
     if (monedasAConvertir.length === 0) return;

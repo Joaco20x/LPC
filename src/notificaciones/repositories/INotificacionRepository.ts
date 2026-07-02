@@ -6,11 +6,12 @@ export type TipoNotificacion =
   | "alerta_deuda"
   | "cierre_viaje"
   | "presupuesto_superado"
-  | "integrante_anadido";
+  | "integrante_anadido"
+  | "NUEVO_RESUMEN_MENSUAL";
 
 export interface DatosCrearNotificacion {
   idUsuario: string;
-  tipo: TipoNotificacion;
+  tipo: TipoNotificacion | string;
   metadata: Record<string, unknown>;
 }
 
