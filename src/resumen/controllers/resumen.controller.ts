@@ -29,7 +29,7 @@ export async function controladorObtenerResumenesPorGrupo(
       exito: true,
       datos: resumenes,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[Obtener Resumenes]", error);
     return NextResponse.json(
       { exito: false, mensaje: "Error al obtener resúmenes" },

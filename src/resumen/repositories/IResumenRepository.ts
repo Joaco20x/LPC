@@ -5,10 +5,11 @@ export interface DatosCrearResumen {
   mes: number;
   anio: number;
   totalGastos: number;
-  datosJson: any;
+  datosJson: Prisma.InputJsonValue;
 }
 
-export type ResumenMensualPayload = Prisma.ResumenMensualGetPayload<{}>;
+export type ResumenMensualPayload =
+  Prisma.ResumenMensualGetPayload<Prisma.ResumenMensualDefaultArgs>;
 
 export interface IResumenRepository {
   crear(data: DatosCrearResumen): Promise<ResumenMensualPayload>;

@@ -58,7 +58,7 @@ export default function HistorialResumenes({ idGrupo }: { idGrupo: string }) {
         } else if (montado) {
           setError(data.mensaje);
         }
-      } catch (err) {
+      } catch {
         if (montado) setError("Error al cargar resúmenes");
       } finally {
         if (montado) setCargando(false);

@@ -36,7 +36,7 @@ export async function controladorCronResumen(req: NextRequest) {
       mensaje: "Resúmenes generados correctamente",
       datos: resultado,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[CRON Resumen Mensual]", error);
     return NextResponse.json(
       { exito: false, mensaje: "Error interno al generar resúmenes" },
