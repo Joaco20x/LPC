@@ -4,7 +4,10 @@ import {
   obtenerGastos,
   obtenerOpcionesFormulario,
 } from "@/gastos/services/gasto.service";
-import { notificarNuevoGasto } from "@/notificaciones/services/notificacion.service";
+import {
+  notificarNuevoGasto,
+  notificarPresupuestoSuperado,
+} from "@/notificaciones/services/notificacion.service";
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
@@ -50,7 +53,7 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario },
+      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
@@ -73,8 +76,52 @@ export async function controladorCrearGasto(req: NextRequest) {
           deps.miembroGrupoRepo,
           deps.notificacionRepo,
         );
-      } catch (err_) {
-        console.warn("[Notificaciones] Error no crítico:", err_);
+
+        // Verificar presupuesto máximo por persona (si el Admin lo configuró)
+        const grupoCompleto = await deps.grupoRepo.obtenerDetalle(
+          nuevoGasto.grupo.id,
+        );
+
+        if (grupoCompleto?.presupuestoPorPersona) {
+          const presupuesto = Number(grupoCompleto.presupuestoPorPersona);
+          const umbral = grupoCompleto.umbralAlerta
+            ? Number(grupoCompleto.umbralAlerta)
+            : 100;
+
+          // Gasto acumulado por integrante (suma de divisiones en todo el grupo)
+          const acumuladoPorUsuario: Record<string, number> = {};
+          for (const g of grupoCompleto.gastos) {
+            for (const div of g.divisiones) {
+              acumuladoPorUsuario[div.idUsuario] =
+                (acumuladoPorUsuario[div.idUsuario] ?? 0) +
+                Number(div.montoAsignado);
+            }
+          }
+
+          const idsAdmin = grupoCompleto.miembros
+            .filter((m) => m.rol === "admin")
+            .map((m) => m.usuario.id);
+
+          // Solo revisamos a los integrantes cuyo monto cambió con este gasto
+          const miembrosInvolucrados = (nuevoGasto.divisiones ?? []).map(
+            (d) => ({ id: d.usuario.id, nombre: d.usuario.nombre }),
+          );
+
+          await notificarPresupuestoSuperado(
+            {
+              idGrupo: grupoCompleto.id,
+              nombreGrupo: grupoCompleto.nombre,
+              presupuestoPorPersona: presupuesto,
+              umbralAlerta: umbral,
+              miembrosInvolucrados,
+              gastoAcumuladoPorUsuario: acumuladoPorUsuario,
+              idsAdmin,
+            },
+            deps.notificacionRepo,
+          );
+        }
+      } catch (errNotif) {
+        console.warn("[Notificaciones] Error no crítico:", errNotif);
       }
     }
 
@@ -124,7 +171,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload.idUsuario,
+      payload!.idUsuario,
       miembroGrupoRepo,
     );
 

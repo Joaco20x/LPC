@@ -4,12 +4,20 @@ import { useState, useEffect, startTransition, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
+import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
 import { MONEDA_DEFAULT } from "@/gastos/types/gasto";
 import "./detalles.css";
 import BalancesGrupo from "./BalancesGrupo";
 import HistorialResumenes from "./HistorialResumenes";
 import CalendarioGastos from "@/gastos/components/CalendarioGastos";
 import "@/gastos/components/calendario.css";
+import PresupuestoGrupo from "@/grupos/components/PresupuestoGrupo";
+import "@/grupos/components/presupuesto.css";
+
+interface DivisionGasto {
+  idUsuario: string;
+  montoAsignado: number;
+}
 
 interface Gasto {
   id: string;
@@ -19,6 +27,7 @@ interface Gasto {
   categoria: string;
   creadoEn: string;
   pagador: { nombre: string };
+  divisiones?: DivisionGasto[];
 }
 
 interface Integrante {
@@ -40,6 +49,8 @@ interface GrupoDetalle {
   miembros: Integrante[];
   gastos: Gasto[];
   totalEnBase: number;
+  presupuestoPorPersona: number | null;
+  umbralAlerta: number | null;
 }
 
 type Vista = "lista" | "calendario";
@@ -95,6 +106,13 @@ export default function PaginaDetalleGrupo() {
     }).format(m);
   };
 
+  const manejarPresupuestoActualizado = (datos: {
+    presupuestoPorPersona: number | null;
+    umbralAlerta: number | null;
+  }) => {
+    setGrupo((prev) => (prev ? { ...prev, ...datos } : prev));
+  };
+
   if (cargando)
     return (
       <div className="dashboard-cuerpo">
@@ -111,6 +129,12 @@ export default function PaginaDetalleGrupo() {
     );
 
   const totalGastado = grupo.totalEnBase;
+
+  const datosUsuarioActual = obtenerDatosUsuario();
+  const miPropiaMembresia = grupo.miembros.find(
+    (m) => m.usuario.id === datosUsuarioActual?.id,
+  );
+  const esAdmin = miPropiaMembresia?.rol === "admin";
 
   return (
     <div className="dashboard-cuerpo detalles-grupo-raiz">
@@ -406,7 +430,30 @@ export default function PaginaDetalleGrupo() {
               ))}
             </div>
           </div>
-
+          {/* Presupuesto por persona + indicadores (Admin configura, todos ven) */}
+          <div className="seccion-detalles">
+            <PresupuestoGrupo
+              idGrupo={grupo.id}
+              monedaBase={grupo.monedaBase}
+              presupuestoPorPersona={
+                grupo.presupuestoPorPersona !== null
+                  ? Number(grupo.presupuestoPorPersona)
+                  : null
+              }
+              umbralAlerta={
+                grupo.umbralAlerta !== null ? Number(grupo.umbralAlerta) : null
+              }
+              miembros={grupo.miembros.map((m) => ({
+                id: m.usuario.id,
+                nombre: m.usuario.nombre,
+              }))}
+              gastos={grupo.gastos.map((g) => ({
+                divisiones: g.divisiones ?? [],
+              }))}
+              esAdmin={!!esAdmin}
+              onActualizado={manejarPresupuestoActualizado}
+            />
+          </div>
           <div className="seccion-detalles" style={{ marginTop: "1.5rem" }}>
             <h2 className="titulo-seccion" style={{ fontSize: "1.25rem" }}>
               <svg

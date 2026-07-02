@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import type { TransactionClient } from "@/shared/libs/IDatabaseService";
 
 export interface DatosCrearGrupo {
   nombre: string;
@@ -7,6 +6,12 @@ export interface DatosCrearGrupo {
   fechaInicio: Date;
   fechaFin: Date;
   monedaBase: string;
+}
+
+// ── NUEVO ────────────────────────────────────────────────────────────────────
+export interface DatosActualizarPresupuesto {
+  presupuestoPorPersona: number | null;
+  umbralAlerta: number | null;
 }
 
 export type GrupoConDetalles = Prisma.GrupoGetPayload<{
@@ -33,7 +38,11 @@ export type GrupoActivoPayload = Prisma.GrupoGetPayload<{
 }>;
 
 export interface IGrupoRepository {
-  crear(data: DatosCrearGrupo, tx?: TransactionClient): Promise<{ id: string }>;
+  crear(data: DatosCrearGrupo, tx?: unknown): Promise<{ id: string }>;
   obtenerDetalle(id: string): Promise<GrupoConDetalles | null>;
+  actualizarPresupuesto(
+    id: string,
+    datos: DatosActualizarPresupuesto,
+  ): Promise<void>; // ← NUEVO
   obtenerTodosActivos(): Promise<GrupoActivoPayload[]>;
 }
