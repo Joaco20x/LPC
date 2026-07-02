@@ -2,6 +2,7 @@ import {
   crearGrupoViaje,
   obtenerGruposDelUsuario,
   obtenerDetalleGrupo,
+  actualizarPresupuestoGrupo,
 } from "@/grupos/services/grupos.service";
 
 function crearMocks() {
@@ -13,7 +14,11 @@ function crearMocks() {
     crear: jest.fn(),
     actualizarContrasena: jest.fn(),
   };
-  const grupoRepo = { crear: jest.fn(), obtenerDetalle: jest.fn() };
+  const grupoRepo = {
+    crear: jest.fn(),
+    obtenerDetalle: jest.fn(),
+    actualizarPresupuesto: jest.fn(),
+  };
   const miembroRepo = {
     buscarPorGrupo: jest.fn(),
     crearMuchas: jest.fn(),
@@ -126,5 +131,143 @@ describe("obtenerDetalleGrupo", () => {
     await expect(obtenerDetalleGrupo("no-existe", grupoRepo)).rejects.toThrow(
       "Grupo no encontrado",
     );
+  });
+});
+
+describe("actualizarPresupuestoGrupo", () => {
+  it("lanza error si el grupo no existe", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue(null);
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "no-existe",
+        "user-1",
+        { presupuestoPorPersona: 50000, umbralAlerta: 80 },
+        grupoRepo,
+      ),
+    ).rejects.toThrow("Grupo no encontrado");
+  });
+
+  it("lanza error si el usuario no es admin", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [
+        { usuario: { id: "user-1" }, rol: "miembro" },
+        { usuario: { id: "user-2" }, rol: "admin" },
+      ],
+    } as any);
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "g1",
+        "user-1",
+        { presupuestoPorPersona: 50000, umbralAlerta: 80 },
+        grupoRepo,
+      ),
+    ).rejects.toThrow(
+      "Solo el administrador del grupo puede modificar el presupuesto",
+    );
+  });
+
+  it("lanza error si presupuestoPorPersona es menor o igual a 0", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-1" }, rol: "admin" }],
+    } as any);
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "g1",
+        "user-1",
+        { presupuestoPorPersona: 0, umbralAlerta: null },
+        grupoRepo,
+      ),
+    ).rejects.toThrow("El presupuesto por persona debe ser un valor positivo");
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "g1",
+        "user-1",
+        { presupuestoPorPersona: -10, umbralAlerta: null },
+        grupoRepo,
+      ),
+    ).rejects.toThrow("El presupuesto por persona debe ser un valor positivo");
+  });
+
+  it("lanza error si umbralAlerta esta fuera del rango 1-100", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-1" }, rol: "admin" }],
+    } as any);
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "g1",
+        "user-1",
+        { presupuestoPorPersona: null, umbralAlerta: 0 },
+        grupoRepo,
+      ),
+    ).rejects.toThrow("El umbral de alerta debe estar entre 1 y 100");
+
+    await expect(
+      actualizarPresupuestoGrupo(
+        "g1",
+        "user-1",
+        { presupuestoPorPersona: null, umbralAlerta: 101 },
+        grupoRepo,
+      ),
+    ).rejects.toThrow("El umbral de alerta debe estar entre 1 y 100");
+  });
+
+  it("actualiza correctamente con valores validos", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-1" }, rol: "admin" }],
+    } as any);
+
+    const resultado = await actualizarPresupuestoGrupo(
+      "g1",
+      "user-1",
+      { presupuestoPorPersona: 50000, umbralAlerta: 80 },
+      grupoRepo,
+    );
+
+    expect(grupoRepo.actualizarPresupuesto).toHaveBeenCalledWith("g1", {
+      presupuestoPorPersona: 50000,
+      umbralAlerta: 80,
+    });
+    expect(resultado).toEqual({
+      presupuestoPorPersona: 50000,
+      umbralAlerta: 80,
+    });
+  });
+
+  it("actualiza con valores null permitidos", async () => {
+    const { grupoRepo } = crearMocks();
+    grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-1" }, rol: "admin" }],
+    } as any);
+
+    const resultado = await actualizarPresupuestoGrupo(
+      "g1",
+      "user-1",
+      { presupuestoPorPersona: null, umbralAlerta: null },
+      grupoRepo,
+    );
+
+    expect(grupoRepo.actualizarPresupuesto).toHaveBeenCalledWith("g1", {
+      presupuestoPorPersona: null,
+      umbralAlerta: null,
+    });
+    expect(resultado).toEqual({
+      presupuestoPorPersona: null,
+      umbralAlerta: null,
+    });
   });
 });

@@ -1,57 +1,69 @@
 import { controladorDeudas } from "@/deudas/controllers/deudas.controller";
-import { controladorSaldarTransferencia } from "@/deudas/controllers/optimizacion.controller";
+import {
+  controladorSaldarTransferencia,
+  controladorObtenerBalancesGrupo,
+} from "@/deudas/controllers/optimizacion.controller";
 import { generarTokens } from "@/auth/services/jwt";
 import { crearMockNextRequest } from "../helpers";
 
-jest.mock("@/shared/di/crearDependencias", () => {
-  const mockDeudaRepo = {
-    crearMuchas: jest.fn(),
-    obtenerPendientes: jest.fn(),
-    obtenerTodasPorGrupo: jest.fn(),
-    marcarComoSaldadas: jest.fn(),
-  };
+const mockDeudaRepo = {
+  crearMuchas: jest.fn(),
+  obtenerPendientes: jest.fn(),
+  obtenerTodasPorGrupo: jest.fn(),
+  marcarComoSaldadas: jest.fn(),
+};
+const mockNotificacionRepo = {
+  crear: jest.fn(),
+  crearMuchas: jest.fn(),
+  obtenerPorUsuario: jest.fn(),
+  contarNoLeidas: jest.fn(),
+  marcarLeida: jest.fn(),
+  marcarTodasLeidas: jest.fn(),
+};
+const mockUsuarioRepoDeudas = {
+  buscarPorCorreo: jest.fn(),
+  buscarPorId: jest.fn(),
+  buscarPorEmails: jest.fn(),
+  buscarPorOauth: jest.fn(),
+  crear: jest.fn(),
+  actualizarContrasena: jest.fn(),
+};
+const mockGrupoRepoDeudas = { crear: jest.fn(), obtenerDetalle: jest.fn() };
 
-  return {
-    crearDependencias: jest.fn(() => ({
-      deudaRepo: mockDeudaRepo,
-      usuarioRepo: {
-        buscarPorCorreo: jest.fn(),
-        buscarPorId: jest.fn(),
-        buscarPorEmails: jest.fn(),
-        buscarPorOauth: jest.fn(),
-        crear: jest.fn(),
-        actualizarContrasena: jest.fn(),
-      },
-      sesionRepo: {
-        crear: jest.fn(),
-        buscarPorTokenHash: jest.fn(),
-        actualizarTokenHash: jest.fn(),
-        eliminarPorTokenHash: jest.fn(),
-        eliminarPorIdUsuario: jest.fn(),
-      },
-      gastoRepo: {
-        crear: jest.fn(),
-        obtenerTodos: jest.fn(),
-        obtenerPorId: jest.fn(),
-      },
-      grupoRepo: { crear: jest.fn(), obtenerDetalle: jest.fn() },
-      divisionGastoRepo: { crearMuchas: jest.fn() },
-      miembroGrupoRepo: {
-        buscarPorGrupo: jest.fn(),
-        crearMuchas: jest.fn(),
-        buscarPorUsuario: jest.fn(),
-        buscarMiembrosDeGrupos: jest.fn(),
-      },
-      tokenRecuperacionRepo: {
-        invalidarPorIdUsuario: jest.fn(),
-        crear: jest.fn(),
-        buscarTokenValido: jest.fn(),
-        marcarComoUsado: jest.fn(),
-      },
-      db: { transaction: jest.fn((fn: any) => fn({})) },
-    })),
-  };
-});
+jest.mock("@/shared/di/crearDependencias", () => ({
+  crearDependencias: jest.fn(() => ({
+    deudaRepo: mockDeudaRepo,
+    usuarioRepo: mockUsuarioRepoDeudas,
+    sesionRepo: {
+      crear: jest.fn(),
+      buscarPorTokenHash: jest.fn(),
+      actualizarTokenHash: jest.fn(),
+      eliminarPorTokenHash: jest.fn(),
+      eliminarPorIdUsuario: jest.fn(),
+    },
+    gastoRepo: {
+      crear: jest.fn(),
+      obtenerTodos: jest.fn(),
+      obtenerPorId: jest.fn(),
+    },
+    grupoRepo: mockGrupoRepoDeudas,
+    divisionGastoRepo: { crearMuchas: jest.fn() },
+    miembroGrupoRepo: {
+      buscarPorGrupo: jest.fn(),
+      crearMuchas: jest.fn(),
+      buscarPorUsuario: jest.fn(),
+      buscarMiembrosDeGrupos: jest.fn(),
+    },
+    tokenRecuperacionRepo: {
+      invalidarPorIdUsuario: jest.fn(),
+      crear: jest.fn(),
+      buscarTokenValido: jest.fn(),
+      marcarComoUsado: jest.fn(),
+    },
+    notificacionRepo: mockNotificacionRepo,
+    db: { transaction: jest.fn((fn: any) => fn({})) },
+  })),
+}));
 
 const tokens = generarTokens({
   idUsuario: "user-test",
@@ -190,5 +202,96 @@ describe("POST /api/grupos/[id]/deudas (saldar transferencia)", () => {
 
     const respuesta = await controladorSaldarTransferencia(req, "g1");
     expect(respuesta.status).toBe(401);
+  });
+});
+
+describe("GET /api/grupos/[id]/balances", () => {
+  it("retorna 200 con balances del grupo", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.deudaRepo.obtenerTodasPorGrupo.mockResolvedValue([]);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1/balances",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
+    expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 401 sin token", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1/balances",
+    });
+
+    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
+    expect(respuesta.status).toBe(401);
+  });
+
+  it("retorna 500 con token invalido", async () => {
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1/balances",
+      token: "token-manipulado",
+    });
+
+    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
+    expect(respuesta.status).toBe(500);
+  });
+
+  it("retorna 500 si el repositorio lanza error", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.deudaRepo.obtenerTodasPorGrupo.mockRejectedValue(
+      new Error("Error de BD"),
+    );
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/grupos/g1/balances",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
+    expect(respuesta.status).toBe(500);
+  });
+});
+
+describe("POST /api/grupos/[id]/deudas - notificaciones", () => {
+  it("envia notificacion cuando el deudor existe", async () => {
+    mockUsuarioRepoDeudas.buscarPorId.mockResolvedValue({
+      id: "user-2",
+      nombre: "Deudor",
+      correo: "deudor@test.com",
+    });
+    mockGrupoRepoDeudas.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Grupo Test",
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos/g1/deudas",
+      token: tokens.accessToken,
+      cuerpo: { idDeudor: "user-2", idAcreedor: "user-test", monto: 100 },
+    });
+
+    const respuesta = await controladorSaldarTransferencia(req, "g1");
+    expect(respuesta.status).toBe(200);
+    expect(mockNotificacionRepo.crear).toHaveBeenCalled();
+  });
+
+  it("no falla cuando el deudor no existe (notificacion omitida)", async () => {
+    mockUsuarioRepoDeudas.buscarPorId.mockResolvedValue(null);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/grupos/g1/deudas",
+      token: tokens.accessToken,
+      cuerpo: { idDeudor: "no-existe", idAcreedor: "user-test", monto: 100 },
+    });
+
+    const respuesta = await controladorSaldarTransferencia(req, "g1");
+    expect(respuesta.status).toBe(200);
+    expect(mockNotificacionRepo.crear).not.toHaveBeenCalled();
   });
 });

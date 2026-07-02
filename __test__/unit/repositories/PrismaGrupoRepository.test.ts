@@ -2,6 +2,8 @@ const mockPrisma = {
   grupo: {
     create: jest.fn(),
     findUnique: jest.fn(),
+    update: jest.fn(),
+    findMany: jest.fn(),
   },
 };
 
@@ -74,5 +76,29 @@ describe("PrismaGrupoRepository", () => {
     mockPrisma.grupo.findUnique.mockResolvedValue(null);
     const result = await repo.obtenerDetalle("no-existe");
     expect(result).toBeNull();
+  });
+
+  it("actualizarPresupuesto llama a prisma.grupo.update con presupuestoPorPersona y umbralAlerta", async () => {
+    const datos = { presupuestoPorPersona: 50000, umbralAlerta: 80 };
+    mockPrisma.grupo.update.mockResolvedValue({ id: "g1" } as any);
+    await repo.actualizarPresupuesto("g1", datos);
+    expect(mockPrisma.grupo.update).toHaveBeenCalledWith({
+      where: { id: "g1" },
+      data: { presupuestoPorPersona: 50000, umbralAlerta: 80 },
+    });
+  });
+
+  it("obtenerTodosActivos retorna grupos con estado activo e incluye miembros", async () => {
+    const mockGrupos = [
+      { id: "g1", nombre: "Grupo 1", estado: "activo", miembros: [] },
+      { id: "g2", nombre: "Grupo 2", estado: "activo", miembros: [] },
+    ];
+    mockPrisma.grupo.findMany.mockResolvedValue(mockGrupos);
+    const result = await repo.obtenerTodosActivos();
+    expect(result).toEqual(mockGrupos);
+    expect(mockPrisma.grupo.findMany).toHaveBeenCalledWith({
+      where: { estado: "activo" },
+      include: { miembros: true },
+    });
   });
 });

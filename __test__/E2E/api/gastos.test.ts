@@ -32,6 +32,15 @@ const mockNotificacionRepo = {
   crear: jest.fn(),
   crearMuchas: jest.fn(),
 };
+const mockUsuarioRepo = {
+  buscarPorCorreo: jest.fn(),
+  buscarPorId: jest.fn(),
+  buscarPorEmails: jest.fn(),
+  buscarPorOauth: jest.fn(),
+  crear: jest.fn(),
+  actualizarContrasena: jest.fn(),
+};
+const mockGrupoRepo = { crear: jest.fn(), obtenerDetalle: jest.fn() };
 
 jest.mock("@/shared/di/crearDependencias", () => ({
   crearDependencias: jest.fn(() => ({
@@ -40,14 +49,7 @@ jest.mock("@/shared/di/crearDependencias", () => ({
     deudaRepo: mockDeudaRepo,
     miembroGrupoRepo: mockMiembroRepo,
     notificacionRepo: mockNotificacionRepo,
-    usuarioRepo: {
-      buscarPorCorreo: jest.fn(),
-      buscarPorId: jest.fn(),
-      buscarPorEmails: jest.fn(),
-      buscarPorOauth: jest.fn(),
-      crear: jest.fn(),
-      actualizarContrasena: jest.fn(),
-    },
+    usuarioRepo: mockUsuarioRepo,
     sesionRepo: {
       crear: jest.fn(),
       buscarPorTokenHash: jest.fn(),
@@ -55,7 +57,7 @@ jest.mock("@/shared/di/crearDependencias", () => ({
       eliminarPorTokenHash: jest.fn(),
       eliminarPorIdUsuario: jest.fn(),
     },
-    grupoRepo: { crear: jest.fn(), obtenerDetalle: jest.fn() },
+    grupoRepo: mockGrupoRepo,
     tokenRecuperacionRepo: {
       invalidarPorIdUsuario: jest.fn(),
       crear: jest.fn(),
@@ -383,6 +385,159 @@ describe("POST /api/gastos con fallo en notificacion", () => {
           {
             idUsuario: "user-test",
             montoAsignado: 100,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(201);
+  });
+});
+
+describe("POST /api/gastos con presupuesto configurado", () => {
+  it("retorna 201 cuando el grupo tiene presupuestoPorPersona y umbralAlerta", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockResolvedValue({ id: "gasto-1" });
+    deps.gastoRepo.obtenerPorId.mockResolvedValue({
+      id: "gasto-1",
+      monto: 100,
+      pagador: { id: "user-test", nombre: "Test" },
+      grupo: { id: "g1", nombre: "Grupo Test" },
+      descripcion: "Cena",
+      divisiones: [{ usuario: { id: "user-test", nombre: "Test" } }],
+    });
+    deps.miembroGrupoRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "user-test" },
+    ]);
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Grupo Test",
+      presupuestoPorPersona: 50000,
+      umbralAlerta: 80,
+      gastos: [
+        { divisiones: [{ idUsuario: "user-test", montoAsignado: 100 }] },
+      ],
+      miembros: [{ rol: "admin", usuario: { id: "user-test" } }],
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 100,
+        descripcion: "Cena",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 100,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(201);
+  });
+
+  it("retorna 201 cuando el grupo tiene presupuestoPorPersona sin umbralAlerta (default 100%)", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockResolvedValue({ id: "gasto-2" });
+    deps.gastoRepo.obtenerPorId.mockResolvedValue({
+      id: "gasto-2",
+      monto: 200,
+      pagador: { id: "user-test", nombre: "Test" },
+      grupo: { id: "g1", nombre: "Grupo Test" },
+      descripcion: "Comida",
+      divisiones: [{ usuario: { id: "user-test", nombre: "Test" } }],
+    });
+    deps.miembroGrupoRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "user-test" },
+    ]);
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Grupo Test",
+      presupuestoPorPersona: 100000,
+      umbralAlerta: null,
+      gastos: [
+        { divisiones: [{ idUsuario: "user-test", montoAsignado: 200 }] },
+      ],
+      miembros: [{ rol: "admin", usuario: { id: "user-test" } }],
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 200,
+        descripcion: "Comida",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 200,
+            tipoDivision: "exacto",
+          },
+        ],
+      },
+    });
+
+    const respuesta = await controladorCrearGasto(req);
+    expect(respuesta.status).toBe(201);
+  });
+
+  it("retorna 201 cuando falla la notificacion de presupuesto pero no es critico", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.gastoRepo.crear.mockResolvedValue({ id: "gasto-3" });
+    deps.gastoRepo.obtenerPorId.mockResolvedValue({
+      id: "gasto-3",
+      monto: 150,
+      pagador: { id: "user-test", nombre: "Test" },
+      grupo: { id: "g1", nombre: "Grupo Test" },
+      descripcion: "Cena",
+      divisiones: [{ usuario: { id: "user-test", nombre: "Test" } }],
+    });
+    deps.miembroGrupoRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "user-test" },
+      { idUsuario: "user-2" },
+    ]);
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      nombre: "Grupo Test",
+      presupuestoPorPersona: 50000,
+      umbralAlerta: 80,
+      gastos: [
+        { divisiones: [{ idUsuario: "user-test", montoAsignado: 150 }] },
+      ],
+      miembros: [{ rol: "admin", usuario: { id: "user-test" } }],
+    } as any);
+    mockNotificacionRepo.crearMuchas.mockRejectedValue(
+      new Error("Fallo en notificacion de presupuesto"),
+    );
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/gastos",
+      token: tokens.accessToken,
+      cuerpo: {
+        idGrupo: "g1",
+        monto: 150,
+        descripcion: "Cena",
+        categoria: "Comida",
+        divisiones: [
+          {
+            idUsuario: "user-test",
+            montoAsignado: 150,
             tipoDivision: "exacto",
           },
         ],

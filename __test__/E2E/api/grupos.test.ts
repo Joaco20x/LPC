@@ -2,12 +2,17 @@ import {
   controladorCrearGrupo,
   controladorObtenerGrupos,
   controladorObtenerDetalleGrupo,
+  controladorActualizarPresupuesto,
 } from "@/grupos/controllers/grupos.controller";
 import { generarTokens } from "@/auth/services/jwt";
 import { crearMockNextRequest } from "../helpers";
 
 jest.mock("@/shared/di/crearDependencias", () => {
-  const mockGrupoRepo = { crear: jest.fn(), obtenerDetalle: jest.fn() };
+  const mockGrupoRepo = {
+    crear: jest.fn(),
+    obtenerDetalle: jest.fn(),
+    actualizarPresupuesto: jest.fn(),
+  };
   const mockMiembroRepo = {
     buscarPorGrupo: jest.fn(),
     crearMuchas: jest.fn(),
@@ -298,5 +303,93 @@ describe("GET /api/grupos/[id]", () => {
 
     const respuesta = await controladorObtenerDetalleGrupo(req, { id: "g1" });
     expect(respuesta.status).toBe(200);
+  });
+});
+
+describe("PATCH /api/grupos/[id]/presupuesto", () => {
+  it("retorna 200 cuando admin actualiza presupuesto", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-test" }, rol: "admin" }],
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "PATCH",
+      url: "http://localhost:3000/api/grupos/g1/presupuesto",
+      token: tokens.accessToken,
+      cuerpo: { presupuestoPorPersona: 50000, umbralAlerta: 80 },
+    });
+
+    const respuesta = await controladorActualizarPresupuesto(req, { id: "g1" });
+    expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 403 cuando no-admin intenta actualizar presupuesto", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-test" }, rol: "miembro" }],
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "PATCH",
+      url: "http://localhost:3000/api/grupos/g1/presupuesto",
+      token: tokens.accessToken,
+      cuerpo: { presupuestoPorPersona: 50000 },
+    });
+
+    const respuesta = await controladorActualizarPresupuesto(req, { id: "g1" });
+    expect(respuesta.status).toBe(403);
+  });
+
+  it("retorna 400 con valores invalidos", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue({
+      id: "g1",
+      miembros: [{ usuario: { id: "user-test" }, rol: "admin" }],
+    } as any);
+
+    const req = crearMockNextRequest({
+      metodo: "PATCH",
+      url: "http://localhost:3000/api/grupos/g1/presupuesto",
+      token: tokens.accessToken,
+      cuerpo: { presupuestoPorPersona: -1 },
+    });
+
+    const respuesta = await controladorActualizarPresupuesto(req, { id: "g1" });
+    expect(respuesta.status).toBe(400);
+  });
+
+  it("retorna 404 cuando el grupo no existe", async () => {
+    const { crearDependencias } = require("@/shared/di/crearDependencias");
+    const deps = crearDependencias();
+    deps.grupoRepo.obtenerDetalle.mockResolvedValue(null);
+
+    const req = crearMockNextRequest({
+      metodo: "PATCH",
+      url: "http://localhost:3000/api/grupos/no-existe/presupuesto",
+      token: tokens.accessToken,
+      cuerpo: { presupuestoPorPersona: 50000 },
+    });
+
+    const respuesta = await controladorActualizarPresupuesto(req, {
+      id: "no-existe",
+    });
+    expect(respuesta.status).toBe(404);
+  });
+
+  it("retorna 401 sin token", async () => {
+    const req = crearMockNextRequest({
+      metodo: "PATCH",
+      url: "http://localhost:3000/api/grupos/g1/presupuesto",
+      cuerpo: { presupuestoPorPersona: 50000 },
+    });
+
+    const respuesta = await controladorActualizarPresupuesto(req, { id: "g1" });
+    expect(respuesta.status).toBe(401);
   });
 });

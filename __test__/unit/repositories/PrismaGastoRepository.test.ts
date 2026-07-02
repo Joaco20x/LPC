@@ -85,4 +85,31 @@ describe("PrismaGastoRepository", () => {
     const result = await repo.obtenerPorId("no-existe");
     expect(result).toBeNull();
   });
+
+  it("obtenerPorGrupoYRangoFecha filtra por idGrupo y rango de fechas", async () => {
+    const inicio = new Date("2026-01-01");
+    const fin = new Date("2026-12-31");
+    mockPrisma.gasto.findMany.mockResolvedValue([{ id: "g1" }]);
+    const result = await repo.obtenerPorGrupoYRangoFecha("g1", inicio, fin);
+    expect(result).toHaveLength(1);
+    expect(mockPrisma.gasto.findMany).toHaveBeenCalledWith({
+      where: {
+        idGrupo: "g1",
+        creadoEn: { gte: inicio, lte: fin },
+      },
+      orderBy: { creadoEn: "desc" },
+      include,
+    });
+  });
+
+  it("obtenerPorGrupo filtra por idGrupo", async () => {
+    mockPrisma.gasto.findMany.mockResolvedValue([{ id: "g1" }]);
+    const result = await repo.obtenerPorGrupo("g1");
+    expect(result).toHaveLength(1);
+    expect(mockPrisma.gasto.findMany).toHaveBeenCalledWith({
+      where: { idGrupo: "g1" },
+      orderBy: { creadoEn: "desc" },
+      include,
+    });
+  });
 });
