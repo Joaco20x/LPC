@@ -54,7 +54,9 @@ describe("POST /api/imagenes/subir", () => {
   });
 
   it("retorna 401 si el token es inválido", async () => {
-    verificarAccessToken.mockImplementationOnce(() => { throw new Error("Token inválido"); });
+    verificarAccessToken.mockImplementationOnce(() => {
+      throw new Error("Token inválido");
+    });
     const req = crearMockRequest("token-malo");
     const res = await POST(req);
     expect(res.status).toBe(401);
@@ -73,7 +75,10 @@ describe("POST /api/imagenes/subir", () => {
 
   it("retorna 400 si el formato no es válido", async () => {
     verificarAccessToken.mockReturnValueOnce({ idUsuario: "u1" });
-    const req = crearMockRequest("token-valido", crearArchivo("gif", "test.gif", "image/gif"));
+    const req = crearMockRequest(
+      "token-valido",
+      crearArchivo("gif", "test.gif", "image/gif"),
+    );
     const res = await POST(req);
     expect(res.status).toBe(400);
     const body = await res.json();

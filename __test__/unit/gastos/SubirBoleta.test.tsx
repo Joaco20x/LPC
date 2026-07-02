@@ -48,7 +48,9 @@ describe("SubirBoleta", () => {
 
   it("muestra thumbnail si hay urlActual", () => {
     renderComponent({ urlActual: "/uploads/gastos/old.jpg" });
-    const img = screen.getByAltText("Vista previa de la boleta") as HTMLImageElement;
+    const img = screen.getByAltText(
+      "Vista previa de la boleta",
+    ) as HTMLImageElement;
     expect(img).toBeDefined();
     expect(img.src).toContain("/uploads/gastos/old.jpg");
   });
@@ -71,7 +73,9 @@ describe("SubirBoleta", () => {
 
   it("muestra error con boton reintentar", () => {
     mockUseSubirBoleta.mockReturnValue(
-      crearMockHook({ estado: { tipo: "error", mensaje: "Archivo muy grande" } }),
+      crearMockHook({
+        estado: { tipo: "error", mensaje: "Archivo muy grande" },
+      }),
     );
     renderComponent();
     expect(screen.getByText("Archivo muy grande")).toBeDefined();
@@ -83,14 +87,20 @@ describe("SubirBoleta", () => {
     const mockEjecutarOCR = jest.fn();
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         limpiar: mockLimpiar,
         ejecutarOCR: mockEjecutarOCR,
       }),
     );
     renderComponent();
 
-    const img = screen.getByAltText("Vista previa de la boleta") as HTMLImageElement;
+    const img = screen.getByAltText(
+      "Vista previa de la boleta",
+    ) as HTMLImageElement;
     expect(img.src).toContain("/uploads/gastos/test.jpg");
     expect(screen.getByText("test.jpg")).toBeDefined();
     expect(screen.getByText("Cambiar")).toBeDefined();
@@ -101,7 +111,11 @@ describe("SubirBoleta", () => {
   it("muestra 'Extrayendo datos...' mientras procesa OCR", () => {
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ocr: { tipo: "procesando" },
       }),
     );
@@ -112,7 +126,11 @@ describe("SubirBoleta", () => {
   it("muestra monto y fecha detectados por OCR", () => {
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ocr: { tipo: "completado", monto: 15430, fecha: "15/03/2025" },
       }),
     );
@@ -126,18 +144,28 @@ describe("SubirBoleta", () => {
   it("muestra mensaje si OCR no extrajo datos", () => {
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ocr: { tipo: "completado", monto: null, fecha: null },
       }),
     );
     renderComponent();
-    expect(screen.getByText("No se pudieron extraer datos automáticamente.")).toBeDefined();
+    expect(
+      screen.getByText("No se pudieron extraer datos automáticamente."),
+    ).toBeDefined();
   });
 
   it("muestra error de OCR", () => {
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ocr: { tipo: "error", mensaje: "No se pudo leer la imagen" },
       }),
     );
@@ -149,7 +177,11 @@ describe("SubirBoleta", () => {
     const onUrlCambio = jest.fn();
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
       }),
     );
     renderComponent({ onUrlCambio });
@@ -160,7 +192,11 @@ describe("SubirBoleta", () => {
     const onDatosOCR = jest.fn();
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ocr: { tipo: "completado", monto: 5000, fecha: "01/01/2025" },
       }),
     );
@@ -170,12 +206,12 @@ describe("SubirBoleta", () => {
 
   it("llama a subir al seleccionar archivo", () => {
     const mockSubir = jest.fn();
-    mockUseSubirBoleta.mockReturnValue(
-      crearMockHook({ subir: mockSubir }),
-    );
+    mockUseSubirBoleta.mockReturnValue(crearMockHook({ subir: mockSubir }));
     renderComponent();
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const file = new File(["data"], "test.jpg", { type: "image/jpeg" });
     fireEvent.change(input, { target: { files: [file] } });
 
@@ -186,7 +222,11 @@ describe("SubirBoleta", () => {
     const mockEjecutarOCR = jest.fn();
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         ejecutarOCR: mockEjecutarOCR,
       }),
     );
@@ -199,7 +239,11 @@ describe("SubirBoleta", () => {
     const mockLimpiar = jest.fn();
     mockUseSubirBoleta.mockReturnValue(
       crearMockHook({
-        estado: { tipo: "completado", url: "/uploads/gastos/test.jpg", nombre: "test.jpg" },
+        estado: {
+          tipo: "completado",
+          url: "/uploads/gastos/test.jpg",
+          nombre: "test.jpg",
+        },
         limpiar: mockLimpiar,
       }),
     );
@@ -218,7 +262,9 @@ describe("SubirBoleta", () => {
     );
     renderComponent();
 
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     const clickSpy = jest.spyOn(input, "click").mockImplementation(() => {});
 
     fireEvent.click(screen.getByText("Reintentar"));
