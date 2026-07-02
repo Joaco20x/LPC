@@ -61,12 +61,12 @@ function comprimirImagen(file: File): Promise<Blob> {
 
 function extraerMonto(texto: string): number | null {
   const patrones = [
-    /total\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/im,
+    /total\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/gim,
     /\$\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/g,
-    /([\d]+(?:[.,]\d{3})*(?:[.,]\d{2}))\s*CLP/i,
-    /([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2}))\s*CLP/i,
-    /importe\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/im,
-    /monto\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/im,
+    /([\d]+(?:[.,]\d{3})*(?:[.,]\d{2}))\s*CLP/gi,
+    /([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2}))\s*CLP/gi,
+    /importe\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/gim,
+    /monto\s*[:.]?\s*\$?\s*([\d]+(?:[.,]\d{3})*(?:[.,]\d{1,2})?)/gim,
   ];
   const numeros: number[] = [];
   for (const patron of patrones) {
