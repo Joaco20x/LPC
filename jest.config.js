@@ -23,7 +23,6 @@ const config = {
   ],
   coverageReporters: ["lcovonly", "text"],
   coverageDirectory: "<rootDir>/coverage",
-  collectCoverage: true,
   coverageThreshold: {
     global: {
       lines: 70,
