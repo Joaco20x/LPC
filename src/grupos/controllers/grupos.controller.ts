@@ -181,7 +181,14 @@ export async function controladorActualizarPresupuesto(
         : "Error al actualizar el presupuesto";
     const esPermiso = mensaje.includes("administrador");
     const esNoEncontrado = mensaje === "Grupo no encontrado";
-    const status = esPermiso ? 403 : esNoEncontrado ? 404 : 400;
+    let status: number;
+    if (esPermiso) {
+      status = 403;
+    } else if (esNoEncontrado) {
+      status = 404;
+    } else {
+      status = 400;
+    }
     return NextResponse.json({ exito: false, mensaje }, { status });
   }
 }
