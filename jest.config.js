@@ -1,13 +1,14 @@
 /** @type {import('jest').Config} */
 const config = {
   preset: "ts-jest",
-  testEnvironment: "node",
+  testEnvironment: "<rootDir>/__test__/environments/jsdomWithFetch.js",
   roots: ["<rootDir>/__test__"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
     "\\.css$": "<rootDir>/__test__/__mocks__/styleMock.js",
   },
   setupFiles: ["<rootDir>/__test__/setupEnv.ts"],
+  setupFilesAfterEnv: ["<rootDir>/__test__/setupTests.ts"],
   transform: {
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig.test.json" }],
   },
