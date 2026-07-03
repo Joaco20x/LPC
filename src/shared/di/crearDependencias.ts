@@ -21,6 +21,29 @@ import { PrismaMiembroGrupoRepository } from '@/grupos/repositories/PrismaMiembr
 import { PrismaInvitacionRepository } from '@/invitaciones/repositories/PrismaInvitacionRepository';
 import { PrismaVotacionRepository } from '@/votaciones/repositories/PrismaVotacionRepository';
 import { PrismaDatabaseService } from '@/shared/libs/prismaDatabaseService';
+import type { IUsuarioRepository } from "@/auth/repositories/IUsuarioRepository";
+import type { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
+import type { IGrupoRepository } from "@/grupos/repositories/IGrupoRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import type { ISesionRepository } from "@/auth/repositories/ISesionRepository";
+import type { ITokenRecuperacionRepository } from "@/auth/repositories/ITokenRecuperacionRepository";
+import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGastoRepository";
+import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
+import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
+import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import type { IComprobanteRepository } from "@/deudas/repositories/IComprobanteRepository";
+
+import { PrismaUsuarioRepository } from "@/auth/repositories/PrismaUsuarioRepository";
+import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
+import { PrismaGrupoRepository } from "@/grupos/repositories/PrismaGrupoRepository";
+import { PrismaDeudaRepository } from "@/deudas/repositories/PrismaDeudaRepository";
+import { PrismaSesionRepository } from "@/auth/repositories/PrismaSesionRepository";
+import { PrismaTokenRecuperacionRepository } from "@/auth/repositories/PrismaTokenRecuperacionRepository";
+import { PrismaDivisionGastoRepository } from "@/gastos/repositories/PrismaDivisionGastoRepository";
+import { PrismaMiembroGrupoRepository } from "@/grupos/repositories/PrismaMiembroGrupoRepository";
+import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
+import { PrismaComprobanteRepository } from "@/deudas/repositories/PrismaComprobanteRepository";
+import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 export interface Dependencias {
   usuarioRepo: IUsuarioRepository;
@@ -33,6 +56,8 @@ export interface Dependencias {
   miembroGrupoRepo: IMiembroGrupoRepository;
   invitacionRepo: IInvitacionRepository;
   votacionRepo: IVotacionRepository;
+  notificacionRepo: INotificacionRepository; // ← NUEVO
+  comprobanteRepo: IComprobanteRepository;
   db: IDatabaseService;
 }
 
@@ -52,6 +77,8 @@ export function crearDependencias(): Dependencias {
     miembroGrupoRepo: new PrismaMiembroGrupoRepository(),
     invitacionRepo: new PrismaInvitacionRepository(),
     votacionRepo: new PrismaVotacionRepository(),
+    notificacionRepo: new PrismaNotificacionRepository(), // ← NUEVO
+    comprobanteRepo: new PrismaComprobanteRepository(),
     db: PrismaDatabaseService,
   };
 
