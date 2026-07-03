@@ -8,6 +8,14 @@ import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
 import type { VotacionConDetalle } from "@/votaciones/types/votacion";
 import "./votaciones.css";
 
+interface OpcionDeuda {
+  id: string;
+  monto: number;
+  grupo: string;
+  contraparte: string;
+  direccion: "debo_a" | "me_deben";
+}
+
 export default function PaginaVotaciones() {
   const { id: idGrupo } = useParams<{ id: string }>();
   const [votaciones, setVotaciones] = useState<VotacionConDetalle[]>([]);
@@ -21,6 +29,8 @@ export default function PaginaVotaciones() {
 
   // Form nueva votación
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [deudasDisponibles, setDeudasDisponibles] = useState<OpcionDeuda[]>([]);
+  const [cargandoDeudas, setCargandoDeudas] = useState(false);
   const [idDeuda, setIdDeuda] = useState("");
   const [tipo, setTipo] = useState<"abstencion" | "denuncia">("abstencion");
   const [creando, setCreando] = useState(false);
@@ -42,6 +52,57 @@ export default function PaginaVotaciones() {
       setCargando(false);
     }
   }, [idGrupo]);
+
+  const cargarDeudas = useCallback(async () => {
+    if (!idGrupo) return;
+    setCargandoDeudas(true);
+    try {
+      const res = await peticionAutenticada(`/api/deudas?grupo=${idGrupo}`);
+      const data = await res.json();
+      if (data.exito) {
+        const opciones: OpcionDeuda[] = [
+          ...data.datos.debo_a.map(
+            (d: {
+              id: string;
+              monto: number;
+              grupo: { nombre: string };
+              contraparte: { nombre: string };
+            }) => ({
+              id: d.id,
+              monto: d.monto,
+              grupo: d.grupo.nombre,
+              contraparte: d.contraparte.nombre,
+              direccion: "debo_a" as const,
+            }),
+          ),
+          ...data.datos.me_deben.map(
+            (d: {
+              id: string;
+              monto: number;
+              grupo: { nombre: string };
+              contraparte: { nombre: string };
+            }) => ({
+              id: d.id,
+              monto: d.monto,
+              grupo: d.grupo.nombre,
+              contraparte: d.contraparte.nombre,
+              direccion: "me_deben" as const,
+            }),
+          ),
+        ];
+        setDeudasDisponibles(opciones);
+      }
+    } catch {
+      // Silencioso; el usuario verá el estado vacío
+    } finally {
+      setCargandoDeudas(false);
+    }
+  }, [idGrupo]);
+
+  const abrirFormulario = () => {
+    setMostrarForm(true);
+    cargarDeudas();
+  };
 
   // Carga inicial y polling cada 5s para tiempo real
   useEffect(() => {
@@ -154,7 +215,9 @@ export default function PaginaVotaciones() {
           </p>
         </div>
         <button
-          onClick={() => setMostrarForm(!mostrarForm)}
+          onClick={() =>
+            mostrarForm ? setMostrarForm(false) : abrirFormulario()
+          }
           className="votac-btn-crear"
         >
           + Nueva votación
@@ -192,23 +255,43 @@ export default function PaginaVotaciones() {
               </div>
             </div>
             <div>
-              <label className="votac-label">ID de la deuda</label>
-              <input
-                type="text"
-                value={idDeuda}
-                onChange={(e) => setIdDeuda(e.target.value)}
-                placeholder="UUID de la deuda"
-                className="votac-input"
-              />
-              <p
-                style={{
-                  fontSize: "0.75rem",
-                  color: "var(--color-texto-suave)",
-                  marginTop: "0.25rem",
-                }}
-              >
-                Puedes obtener el ID desde la sección de Deudas del grupo.
-              </p>
+              <label className="votac-label">Deuda</label>
+              {cargandoDeudas ? (
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--color-texto-suave)",
+                    marginTop: "0.4rem",
+                  }}
+                >
+                  Cargando deudas…
+                </p>
+              ) : deudasDisponibles.length === 0 ? (
+                <p
+                  style={{
+                    fontSize: "0.8125rem",
+                    color: "var(--color-texto-secundario)",
+                    marginTop: "0.4rem",
+                  }}
+                >
+                  No hay deudas pendientes en este grupo.
+                </p>
+              ) : (
+                <select
+                  value={idDeuda}
+                  onChange={(e) => setIdDeuda(e.target.value)}
+                  className="votac-input"
+                  style={{ width: "100%" }}
+                >
+                  <option value="">Selecciona una deuda…</option>
+                  {deudasDisponibles.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.direccion === "debo_a" ? "Debo a" : "Me debe"} — $
+                      {d.monto.toLocaleString("es-CL")} — {d.contraparte}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button
