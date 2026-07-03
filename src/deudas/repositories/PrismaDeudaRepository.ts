@@ -92,6 +92,7 @@ export class PrismaDeudaRepository implements IDeudaRepository {
   ): Promise<void> {
     const data: Prisma.DeudaUpdateInput = { estado };
     if (pagadaEn !== undefined) data.pagadaEn = pagadaEn;
+    if (estado === "pagada") data.saldada = true;
     await prisma.deuda.update({ where: { id }, data });
   }
 }

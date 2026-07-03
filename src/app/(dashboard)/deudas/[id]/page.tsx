@@ -76,6 +76,7 @@ function DeudaDetallePage() {
   const [rut, setRut] = useState("");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [marcandoPagada, setMarcandoPagada] = useState(false);
   const [mensaje, setMensaje] = useState<{
     tipo: "exito" | "error";
     texto: string;
@@ -195,6 +196,27 @@ function DeudaDetallePage() {
     }
   };
 
+  const handleMarcarPagada = async () => {
+    setMarcandoPagada(true);
+    setMensaje(null);
+    try {
+      const res = await peticionAutenticada(`/api/deudas/${id}/pagar`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.exito) {
+        setMensaje({ tipo: "exito", texto: "Deuda marcada como pagada" });
+        recargar();
+      } else {
+        setMensaje({ tipo: "error", texto: data.mensaje });
+      }
+    } catch {
+      setMensaje({ tipo: "error", texto: "Error de conexión" });
+    } finally {
+      setMarcandoPagada(false);
+    }
+  };
+
   if (cargando) {
     return (
       <div className="dashboard-cuerpo">
@@ -291,6 +313,38 @@ function DeudaDetallePage() {
 
       {esDeudor && !deuda.saldada && deuda.estado !== "pagada" && (
         <>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.75rem",
+              marginBottom: "1.5rem",
+              padding: "1rem",
+              background: "#f9f9f9",
+              borderRadius: "4px",
+              border: "1px solid var(--color-borde)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "0.875rem",
+                flex: 1,
+                color: "var(--color-texto-secundario)",
+              }}
+            >
+              Si ya realizaste el pago fuera de la plataforma, puedes marcarlo
+              directamente.
+            </span>
+            <button
+              onClick={handleMarcarPagada}
+              disabled={marcandoPagada}
+              className="btn-primary"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              {marcandoPagada ? "Marcando…" : "Marcar como pagada"}
+            </button>
+          </div>
+
           <h2 className="deuda-detalle__section-title">
             Subir comprobante de pago
           </h2>

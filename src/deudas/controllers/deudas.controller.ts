@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verificarAccessToken } from "@/auth/services/jwt";
-import { obtenerDeudasPendientes } from "@/deudas/services/deudas.service";
+import {
+  obtenerDeudasPendientes,
+  pagarDeuda,
+} from "@/deudas/services/deudas.service";
 import { crearDependencias } from "@/shared/di/crearDependencias";
 
 function autorizar(req: NextRequest) {
@@ -69,5 +72,39 @@ export async function controladorObtenerDeuda(
     const mensaje =
       error instanceof Error ? error.message : "Error en el servidor";
     return NextResponse.json({ exito: false, mensaje }, { status: 500 });
+  }
+}
+
+export async function controladorPagarDeuda(
+  req: NextRequest,
+  params: { id: string },
+) {
+  try {
+    const payload = autorizar(req);
+    if (!payload)
+      return NextResponse.json(
+        { exito: false, mensaje: "No autorizado" },
+        { status: 401 },
+      );
+
+    const { deudaRepo } = crearDependencias();
+    await pagarDeuda(params.id, payload.idUsuario, deudaRepo);
+
+    return NextResponse.json(
+      { exito: true, mensaje: "Deuda marcada como pagada" },
+      { status: 200 },
+    );
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    const estado =
+      mensaje === "Deuda no encontrada"
+        ? 404
+        : mensaje.includes("Solo el deudor")
+          ? 403
+          : mensaje.includes("ya está pagada")
+            ? 409
+            : 500;
+    return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }

@@ -135,7 +135,7 @@ describe("PrismaDeudaRepository", () => {
     await repo.actualizarEstado("d1", "pagada");
     expect(mockPrisma.deuda.update).toHaveBeenCalledWith({
       where: { id: "d1" },
-      data: { estado: "pagada" },
+      data: { estado: "pagada", saldada: true },
     });
   });
 
@@ -144,7 +144,7 @@ describe("PrismaDeudaRepository", () => {
     await repo.actualizarEstado("d1", "pagada", ahora);
     expect(mockPrisma.deuda.update).toHaveBeenCalledWith({
       where: { id: "d1" },
-      data: { estado: "pagada", pagadaEn: ahora },
+      data: { estado: "pagada", pagadaEn: ahora, saldada: true },
     });
   });
 });
