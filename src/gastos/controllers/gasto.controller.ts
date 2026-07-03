@@ -15,6 +15,7 @@ import {
   crearDependencias,
   type Dependencias,
 } from "@/shared/di/crearDependencias";
+import { crearConversorMoneda } from "@/shared/servicios/convertirMoneda";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 function extraerPayload(req: NextRequest) {
@@ -70,12 +71,41 @@ async function manejarNotificacionesDeGasto(
       ? Number(grupoCompleto.umbralAlerta)
       : 100;
 
+    const monedaBase = grupoCompleto.monedaBase;
+
+    const monedasDivisiones = grupoCompleto.gastos.flatMap((g) =>
+      g.divisiones.map((d) => d.moneda || g.moneda).filter(Boolean),
+    );
+    const conversor = await crearConversorMoneda(monedaBase, monedasDivisiones);
+
     const acumuladoPorUsuario: Record<string, number> = {};
     for (const g of grupoCompleto.gastos) {
       for (const div of g.divisiones) {
+        const monto = Number(div.montoAsignado);
+        const moneda = div.moneda || g.moneda;
+        const tasa =
+          moneda && moneda !== monedaBase ? (conversor[moneda] ?? 1) : 1;
         acumuladoPorUsuario[div.idUsuario] =
-          (acumuladoPorUsuario[div.idUsuario] ?? 0) + Number(div.montoAsignado);
+          (acumuladoPorUsuario[div.idUsuario] ?? 0) + monto * tasa;
       }
+    }
+
+    const deudas = await deps.deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(
+      nuevoGasto.grupo.id,
+    );
+    const monedasDeudas = deudas.map((d) => d.moneda).filter(Boolean);
+    const convDeudas = await crearConversorMoneda(monedaBase, monedasDeudas);
+    for (const deuda of deudas) {
+      if (!deuda.saldada) continue;
+      const monto = Number(deuda.monto);
+      const moneda = deuda.moneda;
+      const tasa =
+        moneda && moneda !== monedaBase ? (convDeudas[moneda] ?? 1) : 1;
+      const montoEnBase = monto * tasa;
+      acumuladoPorUsuario[deuda.idDeudor] =
+        (acumuladoPorUsuario[deuda.idDeudor] ?? 0) + montoEnBase;
+      acumuladoPorUsuario[deuda.idAcreedor] =
+        (acumuladoPorUsuario[deuda.idAcreedor] ?? 0) - montoEnBase;
     }
 
     const idsAdmin = grupoCompleto.miembros

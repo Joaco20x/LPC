@@ -18,7 +18,12 @@ export type EstadoSubida =
 export type EstadoOCR =
   | { tipo: "inactivo" }
   | { tipo: "procesando" }
-  | { tipo: "completado"; monto: number | null; fecha: string | null }
+  | {
+      tipo: "completado";
+      monto: number | null;
+      fecha: string | null;
+      descripcion: string | null;
+    }
   | { tipo: "error"; mensaje: string };
 
 function comprimirImagen(file: File): Promise<Blob> {
@@ -100,6 +105,61 @@ function extraerFecha(texto: string): string | null {
   return null;
 }
 
+const DESCRIPCIONES_CONOCIDAS = [
+  "cena en restaurante",
+  "almuerzo en restaurante",
+  "viaje en avión",
+  "viaje en avion",
+  "restaurante",
+  "restaurant",
+  "almuerzo",
+  "cena",
+  "desayuno",
+  "comida",
+  "delivery",
+  "avión",
+  "avion",
+  "vuelo",
+  "taxi",
+  "uber",
+  "transporte",
+  "bus",
+  "micro",
+  "metro",
+  "hotel",
+  "hospedaje",
+  "hostal",
+  "airbnb",
+  "supermercado",
+  "farmacia",
+  "mercado",
+  "tienda",
+  "gasolina",
+  "combustible",
+  "bencina",
+  "estacionamiento",
+  "peaje",
+  "electricidad",
+  "agua",
+  "gas",
+  "internet",
+  "teléfono",
+  "telefono",
+];
+
+function extraerDescripcion(texto: string): string | null {
+  const textoLower = texto.toLowerCase();
+  const ordenadas = [...DESCRIPCIONES_CONOCIDAS].sort(
+    (a, b) => b.length - a.length,
+  );
+  for (const keyword of ordenadas) {
+    if (textoLower.includes(keyword)) {
+      return keyword.charAt(0).toUpperCase() + keyword.slice(1);
+    }
+  }
+  return null;
+}
+
 export function useSubirBoleta() {
   const [estado, setEstado] = useState<EstadoSubida>({ tipo: "inactivo" });
   const [ocr, setOcr] = useState<EstadoOCR>({ tipo: "inactivo" });
@@ -165,7 +225,8 @@ export function useSubirBoleta() {
       const texto = data.text;
       const monto = extraerMonto(texto);
       const fecha = extraerFecha(texto);
-      setOcr({ tipo: "completado", monto, fecha });
+      const descripcion = extraerDescripcion(texto);
+      setOcr({ tipo: "completado", monto, fecha, descripcion });
     } catch (error) {
       const mensaje =
         error instanceof Error ? error.message : "Error al procesar OCR";

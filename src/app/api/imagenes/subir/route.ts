@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join, dirname } from "node:path";
 import { randomUUID } from "node:crypto";
 import { verificarAccessToken } from "@/auth/services/jwt";
 
@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
     );
 
     const bytes = await archivo.arrayBuffer();
+    await mkdir(dirname(rutaDestino), { recursive: true });
     await writeFile(rutaDestino, Buffer.from(bytes));
 
     const url = `/uploads/gastos/${nombreArchivo}`;

@@ -6,6 +6,7 @@ export interface DatosCrearDeuda {
   idDeudor: string;
   idAcreedor: string;
   monto: number;
+  moneda: string;
   saldada: boolean;
 }
 
@@ -24,6 +25,9 @@ export interface IDeudaRepository {
     idGrupo?: string,
   ): Promise<DeudaConRelaciones[]>;
   obtenerTodasPorGrupo(idGrupo: string): Promise<DeudaConRelaciones[]>;
+  obtenerTodasPorGrupoIncluyendoSaldadas(
+    idGrupo: string,
+  ): Promise<DeudaConRelaciones[]>;
   marcarComoSaldadas(
     idGrupo: string,
     idDeudor: string,

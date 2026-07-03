@@ -59,4 +59,17 @@ export class PrismaDeudaRepository implements IDeudaRepository {
       },
     });
   }
+
+  async obtenerTodasPorGrupoIncluyendoSaldadas(
+    idGrupo: string,
+  ): Promise<DeudaConRelaciones[]> {
+    return prisma.deuda.findMany({
+      where: { idGrupo },
+      include: {
+        deudor: { select: { id: true, nombre: true, correo: true } },
+        acreedor: { select: { id: true, nombre: true, correo: true } },
+        grupo: { select: { id: true, nombre: true } },
+      },
+    });
+  }
 }

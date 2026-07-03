@@ -74,6 +74,7 @@ export default function BalancesGrupo({ idGrupo }: { idGrupo: string }) {
       const data = await res.json();
       if (data.exito) {
         await cargarDeudas();
+        window.dispatchEvent(new Event("gastoRegistrado"));
       } else {
         alert("Error: " + data.mensaje);
       }

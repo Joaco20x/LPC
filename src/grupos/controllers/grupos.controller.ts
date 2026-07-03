@@ -116,8 +116,8 @@ export async function controladorObtenerDetalleGrupo(
     const { error } = extraerPayload(req);
     if (error) return error;
 
-    const { grupoRepo } = crearDependencias();
-    const grupo = await obtenerDetalleGrupo(params.id, grupoRepo);
+    const { grupoRepo, deudaRepo } = crearDependencias();
+    const grupo = await obtenerDetalleGrupo(params.id, grupoRepo, deudaRepo);
 
     return NextResponse.json(
       { exito: true, datos: { grupo } },

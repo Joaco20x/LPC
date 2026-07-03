@@ -19,6 +19,14 @@ interface DivisionGasto {
   montoAsignado: number;
 }
 
+interface DeudaMin {
+  id: string;
+  monto: number;
+  saldada: boolean;
+  deudor: { id: string };
+  acreedor: { id: string };
+}
+
 interface Gasto {
   id: string;
   descripcion: string;
@@ -26,7 +34,7 @@ interface Gasto {
   moneda: string;
   categoria: string;
   creadoEn: string;
-  pagador: { nombre: string };
+  pagador: { id: string; nombre: string };
   divisiones?: DivisionGasto[];
 }
 
@@ -48,6 +56,7 @@ interface GrupoDetalle {
   monedaBase: string;
   miembros: Integrante[];
   gastos: Gasto[];
+  deudas: DeudaMin[];
   totalEnBase: number;
   presupuestoPorPersona: number | null;
   umbralAlerta: number | null;
@@ -448,8 +457,12 @@ export default function PaginaDetalleGrupo() {
                 nombre: m.usuario.nombre,
               }))}
               gastos={grupo.gastos.map((g) => ({
+                pagador: g.pagador,
+                monto: g.monto,
+                moneda: g.moneda,
                 divisiones: g.divisiones ?? [],
               }))}
+              deudas={grupo.deudas ?? []}
               esAdmin={!!esAdmin}
               onActualizado={manejarPresupuestoActualizado}
             />

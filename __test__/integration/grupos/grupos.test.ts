@@ -25,8 +25,15 @@ function crearMocks() {
     buscarPorUsuario: jest.fn(),
     buscarMiembrosDeGrupos: jest.fn(),
   };
+  const deudaRepo = {
+    obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn(),
+    obtenerTodasPorGrupo: jest.fn(),
+    crearMuchas: jest.fn(),
+    obtenerPendientes: jest.fn(),
+    marcarComoSaldadas: jest.fn(),
+  };
   const db = { transaction: jest.fn((fn: any) => fn({})) };
-  return { usuarioRepo, grupoRepo, miembroRepo, db };
+  return { usuarioRepo, grupoRepo, miembroRepo, deudaRepo, db };
 }
 
 describe("crearGrupoViaje", () => {
@@ -112,25 +119,27 @@ describe("obtenerGruposDelUsuario", () => {
 
 describe("obtenerDetalleGrupo", () => {
   it("retorna detalle del grupo si existe", async () => {
-    const { grupoRepo } = crearMocks();
+    const { grupoRepo, deudaRepo } = crearMocks();
     grupoRepo.obtenerDetalle.mockResolvedValue({
       id: "g1",
       nombre: "Viaje",
       monedaBase: "CLP",
       gastos: [],
     } as any);
+    deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas.mockResolvedValue([]);
 
-    const grupo = await obtenerDetalleGrupo("g1", grupoRepo);
+    const grupo = await obtenerDetalleGrupo("g1", grupoRepo, deudaRepo);
     expect(grupo.id).toBe("g1");
+    expect(grupo.deudas).toEqual([]);
   });
 
   it("lanza error si el grupo no existe", async () => {
-    const { grupoRepo } = crearMocks();
+    const { grupoRepo, deudaRepo } = crearMocks();
     grupoRepo.obtenerDetalle.mockResolvedValue(null);
 
-    await expect(obtenerDetalleGrupo("no-existe", grupoRepo)).rejects.toThrow(
-      "Grupo no encontrado",
-    );
+    await expect(
+      obtenerDetalleGrupo("no-existe", grupoRepo, deudaRepo),
+    ).rejects.toThrow("Grupo no encontrado");
   });
 });
 

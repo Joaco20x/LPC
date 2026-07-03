@@ -5,7 +5,11 @@ import { useSubirBoleta } from "./useSubirBoleta";
 
 interface Props {
   onUrlCambio: (url: string | null) => void;
-  onDatosOCR: (monto: number | null, fecha: string | null) => void;
+  onDatosOCR: (
+    monto: number | null,
+    fecha: string | null,
+    descripcion: string | null,
+  ) => void;
   urlActual?: string;
 }
 
@@ -15,6 +19,7 @@ export default function SubirBoleta({
   urlActual,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const ultimaUrlNotificada = useRef<string | null | undefined>(undefined);
   const { estado, ocr, subir, limpiar, ejecutarOCR } = useSubirBoleta();
 
   const urlFinal =
@@ -32,15 +37,20 @@ export default function SubirBoleta({
 
   useEffect(() => {
     if (ocr.tipo === "completado") {
-      onDatosOCR(ocr.monto, ocr.fecha);
+      onDatosOCR(ocr.monto, ocr.fecha, ocr.descripcion);
     }
   }, [ocr, onDatosOCR]);
 
   useEffect(() => {
-    if (estado.tipo === "completado") {
+    if (
+      estado.tipo === "completado" &&
+      estado.url !== ultimaUrlNotificada.current
+    ) {
+      ultimaUrlNotificada.current = estado.url;
       onUrlCambio(estado.url);
     }
-    if (estado.tipo === "inactivo" && !urlActual) {
+    if (estado.tipo === "inactivo" && ultimaUrlNotificada.current !== null) {
+      ultimaUrlNotificada.current = null;
       onUrlCambio(null);
     }
   }, [estado, onUrlCambio, urlActual]);
@@ -133,6 +143,15 @@ export default function SubirBoleta({
 
           {ocr.tipo === "completado" && (
             <div className="subir-boleta-ocr">
+              {ocr.descripcion !== null ? (
+                <p className="subir-boleta-ocr-item">
+                  Descripción detectada: <strong>{ocr.descripcion}</strong>
+                </p>
+              ) : (
+                <p className="subir-boleta-ocr-item">
+                  No se reconoció la descripción.
+                </p>
+              )}
               {ocr.monto !== null && (
                 <p className="subir-boleta-ocr-item">
                   Monto detectado:{" "}
@@ -144,11 +163,13 @@ export default function SubirBoleta({
                   Fecha detectada: <strong>{ocr.fecha}</strong>
                 </p>
               )}
-              {ocr.monto === null && ocr.fecha === null && (
-                <p className="subir-boleta-ocr-item">
-                  No se pudieron extraer datos automáticamente.
-                </p>
-              )}
+              {ocr.monto === null &&
+                ocr.fecha === null &&
+                ocr.descripcion === null && (
+                  <p className="subir-boleta-ocr-item">
+                    No se pudieron extraer datos automáticamente.
+                  </p>
+                )}
             </div>
           )}
 

@@ -8,6 +8,7 @@ interface DivisionInput {
 interface DatosGenerarDeudas {
   idGrupo: string;
   monto: number;
+  moneda: string;
   divisiones: DivisionInput[];
 }
 
@@ -42,6 +43,7 @@ export async function generarDeudas(
       idDeudor,
       idAcreedor,
       monto: montoPorAcreedor,
+      moneda: datos.moneda,
       saldada: false,
     })),
   );

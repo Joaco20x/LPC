@@ -250,10 +250,15 @@ function FormularioGasto() {
                     target: { name: "urlBoleta", value: url ?? "" },
                   } as unknown as React.ChangeEvent<HTMLInputElement>)
                 }
-                onDatosOCR={(monto) => {
+                onDatosOCR={(monto, _fecha, descripcion) => {
                   if (monto !== null) {
                     handleChange({
                       target: { name: "monto", value: String(monto) },
+                    } as unknown as React.ChangeEvent<HTMLInputElement>);
+                  }
+                  if (descripcion !== null) {
+                    handleChange({
+                      target: { name: "descripcion", value: descripcion },
                     } as unknown as React.ChangeEvent<HTMLInputElement>);
                   }
                 }}

@@ -143,6 +143,7 @@ model Deuda {
   idDeudor      String   @map("id_deudor") @db.Uuid
   idAcreedor    String   @map("id_acreedor") @db.Uuid
   monto         Decimal  @db.Decimal(12, 2)
+  moneda        String   @default("CLP") @db.VarChar(10)
   saldada       Boolean  @default(false)
   actualizadoEn DateTime @default(now()) @updatedAt @map("actualizado_en")
 

@@ -5,7 +5,9 @@ import type {
 } from "@/grupos/repositories/IGrupoRepository";
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
 import type { IUsuarioRepository } from "@/auth/repositories/IUsuarioRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
 import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
+import { crearConversorMoneda } from "@/shared/servicios/convertirMoneda";
 
 export async function crearGrupoViaje(
   datos: DatosCreacionGrupo,
@@ -76,10 +78,49 @@ export async function obtenerGruposDelUsuario(
 export async function obtenerDetalleGrupo(
   idGrupo: string,
   grupoRepo: IGrupoRepository,
+  deudaRepo: IDeudaRepository,
 ) {
   const grupo = await grupoRepo.obtenerDetalle(idGrupo);
   if (!grupo) throw new Error("Grupo no encontrado");
-  return grupo;
+
+  const deudas =
+    await deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(idGrupo);
+
+  const monedasGasto = grupo.gastos.map((g) => g.moneda).filter(Boolean);
+  const conversor = await crearConversorMoneda(grupo.monedaBase, monedasGasto);
+
+  const totalEnBase = grupo.gastos.reduce((sum, g) => {
+    const monto = Number(g.monto);
+    const tasa = g.moneda ? (conversor[g.moneda] ?? 1) : 1;
+    return sum + monto * tasa;
+  }, 0);
+
+  const monedasDeuda = deudas.map((d) => d.moneda).filter(Boolean);
+  const convDeudas = await crearConversorMoneda(grupo.monedaBase, monedasDeuda);
+
+  const acumuladoPorUsuario: Record<string, number> = {};
+  for (const g of grupo.gastos) {
+    for (const div of g.divisiones) {
+      const montoAsignado = Number(div.montoAsignado);
+      const moneda = div.moneda || g.moneda;
+      const tasa = moneda ? (conversor[moneda] ?? 1) : 1;
+      acumuladoPorUsuario[div.idUsuario] =
+        (acumuladoPorUsuario[div.idUsuario] ?? 0) + montoAsignado * tasa;
+    }
+  }
+
+  for (const deuda of deudas) {
+    if (!deuda.saldada) continue;
+    const monto = Number(deuda.monto);
+    const tasa = deuda.moneda ? (convDeudas[deuda.moneda] ?? 1) : 1;
+    const montoEnBase = monto * tasa;
+    acumuladoPorUsuario[deuda.idDeudor] =
+      (acumuladoPorUsuario[deuda.idDeudor] ?? 0) + montoEnBase;
+    acumuladoPorUsuario[deuda.idAcreedor] =
+      (acumuladoPorUsuario[deuda.idAcreedor] ?? 0) - montoEnBase;
+  }
+
+  return { ...grupo, deudas, totalEnBase, acumuladoPorUsuario };
 }
 
 // ── NUEVO: Admin define presupuesto máximo por persona + umbral de alerta ────

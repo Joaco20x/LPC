@@ -45,7 +45,13 @@ jest.mock("@/shared/di/crearDependencias", () => {
         obtenerTodos: jest.fn(),
         obtenerPorId: jest.fn(),
       },
-      deudaRepo: { crearMuchas: jest.fn(), obtenerPendientes: jest.fn() },
+      deudaRepo: {
+        crearMuchas: jest.fn(),
+        obtenerPendientes: jest.fn(),
+        obtenerTodasPorGrupo: jest.fn(),
+        obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn(),
+        marcarComoSaldadas: jest.fn(),
+      },
       divisionGastoRepo: { crearMuchas: jest.fn() },
       tokenRecuperacionRepo: {
         invalidarPorIdUsuario: jest.fn(),
