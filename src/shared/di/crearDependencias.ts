@@ -10,6 +10,7 @@ import type { IInvitacionRepository } from "@/invitaciones/repositories/IInvitac
 import type { IVotacionRepository } from "@/votaciones/repositories/IVotacionRepository";
 import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
 import type { IComprobanteRepository } from "@/deudas/repositories/IComprobanteRepository";
+import type { IResumenRepository } from "@/resumen/repositories/IResumenRepository";
 import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
 
 import { PrismaUsuarioRepository } from "@/auth/repositories/PrismaUsuarioRepository";
@@ -24,6 +25,7 @@ import { PrismaInvitacionRepository } from "@/invitaciones/repositories/PrismaIn
 import { PrismaVotacionRepository } from "@/votaciones/repositories/PrismaVotacionRepository";
 import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
 import { PrismaComprobanteRepository } from "@/deudas/repositories/PrismaComprobanteRepository";
+import { PrismaResumenRepository } from "@/resumen/repositories/PrismaResumenRepository";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 export interface Dependencias {
@@ -37,7 +39,8 @@ export interface Dependencias {
   miembroGrupoRepo: IMiembroGrupoRepository;
   invitacionRepo: IInvitacionRepository;
   votacionRepo: IVotacionRepository;
-  notificacionRepo: INotificacionRepository; // ← NUEVO
+  notificacionRepo: INotificacionRepository;
+  resumenRepo: IResumenRepository;
   comprobanteRepo: IComprobanteRepository;
   db: IDatabaseService;
 }
@@ -58,7 +61,8 @@ export function crearDependencias(): Dependencias {
     miembroGrupoRepo: new PrismaMiembroGrupoRepository(),
     invitacionRepo: new PrismaInvitacionRepository(),
     votacionRepo: new PrismaVotacionRepository(),
-    notificacionRepo: new PrismaNotificacionRepository(), // ← NUEVO
+    notificacionRepo: new PrismaNotificacionRepository(),
+    resumenRepo: new PrismaResumenRepository(),
     comprobanteRepo: new PrismaComprobanteRepository(),
     db: PrismaDatabaseService,
   };

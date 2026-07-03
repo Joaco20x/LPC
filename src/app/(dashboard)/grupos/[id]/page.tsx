@@ -95,6 +95,14 @@ export default function PaginaDetalleGrupo() {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   const usuarioActual = obtenerDatosUsuario();
+  const [mostrarModalCierre, setMostrarModalCierre] = useState(false);
+  const [cerrandoViaje, setCerrandoViaje] = useState(false);
+  const [cierreExitoso, setCierreExitoso] = useState(false);
+  const [cierreError, setCierreError] = useState<string | null>(null);
+  const [deudasPendientesCierre, setDeudasPendientesCierre] = useState<
+    { id: string; deudor: string; acreedor: string; monto: number; moneda: string }[]
+  >([]);
+
 
   const cargarDetalle = useCallback(async () => {
     setCargando(true);
@@ -299,40 +307,73 @@ export default function PaginaDetalleGrupo() {
             {formatearFecha(grupo.fechaFin)}
           </p>
         </div>
-        {esAdmin && (
-          <button
-            onClick={abrirPanel}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              padding: "0.65rem 1.25rem",
-              background: "#2d4a3e",
-              color: "#fff",
-              border: "none",
-              borderRadius: "0.5rem",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="22" y1="11" x2="16" y2="11" />
-            </svg>
-            Gestionar invitaciones
-          </button>
-        )}
+          {esAdmin && (
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              {grupo.estado !== "cerrado" && (
+                <button
+                  onClick={() => {
+                    setMostrarModalCierre(true);
+                    setCierreError(null);
+                    setCierreExitoso(false);
+                    setDeudasPendientesCierre([]);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.65rem 1.25rem",
+                    background: "#c0392b",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="9" y1="9" x2="15" y2="15" />
+                    <line x1="15" y1="9" x2="9" y2="15" />
+                  </svg>
+                  Cerrar viaje
+                </button>
+              )}
+              <button
+                onClick={abrirPanel}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0.65rem 1.25rem",
+                  background: "#2d4a3e",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "0.5rem",
+                  cursor: "pointer",
+                  fontSize: "0.875rem",
+                  fontWeight: 500,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <line x1="19" y1="8" x2="19" y2="14" />
+                  <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                Gestionar invitaciones
+              </button>
+            </div>
+          )}
       </header>
 
       <div className="grid-detalles">
@@ -627,6 +668,160 @@ export default function PaginaDetalleGrupo() {
           </div>
         </aside>
       </div>
+
+      {/* ── Modal: Cerrar viaje (solo Admin) ────────────────────────────────── */}
+      {mostrarModalCierre && (
+        <div className="invit-overlay" onClick={() => !cerrandoViaje && setMostrarModalCierre(false)}>
+          <div className="invit-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="invit-modal__cabecera">
+              <h2 style={{ fontFamily: "var(--fuente-display)", fontSize: "1.5rem", margin: 0 }}>
+                {cierreExitoso ? "Viaje cerrado" : "Cerrar viaje"}
+              </h2>
+              <button
+                onClick={() => setMostrarModalCierre(false)}
+                className="invit-cerrar"
+                disabled={cerrandoViaje}
+              >
+                ✕
+              </button>
+            </div>
+
+            {cierreExitoso ? (
+              <div className="invit-seccion">
+                <p style={{ fontSize: "1rem", color: "#2d4a3e", fontWeight: 500 }}>
+                  El viaje ha sido cerrado correctamente.
+                </p>
+                <button
+                  onClick={() => { setMostrarModalCierre(false); cargarDetalle(); }}
+                  className="invit-boton-generar"
+                >
+                  Volver al grupo
+                </button>
+              </div>
+            ) : cierreError ? (
+              <div className="invit-seccion">
+                <p style={{ fontSize: "0.9375rem", color: "#c0392b" }}>{cierreError}</p>
+                <button
+                  onClick={() => { setCierreError(null); setMostrarModalCierre(false); }}
+                  className="invit-boton-generar"
+                  style={{ marginTop: "1rem" }}
+                >
+                  Cerrar
+                </button>
+              </div>
+            ) : deudasPendientesCierre.length > 0 ? (
+              <>
+                <div className="invit-seccion">
+                  <p style={{ fontSize: "0.9375rem", color: "var(--color-texto-secundario)", marginBottom: "1rem" }}>
+                    Hay deudas pendientes en este viaje. Puedes revisarlas y cerrar de todas formas.
+                  </p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {deudasPendientesCierre.map((d) => (
+                      <div
+                        key={d.id}
+                        style={{
+                          padding: "0.75rem 1rem",
+                          background: "#fef0f0",
+                          borderRadius: "0.5rem",
+                          border: "1px solid #f5c6cb",
+                          fontSize: "0.875rem",
+                        }}
+                      >
+                        <strong>{d.deudor}</strong> debe a <strong>{d.acreedor}</strong> —{" "}
+                        {new Intl.NumberFormat("es-CL", {
+                          style: "currency",
+                          currency: d.moneda,
+                        }).format(d.monto)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="invit-seccion" style={{ display: "flex", gap: "0.75rem" }}>
+                  <button
+                    onClick={() => setMostrarModalCierre(false)}
+                    className="invit-boton-generar"
+                    style={{ background: "transparent", color: "var(--color-texto-secundario)", border: "1px solid var(--color-borde)", flex: 1 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setCerrandoViaje(true);
+                      try {
+                        const res = await peticionAutenticada(`/api/grupos/${id}/cerrar`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ forzar: true }),
+                        });
+                        const data = await res.json();
+                        if (data.exito && data.cerrado) {
+                          setCierreExitoso(true);
+                        } else {
+                          setCierreError(data.mensaje || "Error al cerrar el viaje");
+                          setDeudasPendientesCierre([]);
+                        }
+                      } catch {
+                        setCierreError("Error de conexión");
+                      } finally {
+                        setCerrandoViaje(false);
+                      }
+                    }}
+                    disabled={cerrandoViaje}
+                    className="invit-boton-generar"
+                    style={{ background: "#c0392b", flex: 1 }}
+                  >
+                    {cerrandoViaje ? "Cerrando…" : "Cerrar de todas formas"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="invit-seccion">
+                <p style={{ fontSize: "0.9375rem", color: "var(--color-texto-secundario)", marginBottom: "1rem" }}>
+                  ¿Estás seguro de que deseas cerrar este viaje? Se generará el resumen final y no se podrán registrar nuevos gastos.
+                </p>
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <button
+                    onClick={() => setMostrarModalCierre(false)}
+                    className="invit-boton-generar"
+                    style={{ background: "transparent", color: "var(--color-texto-secundario)", border: "1px solid var(--color-borde)", flex: 1 }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setCerrandoViaje(true);
+                      try {
+                        const res = await peticionAutenticada(`/api/grupos/${id}/cerrar`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({}),
+                        });
+                        const data = await res.json();
+                        if (data.exito && data.cerrado) {
+                          setCierreExitoso(true);
+                        } else if (data.exito && data.deudasPendientes) {
+                          setDeudasPendientesCierre(data.deudasPendientes);
+                        } else {
+                          setCierreError(data.mensaje || "Error al cerrar el viaje");
+                        }
+                      } catch {
+                        setCierreError("Error de conexión");
+                      } finally {
+                        setCerrandoViaje(false);
+                      }
+                    }}
+                    disabled={cerrandoViaje}
+                    className="invit-boton-generar"
+                    style={{ background: "#c0392b", flex: 1 }}
+                  >
+                    {cerrandoViaje ? "Cerrando…" : "Confirmar cierre"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Modal: Panel de Invitaciones (solo Admin) ────────────────────────── */}
       {mostrarPanel && (

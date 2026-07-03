@@ -5,6 +5,7 @@ import {
   obtenerDetalleGrupo,
   actualizarPresupuestoGrupo,
 } from "@/grupos/services/grupos.service";
+import { cerrarViaje } from "@/grupos/services/cerrarViaje.service";
 import { validarCreacionGrupo } from "@/grupos/validaciones/grupos";
 import { verificarAccessToken } from "@/auth/services/jwt";
 import { crearDependencias } from "@/shared/di/crearDependencias";
@@ -135,7 +136,46 @@ export async function controladorObtenerDetalleGrupo(
   }
 }
 
-// ── NUEVO: PATCH /api/grupos/[id]/presupuesto (solo Admin) ───────────────────
+// ── POST /api/grupos/[id]/cerrar (solo Admin) ───────────────────────────────
+export async function controladorCerrarViaje(
+  req: NextRequest,
+  params: { id: string },
+) {
+  try {
+    const { payload, error } = extraerPayload(req);
+    if (error) return error;
+
+    const cuerpo = await req.json().catch(() => ({}));
+    const forzar = cuerpo.forzar === true;
+
+    const deps = crearDependencias();
+    const resultado = await cerrarViaje(
+      params.id,
+      payload.idUsuario,
+      forzar,
+      deps.grupoRepo,
+      deps.deudaRepo,
+      deps.gastoRepo,
+      deps.resumenRepo,
+      deps.miembroGrupoRepo,
+      deps.notificacionRepo,
+    );
+
+    return NextResponse.json({ exito: true, ...resultado }, { status: 200 });
+  } catch (error) {
+    const mensaje =
+      error instanceof Error
+        ? error.message
+        : "Error al cerrar el viaje";
+    let status = 500;
+    if (mensaje === "Grupo no encontrado") status = 404;
+    else if (mensaje.includes("administrador")) status = 403;
+    else if (mensaje.includes("ya está cerrado")) status = 409;
+    return NextResponse.json({ exito: false, mensaje }, { status });
+  }
+}
+
+// ── PATCH /api/grupos/[id]/presupuesto (solo Admin) ───────────────────
 export async function controladorActualizarPresupuesto(
   req: NextRequest,
   params: { id: string },

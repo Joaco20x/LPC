@@ -36,7 +36,13 @@ export class PrismaGrupoRepository implements IGrupoRepository {
     }) as Promise<GrupoConDetalles | null>;
   }
 
-  // ── NUEVO ────────────────────────────────────────────────────────────────
+  async actualizarEstado(id: string, estado: string): Promise<void> {
+    await prisma.grupo.update({
+      where: { id },
+      data: { estado },
+    });
+  }
+
   async actualizarPresupuesto(
     id: string,
     datos: DatosActualizarPresupuesto,

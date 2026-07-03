@@ -43,6 +43,7 @@ export interface IGrupoRepository {
   actualizarPresupuesto(
     id: string,
     datos: DatosActualizarPresupuesto,
-  ): Promise<void>; // ← NUEVO
+  ): Promise<void>;
+  actualizarEstado(id: string, estado: string): Promise<void>;
   obtenerTodosActivos(): Promise<GrupoActivoPayload[]>;
 }

@@ -164,6 +164,11 @@ export async function controladorCrearGasto(req: NextRequest) {
     }
 
     const deps = crearDependencias();
+
+    const grupo = await deps.grupoRepo.obtenerDetalle(cuerpo.idGrupo);
+    if (grupo?.estado === "cerrado")
+      throw new Error("No se pueden registrar gastos en un viaje cerrado");
+
     const nuevoGasto = await registrarGasto(
       { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario },
       deps.gastoRepo,
