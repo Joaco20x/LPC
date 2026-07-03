@@ -88,11 +88,6 @@ function InicioSesionForm() {
           onClick={() => manejarOAuth("google")}
           cargando={cargando}
         />
-        <BotonOAuth
-          proveedor="apple"
-          onClick={() => manejarOAuth("apple")}
-          cargando={cargando}
-        />
       </div>
 
       <Separador texto="o continúa con correo" />
