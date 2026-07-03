@@ -6,6 +6,8 @@ import type {
   DatosCrearVotacion,
   DecisionVoto,
   ResultadoVotacion,
+  TipoVotacion,
+  EstadoVotacion,
 } from "@/votaciones/types/votacion";
 
 const includeVotos = {
@@ -36,15 +38,15 @@ function mapear(v: VotacionConIncludes): VotacionConDetalle {
     idGrupo: v.idGrupo,
     idDeuda: v.idDeuda,
     idCreador: v.idCreador,
-    tipo: v.tipo,
-    estado: v.estado,
-    resultado: v.resultado,
+    tipo: v.tipo as TipoVotacion,
+    estado: v.estado as EstadoVotacion,
+    resultado: v.resultado as ResultadoVotacion | null,
     creadoEn: v.creadoEn,
     resueltaEn: v.resueltaEn,
     votos: v.votos.map((vt) => ({
       idUsuario: vt.idUsuario,
       nombreUsuario: vt.usuario.nombre,
-      decision: vt.decision,
+      decision: vt.decision as DecisionVoto,
     })),
     totalMiembros,
     aprobaciones,

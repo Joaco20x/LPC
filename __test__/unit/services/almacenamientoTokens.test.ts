@@ -1,26 +1,7 @@
-const store: Record<string, string> = {};
-const localStorageMock = {
-  getItem: jest.fn((key: string) => store[key] ?? null),
-  setItem: jest.fn((key: string, value: string) => {
-    store[key] = value;
-  }),
-  removeItem: jest.fn((key: string) => {
-    delete store[key];
-  }),
-  clear: jest.fn(() => {
-    Object.keys(store).forEach((k) => delete store[k]);
-  }),
-};
-Object.defineProperty(global, "localStorage", { value: localStorageMock });
-Object.defineProperty(global, "window", {
-  value: { localStorage: localStorageMock },
-  writable: true,
-});
-
 const CLAVE_ACCESS_TOKEN = "lpc_access_token";
 
 beforeEach(() => {
-  localStorageMock.clear();
+  localStorage.clear();
   jest.clearAllMocks();
 });
 

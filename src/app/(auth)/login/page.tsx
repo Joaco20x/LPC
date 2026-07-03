@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useFormulario } from "@/auth/validaciones/useFormulario";
@@ -21,6 +22,14 @@ import "@/app/(auth)/auth.css";
 const VALORES_INICIALES: DatosInicioSesion = { correo: "", contrasena: "" };
 
 export default function PaginaInicioSesion() {
+  return (
+    <Suspense fallback={<div className="auth-cargando">Cargando...</div>}>
+      <InicioSesionForm />
+    </Suspense>
+  );
+}
+
+function InicioSesionForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [estado, acciones] =
@@ -77,11 +86,6 @@ export default function PaginaInicioSesion() {
         <BotonOAuth
           proveedor="google"
           onClick={() => manejarOAuth("google")}
-          cargando={cargando}
-        />
-        <BotonOAuth
-          proveedor="apple"
-          onClick={() => manejarOAuth("apple")}
           cargando={cargando}
         />
       </div>

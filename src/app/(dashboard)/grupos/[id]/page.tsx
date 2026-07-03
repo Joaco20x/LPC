@@ -8,6 +8,7 @@ import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
 import PresupuestoGrupo from "@/grupos/components/PresupuestoGrupo";
 import HistorialResumenes from "./HistorialResumenes";
+import CalendarioGastos from "@/gastos/components/CalendarioGastos";
 import "./detalles.css";
 
 interface DeudaMin {
@@ -18,6 +19,15 @@ interface DeudaMin {
   acreedor: { id: string };
 }
 
+interface DivisionGasto {
+  id: string;
+  idUsuario: string;
+  montoAsignado: number;
+  tipoDivision: string;
+  moneda: string;
+  usuario: { id: string; nombre: string };
+}
+
 interface Gasto {
   id: string;
   descripcion: string;
@@ -25,6 +35,7 @@ interface Gasto {
   categoria: string;
   creadoEn: string;
   pagador: { id: string; nombre: string };
+  moneda: string;
   divisiones?: DivisionGasto[];
 }
 
@@ -69,6 +80,7 @@ export default function PaginaDetalleGrupo() {
 
   // Panel de invitaciones
   const [mostrarPanel, setMostrarPanel] = useState(false);
+  const [vista, setVista] = useState<"lista" | "calendario">("lista");
   const [invitaciones, setInvitaciones] = useState<Invitacion[]>([]);
   const [cargandoInvit, setCargandoInvit] = useState(false);
   const [tipoInvit, setTipoInvit] = useState<TipoInvit>("enlace");
@@ -247,15 +259,16 @@ export default function PaginaDetalleGrupo() {
       </div>
     );
 
-  const totalGastado = grupo.gastos.reduce(
-    (acc, g) => acc + Number(g.monto),
-    0,
-  );
-  const formatearMonto = (m: number) =>
-    new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-    }).format(m);
+  const totalGastado = grupo.totalEnBase;
+  const totalMoneda = grupo.monedaBase;
+  const formatearMonto = (m: number, moneda?: string) =>
+    new Intl.NumberFormat(
+      (moneda ?? totalMoneda) === "CLP" ? "es-CL" : "en-US",
+      {
+        style: "currency",
+        currency: moneda ?? totalMoneda,
+      },
+    ).format(m);
 
   return (
     <div className="dashboard-cuerpo detalles-grupo-raiz">
@@ -356,6 +369,25 @@ export default function PaginaDetalleGrupo() {
                 >
                   + Nuevo Gasto
                 </Link>
+                <button
+                  onClick={() =>
+                    setVista(vista === "lista" ? "calendario" : "lista")
+                  }
+                  className="boton-solido"
+                  style={{
+                    fontSize: "0.875rem",
+                    padding: "0.6rem 1.25rem",
+                    background:
+                      vista === "calendario"
+                        ? "var(--color-acento)"
+                        : "transparent",
+                    color:
+                      vista === "calendario" ? "white" : "var(--color-acento)",
+                    border: "1px solid var(--color-acento)",
+                  }}
+                >
+                  Calendario
+                </button>
                 <Link
                   href={`/deudas?grupo=${grupo.id}`}
                   className="boton-solido"
@@ -380,12 +412,18 @@ export default function PaginaDetalleGrupo() {
                     border: "1px solid var(--color-acento)",
                   }}
                 >
-                  🗳️ Votaciones
+                  Votaciones
                 </Link>
               </div>
             </div>
 
-            {grupo.gastos.length === 0 ? (
+            {vista === "calendario" ? (
+              <CalendarioGastos
+                idGrupo={grupo.id}
+                totalGastado={totalGastado}
+                monedaBase={totalMoneda}
+              />
+            ) : grupo.gastos.length === 0 ? (
               <div
                 style={{
                   textAlign: "center",
@@ -410,7 +448,7 @@ export default function PaginaDetalleGrupo() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <span className="gasto-monto">
-                        {formatearMonto(Number(gasto.monto))}
+                        {formatearMonto(Number(gasto.monto), gasto.moneda)}
                       </span>
                       <div
                         style={{
@@ -448,7 +486,7 @@ export default function PaginaDetalleGrupo() {
                         fontSize: "1.2rem",
                       }}
                     >
-                      {formatearMonto(totalGastado)}
+                      {formatearMonto(totalGastado, totalMoneda)}
                     </span>
                   </div>
                 </div>
@@ -481,7 +519,7 @@ export default function PaginaDetalleGrupo() {
                 fontFamily: "var(--fuente-display)",
               }}
             >
-              {formatearMonto(totalGastado)}
+              {formatearMonto(totalGastado, totalMoneda)}
             </p>
           </div>
 

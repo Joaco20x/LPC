@@ -9,6 +9,7 @@ import {
   COLOR_CATEGORIA,
   type DiaCalendario,
 } from "./useCalendarioGastos";
+import "./calendario.css";
 
 const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
