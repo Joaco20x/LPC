@@ -149,7 +149,12 @@ describe("SubirBoleta", () => {
           url: "/uploads/gastos/test.jpg",
           nombre: "test.jpg",
         },
-        ocr: { tipo: "completado", monto: null, fecha: null },
+        ocr: {
+          tipo: "completado",
+          monto: null,
+          fecha: null,
+          descripcion: null,
+        },
       }),
     );
     renderComponent();
@@ -197,11 +202,16 @@ describe("SubirBoleta", () => {
           url: "/uploads/gastos/test.jpg",
           nombre: "test.jpg",
         },
-        ocr: { tipo: "completado", monto: 5000, fecha: "01/01/2025" },
+        ocr: {
+          tipo: "completado",
+          monto: 5000,
+          fecha: "01/01/2025",
+          descripcion: null,
+        },
       }),
     );
     renderComponent({ onDatosOCR });
-    expect(onDatosOCR).toHaveBeenCalledWith(5000, "01/01/2025");
+    expect(onDatosOCR).toHaveBeenCalledWith(5000, "01/01/2025", null);
   });
 
   it("llama a subir al seleccionar archivo", () => {

@@ -57,7 +57,6 @@ export default function PaginaAceptarInvitacion() {
   }, [token]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de datos al montar, patrón estándar de fetch
     if (token) cargarInvitacion();
   }, [token, cargarInvitacion]);
 

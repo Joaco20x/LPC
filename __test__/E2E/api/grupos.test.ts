@@ -49,7 +49,7 @@ jest.mock("@/shared/di/crearDependencias", () => {
         crearMuchas: jest.fn(),
         obtenerPendientes: jest.fn(),
         obtenerTodasPorGrupo: jest.fn(),
-        obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn(),
+        obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn().mockResolvedValue([]),
         marcarComoSaldadas: jest.fn(),
       },
       divisionGastoRepo: { crearMuchas: jest.fn() },
@@ -296,9 +296,9 @@ describe("GET /api/grupos/[id]", () => {
       nombre: "Viaje",
       monedaBase: "CLP",
       gastos: [
-        { monto: 100, moneda: "USD" },
-        { monto: 50000, moneda: "CLP" },
-        { monto: 50, moneda: "EUR" },
+        { monto: 100, moneda: "USD", divisiones: [] },
+        { monto: 50000, moneda: "CLP", divisiones: [] },
+        { monto: 50, moneda: "EUR", divisiones: [] },
       ],
     } as any);
 

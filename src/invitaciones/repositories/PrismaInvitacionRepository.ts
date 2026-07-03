@@ -12,10 +12,9 @@ import type {
 } from "@/invitaciones/types/invitacion";
 
 function calcularEstado(inv: Invitacion): EstadoInvitacion {
-  usado: boolean;
-}): EstadoInvitacion {
   if (inv.usado) return "aceptada";
   if (new Date() > inv.expiraEn) return "expirada";
+  return "pendiente";
 }
 
 export class PrismaInvitacionRepository implements IInvitacionRepository {
@@ -23,8 +22,6 @@ export class PrismaInvitacionRepository implements IInvitacionRepository {
     data: DatosCrearInvitacionRepo,
   ): Promise<{ id: string; token: string }> {
     const inv = await prisma.invitacion.create({
-    // Usamos 'as any' ya que los campos tipo/idInvitador requieren 'prisma generate'
-    const inv = await (prisma as any).invitacion.create({
       data: {
         idGrupo: data.idGrupo,
         idInvitador: data.idInvitador ?? null,
@@ -38,8 +35,7 @@ export class PrismaInvitacionRepository implements IInvitacionRepository {
   }
 
   async buscarPorToken(token: string): Promise<InvitacionConEstado | null> {
-    const inv = await prisma.invitacion.findUnique({ where: { token } });
-    const inv = await (prisma as any).invitacion.findUnique({
+    const inv = await prisma.invitacion.findUnique({
       where: { token },
     });
     if (!inv) return null;
@@ -66,7 +62,6 @@ export class PrismaInvitacionRepository implements IInvitacionRepository {
     correo: string,
   ): Promise<void> {
     await prisma.invitacion.updateMany({
-    await (prisma as any).invitacion.updateMany({
       where: { idGrupo, correoInvitado: correo, usado: false },
       data: { usado: true },
     });

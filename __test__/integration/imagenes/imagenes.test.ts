@@ -5,6 +5,7 @@ jest.mock("@/auth/services/jwt", () => ({
 }));
 
 jest.mock("node:fs/promises", () => ({
+  mkdir: jest.fn().mockResolvedValue(undefined),
   writeFile: jest.fn(),
 }));
 

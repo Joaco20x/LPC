@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import QRCode from "qrcode";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
+import PresupuestoGrupo from "@/grupos/components/PresupuestoGrupo";
+import HistorialResumenes from "./HistorialResumenes";
 import "./detalles.css";
 
 interface DeudaMin {
@@ -723,6 +724,7 @@ export default function PaginaDetalleGrupo() {
               {/* Resultado: QR */}
               {qrDataUrl && tipoInvit === "qr" && (
                 <div className="invit-qr-container">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- data URL para QR */}
                   <img
                     src={qrDataUrl}
                     alt="Código QR de invitación"

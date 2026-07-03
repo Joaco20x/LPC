@@ -12,7 +12,8 @@ function crearMocks() {
     obtenerPorGrupoYMes: jest.fn(),
   };
   const notificacionRepo = { crearMuchas: jest.fn() };
-  return { grupoRepo, gastoRepo, resumenRepo, notificacionRepo };
+  const deudaRepo = { obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn() };
+  return { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo };
 }
 
 describe("generarResumenesMensuales", () => {
@@ -21,7 +22,7 @@ describe("generarResumenesMensuales", () => {
   });
 
   it("genera resúmenes para grupos activos", async () => {
-    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo } =
+    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo } =
       crearMocks();
     const {
       calcularEstadisticasRango,
@@ -37,12 +38,14 @@ describe("generarResumenesMensuales", () => {
       porIntegrante: {},
     });
     resumenRepo.crear.mockResolvedValue({ id: "r1" });
+    deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas.mockResolvedValue([]);
 
     const resultado = await generarResumenesMensuales(
       grupoRepo,
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     expect(resultado.generados).toBe(1);
@@ -51,7 +54,7 @@ describe("generarResumenesMensuales", () => {
   });
 
   it("salta grupos que ya tienen resumen del mes", async () => {
-    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo } =
+    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo } =
       crearMocks();
     const {
       calcularEstadisticasRango,
@@ -68,12 +71,14 @@ describe("generarResumenesMensuales", () => {
       porCategoria: {},
       porIntegrante: {},
     });
+    deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas.mockResolvedValue([]);
 
     const resultado = await generarResumenesMensuales(
       grupoRepo,
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     expect(resultado.generados).toBe(0);
@@ -81,7 +86,7 @@ describe("generarResumenesMensuales", () => {
   });
 
   it("salta grupos sin gastos (totalGastos <= 0)", async () => {
-    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo } =
+    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo } =
       crearMocks();
     const {
       calcularEstadisticasRango,
@@ -96,12 +101,14 @@ describe("generarResumenesMensuales", () => {
       porCategoria: {},
       porIntegrante: {},
     });
+    deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas.mockResolvedValue([]);
 
     const resultado = await generarResumenesMensuales(
       grupoRepo,
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     expect(resultado.generados).toBe(0);
@@ -109,7 +116,7 @@ describe("generarResumenesMensuales", () => {
   });
 
   it("notifica a los miembros cuando el grupo tiene integrantes", async () => {
-    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo } =
+    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo } =
       crearMocks();
     const {
       calcularEstadisticasRango,
@@ -129,12 +136,14 @@ describe("generarResumenesMensuales", () => {
       porIntegrante: {},
     });
     resumenRepo.crear.mockResolvedValue({ id: "r1" });
+    deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas.mockResolvedValue([]);
 
     const resultado = await generarResumenesMensuales(
       grupoRepo,
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     expect(resultado.generados).toBe(1);
@@ -154,7 +163,7 @@ describe("generarResumenesMensuales", () => {
   });
 
   it("retorna la estructura correcta con generados y periodo", async () => {
-    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo } =
+    const { grupoRepo, gastoRepo, resumenRepo, notificacionRepo, deudaRepo } =
       crearMocks();
 
     grupoRepo.obtenerTodosActivos.mockResolvedValue([]);
@@ -164,6 +173,7 @@ describe("generarResumenesMensuales", () => {
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     expect(resultado).toHaveProperty("generados");
