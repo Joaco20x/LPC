@@ -164,9 +164,7 @@ export async function controladorCerrarViaje(
     return NextResponse.json({ exito: true, ...resultado }, { status: 200 });
   } catch (error) {
     const mensaje =
-      error instanceof Error
-        ? error.message
-        : "Error al cerrar el viaje";
+      error instanceof Error ? error.message : "Error al cerrar el viaje";
     let status = 500;
     if (mensaje === "Grupo no encontrado") status = 404;
     else if (mensaje.includes("administrador")) status = 403;

@@ -39,12 +39,12 @@ export async function cerrarViaje(
   const esAdmin = grupo.miembros.some(
     (m) => m.usuario.id === idUsuario && m.rol === "admin",
   );
-  if (!esAdmin)
-    throw new Error("Solo el administrador puede cerrar el viaje");
+  if (!esAdmin) throw new Error("Solo el administrador puede cerrar el viaje");
 
   if (grupo.estado === "cerrado") throw new Error("El viaje ya está cerrado");
 
-  const deudas = await deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(idGrupo);
+  const deudas =
+    await deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(idGrupo);
   const deudasPendientes = deudas.filter((d) => !d.saldada);
 
   if (deudasPendientes.length > 0 && !forzar) {
