@@ -1,0 +1,302 @@
+.resumen-viaje {
+  min-height: 100vh;
+  padding: 2rem 0;
+  animation: aparecerSuave 0.6s ease;
+}
+
+.resumen-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  color: var(--color-texto-suave);
+  font-size: 0.875rem;
+}
+
+.resumen-breadcrumb a {
+  color: var(--color-acento);
+  text-decoration: none;
+}
+
+.resumen-titulo {
+  font-family: var(--fuente-display);
+  font-size: 1.75rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-texto-principal);
+}
+
+.resumen-subtitulo {
+  color: var(--color-texto-suave);
+  font-size: 0.9375rem;
+  margin-bottom: 2rem;
+}
+
+/* Cards generales */
+.resumen-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.resumen-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.resumen-card__label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.resumen-card__valor {
+  font-family: var(--fuente-display);
+  font-size: 1.5rem;
+  color: var(--color-texto-principal);
+}
+
+/* Secciones */
+.resumen-seccion {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.resumen-seccion__titulo {
+  font-family: var(--fuente-display);
+  font-size: 1.25rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-texto-principal);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Categorías */
+.categoria-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.categoria-nombre {
+  min-width: 120px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-texto-principal);
+}
+
+.categoria-barra {
+  flex: 1;
+  height: 1.5rem;
+  background: #f0f0f0;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.categoria-barra__relleno {
+  height: 100%;
+  border-radius: 0.75rem;
+  transition: width 0.6s ease;
+}
+
+.categoria-barra__texto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.categoria-monto {
+  min-width: 100px;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-texto-principal);
+}
+
+.categoria-porcentaje {
+  min-width: 60px;
+  text-align: right;
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+}
+
+/* Tabla integrantes */
+.integrante-tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.integrante-tabla th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-texto-suave);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.integrante-tabla td {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.875rem;
+}
+
+.integrante-tabla tr:last-child td {
+  border-bottom: none;
+}
+
+.integrante-nombre {
+  font-weight: 500;
+  color: var(--color-texto-principal);
+}
+
+.integrante-positivo {
+  color: var(--color-exito);
+}
+
+.integrante-negativo {
+  color: var(--color-error);
+}
+
+/* Ranking */
+.ranking-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.ranking-card {
+  background: #f8f7f4;
+  border: 1px solid var(--color-borde);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.ranking-card__label {
+  font-size: 0.8125rem;
+  color: var(--color-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.ranking-card__nombre {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-texto-principal);
+  margin-bottom: 0.25rem;
+}
+
+.ranking-card__monto {
+  font-family: var(--fuente-display);
+  font-size: 1.25rem;
+  color: var(--color-acento);
+}
+
+.ranking-badge {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Deudas */
+.deuda-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.875rem;
+}
+
+.deuda-item:last-child {
+  border-bottom: none;
+}
+
+.deuda-personas {
+  color: var(--color-texto-principal);
+}
+
+.deuda-monto {
+  font-weight: 600;
+  color: var(--color-texto-principal);
+}
+
+/* Botón exportar */
+.resumen-acciones {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 2rem;
+}
+
+.btn-exportar {
+  padding: 0.65rem 1.5rem;
+  background: var(--color-acento);
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-family: var(--fuente-cuerpo);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.btn-exportar:hover {
+  background: var(--color-acento-hover);
+}
+
+/* Estado vacío / error */
+.resumen-vacio,
+.resumen-error {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-texto-suave);
+}
+
+/* Print */
+@media print {
+  .resumen-breadcrumb,
+  .resumen-acciones,
+  nav,
+  .offline-indicator,
+  .sync-toast {
+    display: none !important;
+  }
+
+  .resumen-viaje {
+    padding: 0;
+    animation: none;
+  }
+
+  .resumen-seccion {
+    break-inside: avoid;
+    border: 1px solid #ddd;
+    box-shadow: none;
+  }
+
+  .resumen-cards {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

@@ -414,6 +414,19 @@ export default function PaginaDetalleGrupo() {
                 >
                   Votaciones
                 </Link>
+                <Link
+                  href={`/grupos/${grupo.id}/resumen-viaje`}
+                  className="boton-solido"
+                  style={{
+                    fontSize: "0.875rem",
+                    padding: "0.6rem 1.25rem",
+                    background: "transparent",
+                    color: "var(--color-acento)",
+                    border: "1px solid var(--color-acento)",
+                  }}
+                >
+                  Resumen
+                </Link>
               </div>
             </div>
 
