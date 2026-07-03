@@ -8,6 +8,7 @@ import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGa
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
 import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
 import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import type { IComprobanteRepository } from "@/deudas/repositories/IComprobanteRepository";
 
 import { PrismaUsuarioRepository } from "@/auth/repositories/PrismaUsuarioRepository";
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
@@ -18,6 +19,7 @@ import { PrismaTokenRecuperacionRepository } from "@/auth/repositories/PrismaTok
 import { PrismaDivisionGastoRepository } from "@/gastos/repositories/PrismaDivisionGastoRepository";
 import { PrismaMiembroGrupoRepository } from "@/grupos/repositories/PrismaMiembroGrupoRepository";
 import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
+import { PrismaComprobanteRepository } from "@/deudas/repositories/PrismaComprobanteRepository";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 export interface Dependencias {
@@ -30,6 +32,7 @@ export interface Dependencias {
   divisionGastoRepo: IDivisionGastoRepository;
   miembroGrupoRepo: IMiembroGrupoRepository;
   notificacionRepo: INotificacionRepository; // ← NUEVO
+  comprobanteRepo: IComprobanteRepository;
   db: IDatabaseService;
 }
 
@@ -48,6 +51,7 @@ export function crearDependencias(): Dependencias {
     divisionGastoRepo: new PrismaDivisionGastoRepository(),
     miembroGrupoRepo: new PrismaMiembroGrupoRepository(),
     notificacionRepo: new PrismaNotificacionRepository(), // ← NUEVO
+    comprobanteRepo: new PrismaComprobanteRepository(),
     db: PrismaDatabaseService,
   };
 
