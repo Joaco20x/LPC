@@ -35,7 +35,6 @@ model Usuario {
   votacionesCreadas    Votacion[]   @relation("VotacionCreador")
   votosEmitidos        VotoIndividual[]
   comprobantes       ComprobantePago[]
-  notificaciones     Notificacion[]
 
   @@map("usuarios")
 }
@@ -155,9 +154,6 @@ model Deuda {
   deudor   Usuario @relation("DeudaDeudor", fields: [idDeudor], references: [id])
   acreedor Usuario @relation("DeudaAcreedor", fields: [idAcreedor], references: [id])
   votaciones Votacion[]
-  grupo       Grupo             @relation(fields: [idGrupo], references: [id], onDelete: Cascade)
-  deudor      Usuario           @relation("DeudaDeudor", fields: [idDeudor], references: [id])
-  acreedor    Usuario           @relation("DeudaAcreedor", fields: [idAcreedor], references: [id])
   comprobantes ComprobantePago[]
 
   @@map("deudas")

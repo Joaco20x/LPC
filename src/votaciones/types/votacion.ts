@@ -1,7 +1,7 @@
-export type TipoVotacion = 'abstencion' | 'denuncia';
-export type EstadoVotacion = 'activa' | 'resuelta';
-export type DecisionVoto = 'aprobar' | 'rechazar';
-export type ResultadoVotacion = 'aprobada' | 'rechazada';
+export type TipoVotacion = "abstencion" | "denuncia";
+export type EstadoVotacion = "activa" | "resuelta";
+export type DecisionVoto = "aprobar" | "rechazar";
+export type ResultadoVotacion = "aprobada" | "rechazada";
 
 export interface DatosCrearVotacion {
   idGrupo: string;

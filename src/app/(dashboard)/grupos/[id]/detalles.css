@@ -171,14 +171,18 @@
   transition: color 0.2s;
 }
 
-.invit-cerrar:hover { color: var(--color-texto-principal); }
+.invit-cerrar:hover {
+  color: var(--color-texto-principal);
+}
 
 .invit-seccion {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--color-borde);
 }
 
-.invit-seccion:last-child { border-bottom: none; }
+.invit-seccion:last-child {
+  border-bottom: none;
+}
 
 .invit-seccion__titulo {
   font-size: 0.8125rem;
@@ -208,7 +212,10 @@
   cursor: pointer;
   font-size: 0.8125rem;
   color: var(--color-texto-secundario);
-  transition: border-color 0.2s, background 0.2s, color 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    color 0.2s;
 }
 
 .invit-tipo-btn--activo {
@@ -270,8 +277,13 @@
   transition: background 0.2s;
 }
 
-.invit-boton-generar:hover:not(:disabled) { background: var(--color-acento-hover); }
-.invit-boton-generar:disabled { opacity: 0.5; cursor: not-allowed; }
+.invit-boton-generar:hover:not(:disabled) {
+  background: var(--color-acento-hover);
+}
+.invit-boton-generar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .invit-boton-copiar {
   padding: 0.5rem;
@@ -283,7 +295,9 @@
   transition: background 0.15s;
 }
 
-.invit-boton-copiar:hover { background: #edf4f1; }
+.invit-boton-copiar:hover {
+  background: #edf4f1;
+}
 
 .invit-resultado {
   margin-top: 1rem;
@@ -313,4 +327,3 @@
   border-radius: 0.75rem;
   border: 1px solid var(--color-borde);
 }
-
