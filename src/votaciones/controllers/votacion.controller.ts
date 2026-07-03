@@ -76,6 +76,17 @@ export async function controladorCrearVotacion(req: NextRequest) {
           ? 409
           : 500;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado =
+      err.message === "No eres miembro de este grupo"
+        ? 403
+        : err.message.includes("activa")
+          ? 409
+          : 500;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message },
+      { status: estado },
+    );
   }
 }
 
@@ -108,6 +119,11 @@ export async function controladorObtenerVotaciones(req: NextRequest) {
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
     return NextResponse.json({ exito: false, mensaje }, { status: 403 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { exito: false, mensaje: err.message },
+      { status: 403 },
+    );
   }
 }
 
@@ -136,6 +152,12 @@ export async function controladorObtenerVotacion(
     const mensaje = err instanceof Error ? err.message : "Error interno";
     const estado = mensaje === "Votación no encontrada" ? 404 : 403;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado = err.message === "Votación no encontrada" ? 404 : 403;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message },
+      { status: estado },
+    );
   }
 }
 
@@ -183,5 +205,16 @@ export async function controladorEmitirVoto(
           ? 409
           : 403;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado =
+      err.message === "Votación no encontrada"
+        ? 404
+        : err.message.includes("resuelta") || err.message.includes("emitiste")
+          ? 409
+          : 403;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message },
+      { status: estado },
+    );
   }
 }

@@ -108,6 +108,17 @@ export async function controladorCrearInvitacion(
           ? 403
           : 500;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado =
+      err.message === "Grupo no encontrado"
+        ? 404
+        : err.message === "Solo los administradores pueden crear invitaciones"
+          ? 403
+          : 500;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message || "Error interno" },
+      { status: estado },
+    );
   }
 }
 
@@ -134,15 +145,22 @@ export async function controladorObtenerInvitaciones(
     );
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
-    const estado = mensaje.includes("administradores")
       ? 403
       : mensaje === "Grupo no encontrado"
         ? 404
         : 500;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado = err.message.includes("administradores")
+      : err.message === "Grupo no encontrado"
+        ? 404
+        : 500;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message || "Error interno" },
+      { status: estado },
+    );
   }
 }
-
 // ── GET /api/invitaciones/[token] (público) ───────────────────────────────────
 export async function controladorVerificarToken(
   req: NextRequest,
@@ -164,6 +182,12 @@ export async function controladorVerificarToken(
     const mensaje = err instanceof Error ? err.message : "Error interno";
     const estado = mensaje === "Invitación no encontrada" ? 404 : 500;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
+  } catch (err: any) {
+    const estado = err.message === "Invitación no encontrada" ? 404 : 500;
+    return NextResponse.json(
+      { exito: false, mensaje: err.message || "Error interno" },
+      { status: estado },
+    );
   }
 }
 
@@ -195,6 +219,8 @@ export async function controladorAceptarInvitacion(
   } catch (err) {
     const mensaje =
       err instanceof Error ? err.message : "Error al aceptar la invitación";
+  } catch (err: any) {
+    const mensaje = err.message || "Error al aceptar la invitación";
     const estado =
       mensaje.includes("expirado") || mensaje.includes("utilizada")
         ? 410

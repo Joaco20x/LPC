@@ -17,8 +17,7 @@ function digitoVerificador(rut: number): string {
 
 export function validarRut(rut: string): boolean {
   if (!RUT_REGEX.test(rut)) return false;
-  const match = rut.match(RUT_REGEX);
-  if (!match) return false;
+  const match = rut.match(RUT_REGEX)!;
   const cuerpo = parseInt(match[1], 10);
   const dvIngresado = match[2].toUpperCase();
   const dvCalculado = digitoVerificador(cuerpo);

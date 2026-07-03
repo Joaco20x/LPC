@@ -1,5 +1,6 @@
 import type { IVotacionRepository } from "@/votaciones/repositories/IVotacionRepository";
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
 import type {
   VotacionConDetalle,
   TipoVotacion,

@@ -31,6 +31,12 @@ function mapear(v: VotacionConIncludes): VotacionConDetalle {
   const totalMiembros = v.deuda?.grupo?.miembros?.length ?? 0;
   const aprobaciones = v.votos.filter((vt) => vt.decision === "aprobar").length;
   const rechazos = v.votos.filter((vt) => vt.decision === "rechazar").length;
+  const aprobaciones = v.votos.filter(
+    (vt: any) => vt.decision === "aprobar",
+  ).length;
+  const rechazos = v.votos.filter(
+    (vt: any) => vt.decision === "rechazar",
+  ).length;
   return {
     id: v.id,
     idGrupo: v.idGrupo,
@@ -68,6 +74,7 @@ export class PrismaVotacionRepository implements IVotacionRepository {
 
   async buscarPorId(id: string): Promise<VotacionConDetalle | null> {
     const v = await prisma.votacion.findUnique({
+    const v = await (prisma as any).votacion.findUnique({
       where: { id },
       include: includeVotos,
     });
@@ -85,6 +92,7 @@ export class PrismaVotacionRepository implements IVotacionRepository {
 
   async buscarPorDeuda(idDeuda: string): Promise<VotacionConDetalle | null> {
     const v = await prisma.votacion.findFirst({
+    const v = await (prisma as any).votacion.findFirst({
       where: { idDeuda, estado: "activa" },
       include: includeVotos,
     });
@@ -97,6 +105,7 @@ export class PrismaVotacionRepository implements IVotacionRepository {
     decision: DecisionVoto,
   ): Promise<void> {
     await prisma.votoIndividual.create({
+    await (prisma as any).votoIndividual.create({
       data: { idVotacion, idUsuario, decision },
     });
   }
@@ -106,6 +115,7 @@ export class PrismaVotacionRepository implements IVotacionRepository {
     resultado: ResultadoVotacion,
   ): Promise<void> {
     await prisma.votacion.update({
+    await (prisma as any).votacion.update({
       where: { id: idVotacion },
       data: { estado: "resuelta", resultado, resueltaEn: new Date() },
     });

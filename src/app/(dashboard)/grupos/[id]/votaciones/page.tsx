@@ -45,6 +45,11 @@ export default function PaginaVotaciones() {
 
   // Carga inicial y polling cada 5s para tiempo real
   useEffect(() => {
+    cargar();
+  }, [cargar]);
+
+  // Polling cada 5s para tiempo real
+  useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- carga inicial de datos al montar, patrón estándar de fetch
     cargar();
     const intervalo = setInterval(cargar, 5000);

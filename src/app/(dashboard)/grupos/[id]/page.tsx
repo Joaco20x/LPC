@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import Link from "next/link";
 import QRCode from "qrcode";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 import { obtenerDatosUsuario } from "@/shared/servicios/almacenamientoTokens";
@@ -665,6 +668,14 @@ export default function PaginaDetalleGrupo() {
                     height={200}
                     unoptimized
                     style={{ borderRadius: "0.5rem" }}
+                  <img
+                    src={qrDataUrl}
+                    alt="Código QR de invitación"
+                    style={{
+                      width: "200px",
+                      height: "200px",
+                      borderRadius: "0.5rem",
+                    }}
                   />
                   <div
                     style={{
