@@ -149,17 +149,17 @@ export async function controladorCerrarViaje(
     const forzar = cuerpo.forzar === true;
 
     const deps = crearDependencias();
-    const resultado = await cerrarViaje(
-      params.id,
-      payload.idUsuario,
+    const resultado = await cerrarViaje({
+      idGrupo: params.id,
+      idUsuario: payload.idUsuario,
       forzar,
-      deps.grupoRepo,
-      deps.deudaRepo,
-      deps.gastoRepo,
-      deps.resumenRepo,
-      deps.miembroGrupoRepo,
-      deps.notificacionRepo,
-    );
+      grupoRepo: deps.grupoRepo,
+      deudaRepo: deps.deudaRepo,
+      gastoRepo: deps.gastoRepo,
+      resumenRepo: deps.resumenRepo,
+      miembroRepo: deps.miembroGrupoRepo,
+      notificacionRepo: deps.notificacionRepo,
+    });
 
     return NextResponse.json({ exito: true, ...resultado }, { status: 200 });
   } catch (error) {

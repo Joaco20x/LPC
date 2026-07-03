@@ -22,17 +22,23 @@ interface CerrarViajeResultado {
   resumen?: { totalGastos: number; cantidadGastos: number };
 }
 
+interface CerrarViajeParams {
+  idGrupo: string;
+  idUsuario: string;
+  forzar: boolean;
+  grupoRepo: IGrupoRepository;
+  deudaRepo: IDeudaRepository;
+  gastoRepo: IGastoRepository;
+  resumenRepo: IResumenRepository;
+  miembroRepo: IMiembroGrupoRepository;
+  notificacionRepo: INotificacionRepository;
+}
+
 export async function cerrarViaje(
-  idGrupo: string,
-  idUsuario: string,
-  forzar: boolean,
-  grupoRepo: IGrupoRepository,
-  deudaRepo: IDeudaRepository,
-  gastoRepo: IGastoRepository,
-  resumenRepo: IResumenRepository,
-  miembroRepo: IMiembroGrupoRepository,
-  notificacionRepo: INotificacionRepository,
+  params: CerrarViajeParams,
 ): Promise<CerrarViajeResultado> {
+  const { idGrupo, idUsuario, forzar, grupoRepo, deudaRepo, gastoRepo, resumenRepo, miembroRepo, notificacionRepo } = params;
+
   const grupo = await grupoRepo.obtenerDetalle(idGrupo);
   if (!grupo) throw new Error("Grupo no encontrado");
 
@@ -48,9 +54,10 @@ export async function cerrarViaje(
   const deudasPendientes = deudas.filter((d) => !d.saldada);
 
   if (deudasPendientes.length > 0 && !forzar) {
+    const plural = deudasPendientes.length === 1 ? "" : "s";
     return {
       cerrado: false,
-      mensaje: `Hay ${deudasPendientes.length} deuda${deudasPendientes.length !== 1 ? "s" : ""} pendiente${deudasPendientes.length !== 1 ? "s" : ""}. Revisa el listado antes de continuar.`,
+      mensaje: `Hay ${deudasPendientes.length} deuda${plural} pendiente${plural}. Revisa el listado antes de continuar.`,
       deudasPendientes: deudasPendientes.map((d) => ({
         id: d.id,
         deudor: d.deudor.nombre,

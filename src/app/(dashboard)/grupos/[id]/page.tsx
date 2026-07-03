@@ -52,6 +52,7 @@ interface GrupoDetalle {
   fechaInicio: string;
   fechaFin: string;
   monedaBase: string;
+  estado: string;
   miembros: Integrante[];
   gastos: Gasto[];
   deudas: DeudaMin[];

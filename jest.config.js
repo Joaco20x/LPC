@@ -24,7 +24,7 @@ const config = {
     "!src/**/I*.ts",
   ],
   collectCoverage: true,
-  coverageReporters: ["lcovonly", "text"],
+  coverageReporters: ["lcovonly", "text", "cobertura"],
   coverageDirectory: "<rootDir>/coverage",
   coverageThreshold: {
     global: {
