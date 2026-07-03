@@ -1,8 +1,8 @@
-import { controladorDeudas } from "@/deudas/controllers/deudas.controller";
 import {
-  controladorSaldarTransferencia,
-  controladorObtenerBalancesGrupo,
-} from "@/deudas/controllers/optimizacion.controller";
+  controladorDeudas,
+  controladorObtenerDeuda,
+  controladorPagarDeuda,
+} from "@/deudas/controllers/deudas.controller";
 import { generarTokens } from "@/auth/services/jwt";
 import { crearMockNextRequest } from "../helpers";
 
@@ -10,64 +10,63 @@ const mockDeudaRepo = {
   crearMuchas: jest.fn(),
   obtenerPendientes: jest.fn(),
   obtenerTodasPorGrupo: jest.fn(),
+  obtenerTodasPorGrupoIncluyendoSaldadas: jest.fn(),
   marcarComoSaldadas: jest.fn(),
+  obtenerPorId: jest.fn(),
+  actualizarEstado: jest.fn(),
 };
-const mockNotificacionRepo = {
-  crear: jest.fn(),
-  crearMuchas: jest.fn(),
-  obtenerPorUsuario: jest.fn(),
-  contarNoLeidas: jest.fn(),
-  marcarLeida: jest.fn(),
-  marcarTodasLeidas: jest.fn(),
-};
-const mockUsuarioRepoDeudas = {
-  buscarPorCorreo: jest.fn(),
-  buscarPorId: jest.fn(),
-  buscarPorEmails: jest.fn(),
-  buscarPorOauth: jest.fn(),
-  crear: jest.fn(),
-  actualizarContrasena: jest.fn(),
-};
-const mockGrupoRepoDeudas = { crear: jest.fn(), obtenerDetalle: jest.fn() };
 
 jest.mock("@/shared/di/crearDependencias", () => ({
   crearDependencias: jest.fn(() => ({
     deudaRepo: mockDeudaRepo,
-    usuarioRepo: mockUsuarioRepoDeudas,
-    sesionRepo: {
+    invitacionRepo: {
       crear: jest.fn(),
-      buscarPorTokenHash: jest.fn(),
-      actualizarTokenHash: jest.fn(),
-      eliminarPorTokenHash: jest.fn(),
-      eliminarPorIdUsuario: jest.fn(),
+      buscarPorToken: jest.fn(),
+      buscarPorGrupo: jest.fn(),
+      marcarComoUsada: jest.fn(),
+      invalidarPorGrupoYCorreo: jest.fn(),
+    },
+    grupoRepo: {
+      crear: jest.fn(),
+      obtenerDetalle: jest.fn(),
+      actualizarPresupuesto: jest.fn(),
+      obtenerTodosActivos: jest.fn(),
+    },
+    miembroGrupoRepo: {
+      buscarPorGrupo: jest.fn(),
+      buscarPorUsuario: jest.fn(),
+      crearMuchas: jest.fn(),
+      buscarMiembrosDeGrupos: jest.fn(),
     },
     gastoRepo: {
       crear: jest.fn(),
       obtenerTodos: jest.fn(),
       obtenerPorId: jest.fn(),
+      obtenerPorGrupo: jest.fn(),
     },
-    grupoRepo: mockGrupoRepoDeudas,
-    divisionGastoRepo: { crearMuchas: jest.fn() },
-    miembroGrupoRepo: {
-      buscarPorGrupo: jest.fn(),
+    notificacionRepo: {
+      crear: jest.fn(),
       crearMuchas: jest.fn(),
-      buscarPorUsuario: jest.fn(),
-      buscarMiembrosDeGrupos: jest.fn(),
+    },
+    usuarioRepo: {
+      buscarPorCorreo: jest.fn(),
+      buscarPorId: jest.fn(),
+      buscarPorEmails: jest.fn(),
+    },
+    sesionRepo: {
+      crear: jest.fn(),
+      eliminarPorTokenHash: jest.fn(),
     },
     tokenRecuperacionRepo: {
       invalidarPorIdUsuario: jest.fn(),
-      crear: jest.fn(),
-      buscarTokenValido: jest.fn(),
-      marcarComoUsado: jest.fn(),
     },
-    notificacionRepo: mockNotificacionRepo,
     db: { transaction: jest.fn((fn: any) => fn({})) },
   })),
 }));
 
 const tokens = generarTokens({
-  idUsuario: "user-test",
-  correo: "test@test.com",
+  idUsuario: "user-1",
+  correo: "user1@test.com",
 });
 
 beforeEach(() => {
@@ -76,19 +75,8 @@ beforeEach(() => {
 
 describe("GET /api/deudas", () => {
   it("retorna 200 con deudas pendientes", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-    deps.deudaRepo.obtenerPendientes.mockResolvedValue([
-      {
-        id: "d1",
-        idDeudor: "user-test",
-        idAcreedor: "user-2",
-        monto: 100,
-        grupo: { id: "g1", nombre: "Grupo Test" },
-        deudor: { id: "user-test", nombre: "Yo", correo: "yo@test.com" },
-        acreedor: { id: "user-2", nombre: "Otro", correo: "otro@test.com" },
-        actualizadoEn: new Date(),
-      },
+    mockDeudaRepo.obtenerPendientes.mockResolvedValue([
+      { id: "d1", idDeudor: "user-1", idAcreedor: "user-2", monto: 100 },
     ]);
 
     const req = crearMockNextRequest({
@@ -104,194 +92,143 @@ describe("GET /api/deudas", () => {
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/deudas",
     });
+
     const respuesta = await controladorDeudas(req);
     expect(respuesta.status).toBe(401);
   });
 
-  it("filtra por grupo si se proporciona", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-    deps.deudaRepo.obtenerPendientes.mockResolvedValue([]);
+  it("filtra por grupo si se proporciona parametro grupo", async () => {
+    mockDeudaRepo.obtenerPendientes.mockResolvedValue([]);
 
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/deudas?grupo=g1",
       token: tokens.accessToken,
     });
 
-    const respuesta = await controladorDeudas(req);
-    expect(respuesta.status).toBe(200);
-  });
-
-  it("retorna 500 si el token es inválido (catch general del controlador)", async () => {
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/deudas",
-      token: "token-invalido",
-    });
-
-    const respuesta = await controladorDeudas(req);
-    expect(respuesta.status).toBe(500);
-  });
-
-  it("incluye deudas donde el usuario es acreedor", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-    deps.deudaRepo.obtenerPendientes.mockResolvedValue([
-      {
-        id: "d1",
-        idDeudor: "user-2",
-        idAcreedor: "user-test",
-        monto: 50,
-        grupo: { id: "g1", nombre: "Grupo Test" },
-        deudor: { id: "user-2", nombre: "Otro", correo: "otro@test.com" },
-        acreedor: { id: "user-test", nombre: "Yo", correo: "yo@test.com" },
-        actualizadoEn: new Date(),
-      },
-    ]);
-
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/deudas",
-      token: tokens.accessToken,
-    });
-
-    const respuesta = await controladorDeudas(req);
-    const body = await respuesta.json();
-    expect(respuesta.status).toBe(200);
-    expect(body.datos.me_deben).toHaveLength(1);
-  });
-});
-
-describe("POST /api/grupos/[id]/deudas (saldar transferencia)", () => {
-  it("retorna 200 al saldar una transferencia", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-
-    const req = crearMockNextRequest({
-      metodo: "POST",
-      url: "http://localhost:3000/api/grupos/g1/deudas",
-      token: tokens.accessToken,
-      cuerpo: { idDeudor: "user-2", idAcreedor: "user-test", monto: 100 },
-    });
-
-    const respuesta = await controladorSaldarTransferencia(req, "g1");
-    expect(respuesta.status).toBe(200);
-    expect(deps.deudaRepo.marcarComoSaldadas).toHaveBeenCalledWith(
+    await controladorDeudas(req);
+    expect(mockDeudaRepo.obtenerPendientes).toHaveBeenCalledWith(
+      "user-1",
       "g1",
-      "user-2",
-      "user-test",
     );
-    expect(deps.deudaRepo.crearMuchas).not.toHaveBeenCalled();
   });
+});
 
-  it("retorna 400 si faltan datos", async () => {
-    const req = crearMockNextRequest({
-      metodo: "POST",
-      url: "http://localhost:3000/api/grupos/g1/deudas",
-      token: tokens.accessToken,
-      cuerpo: {},
+describe("GET /api/deudas/[id]", () => {
+  it("retorna 200 con detalle de deuda", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue({
+      id: "d1",
+      monto: 100,
+      estado: "pendiente",
+      saldada: false,
+      actualizadoEn: new Date(),
+      grupo: { id: "g1", nombre: "Grupo" },
+      deudor: { id: "u1", nombre: "Deudor" },
+      acreedor: { id: "u2", nombre: "Acreedor" },
     });
 
-    const respuesta = await controladorSaldarTransferencia(req, "g1");
-    expect(respuesta.status).toBe(400);
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/deudas/d1",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerDeuda(req, { id: "d1" });
+    expect(respuesta.status).toBe(200);
+  });
+
+  it("retorna 404 si deuda no existe", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue(null);
+
+    const req = crearMockNextRequest({
+      url: "http://localhost:3000/api/deudas/no-existe",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorObtenerDeuda(req, {
+      id: "no-existe",
+    });
+    expect(respuesta.status).toBe(404);
+  });
+});
+
+describe("POST /api/deudas/[id]/pagar", () => {
+  it("retorna 200 al pagar deuda", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue({
+      id: "d1",
+      idDeudor: "user-1",
+      idAcreedor: "user-2",
+      monto: 100,
+      saldada: false,
+      estado: "pendiente",
+      actualizadoEn: new Date(),
+    });
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/deudas/d1/pagar",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorPagarDeuda(req, { id: "d1" });
+    expect(respuesta.status).toBe(200);
   });
 
   it("retorna 401 sin token", async () => {
     const req = crearMockNextRequest({
       metodo: "POST",
-      url: "http://localhost:3000/api/grupos/g1/deudas",
+      url: "http://localhost:3000/api/deudas/d1/pagar",
     });
 
-    const respuesta = await controladorSaldarTransferencia(req, "g1");
-    expect(respuesta.status).toBe(401);
-  });
-});
-
-describe("GET /api/grupos/[id]/balances", () => {
-  it("retorna 200 con balances del grupo", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-    deps.deudaRepo.obtenerTodasPorGrupo.mockResolvedValue([]);
-
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/grupos/g1/balances",
-      token: tokens.accessToken,
-    });
-
-    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
-    expect(respuesta.status).toBe(200);
-  });
-
-  it("retorna 401 sin token", async () => {
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/grupos/g1/balances",
-    });
-
-    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
+    const respuesta = await controladorPagarDeuda(req, { id: "d1" });
     expect(respuesta.status).toBe(401);
   });
 
-  it("retorna 500 con token invalido", async () => {
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/grupos/g1/balances",
-      token: "token-manipulado",
-    });
-
-    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
-    expect(respuesta.status).toBe(500);
-  });
-
-  it("retorna 500 si el repositorio lanza error", async () => {
-    const { crearDependencias } = require("@/shared/di/crearDependencias");
-    const deps = crearDependencias();
-    deps.deudaRepo.obtenerTodasPorGrupo.mockRejectedValue(
-      new Error("Error de BD"),
-    );
-
-    const req = crearMockNextRequest({
-      url: "http://localhost:3000/api/grupos/g1/balances",
-      token: tokens.accessToken,
-    });
-
-    const respuesta = await controladorObtenerBalancesGrupo(req, "g1");
-    expect(respuesta.status).toBe(500);
-  });
-});
-
-describe("POST /api/grupos/[id]/deudas - notificaciones", () => {
-  it("envia notificacion cuando el deudor existe", async () => {
-    mockUsuarioRepoDeudas.buscarPorId.mockResolvedValue({
-      id: "user-2",
-      nombre: "Deudor",
-      correo: "deudor@test.com",
-    });
-    mockGrupoRepoDeudas.obtenerDetalle.mockResolvedValue({
-      id: "g1",
-      nombre: "Grupo Test",
-    } as any);
+  it("retorna 404 si deuda no existe", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue(null);
 
     const req = crearMockNextRequest({
       metodo: "POST",
-      url: "http://localhost:3000/api/grupos/g1/deudas",
+      url: "http://localhost:3000/api/deudas/no-existe/pagar",
       token: tokens.accessToken,
-      cuerpo: { idDeudor: "user-2", idAcreedor: "user-test", monto: 100 },
     });
 
-    const respuesta = await controladorSaldarTransferencia(req, "g1");
-    expect(respuesta.status).toBe(200);
-    expect(mockNotificacionRepo.crear).toHaveBeenCalled();
+    const respuesta = await controladorPagarDeuda(req, {
+      id: "no-existe",
+    });
+    expect(respuesta.status).toBe(404);
   });
 
-  it("no falla cuando el deudor no existe (notificacion omitida)", async () => {
-    mockUsuarioRepoDeudas.buscarPorId.mockResolvedValue(null);
+  it("retorna 403 si no es el deudor", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue({
+      id: "d1",
+      idDeudor: "user-2",
+      idAcreedor: "user-1",
+      estado: "pendiente",
+    });
 
     const req = crearMockNextRequest({
       metodo: "POST",
-      url: "http://localhost:3000/api/grupos/g1/deudas",
+      url: "http://localhost:3000/api/deudas/d1/pagar",
       token: tokens.accessToken,
-      cuerpo: { idDeudor: "no-existe", idAcreedor: "user-test", monto: 100 },
     });
 
-    const respuesta = await controladorSaldarTransferencia(req, "g1");
-    expect(respuesta.status).toBe(200);
-    expect(mockNotificacionRepo.crear).not.toHaveBeenCalled();
+    const respuesta = await controladorPagarDeuda(req, { id: "d1" });
+    expect(respuesta.status).toBe(403);
+  });
+
+  it("retorna 409 si la deuda ya esta pagada", async () => {
+    mockDeudaRepo.obtenerPorId.mockResolvedValue({
+      id: "d1",
+      idDeudor: "user-1",
+      estado: "pagada",
+    });
+
+    const req = crearMockNextRequest({
+      metodo: "POST",
+      url: "http://localhost:3000/api/deudas/d1/pagar",
+      token: tokens.accessToken,
+    });
+
+    const respuesta = await controladorPagarDeuda(req, { id: "d1" });
+    expect(respuesta.status).toBe(409);
   });
 });

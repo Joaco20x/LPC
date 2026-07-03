@@ -14,11 +14,13 @@ import "./presupuesto.css";
 interface DivisionGastoMin {
   idUsuario: string;
   montoAsignado: number | string;
+  moneda?: string | null;
 }
 
 interface DeudaMin {
   id: string;
   monto: number;
+  moneda?: string | null;
   saldada: boolean;
   deudor: { id: string };
   acreedor: { id: string };
@@ -142,9 +144,9 @@ export default function PresupuestoGrupo({
   useEffect(() => {
     const monedasUnicas = [
       ...new Set(
-        gastos
-          .map((g) => g.moneda)
-          .filter((m): m is string => Boolean(m) && m !== monedaBase),
+        [...gastos.map((g) => g.moneda), ...deudas.map((d) => d.moneda)].filter(
+          (m): m is string => Boolean(m) && m !== monedaBase,
+        ),
       ),
     ];
     if (monedasUnicas.length === 0) return;
@@ -175,28 +177,36 @@ export default function PresupuestoGrupo({
     return () => {
       cancelado = true;
     };
-  }, [gastos, monedaBase]);
+  }, [gastos, deudas, monedaBase]);
 
-  // ── Gasto acumulado por integrante (flujo de caja real) ──
+  // ── Gasto acumulado por integrante ──
   const acumuladoPorUsuario = useMemo(() => {
     const mapa: Record<string, number> = {};
 
-    // Lo que cada persona pagó de su bolsillo (convertido a moneda base)
+    // Sumar montos de divisiones por usuario (convertido a moneda base)
     for (const gasto of gastos) {
-      const monto = Number(gasto.monto);
-      const convertido =
-        gasto.moneda && gasto.moneda !== monedaBase
-          ? monto * (tasas.get(gasto.moneda) ?? 1)
-          : monto;
-      mapa[gasto.pagador.id] = (mapa[gasto.pagador.id] ?? 0) + convertido;
+      for (const div of gasto.divisiones) {
+        const montoAsignado = Number(div.montoAsignado);
+        const moneda = div.moneda || gasto.moneda;
+        const convertido =
+          moneda && moneda !== monedaBase
+            ? montoAsignado * (tasas.get(moneda) ?? 1)
+            : montoAsignado;
+        mapa[div.idUsuario] = (mapa[div.idUsuario] ?? 0) + convertido;
+      }
     }
 
-    // Ajuste por deudas saldadas (pagadas)
+    // Ajuste por deudas saldadas (convertido a moneda base)
     for (const deuda of deudas) {
       if (!deuda.saldada) continue;
       const monto = Number(deuda.monto);
-      mapa[deuda.acreedor.id] = (mapa[deuda.acreedor.id] ?? 0) - monto;
-      mapa[deuda.deudor.id] = (mapa[deuda.deudor.id] ?? 0) + monto;
+      const moneda = deuda.moneda;
+      const convertido =
+        moneda && moneda !== monedaBase
+          ? monto * (tasas.get(moneda) ?? 1)
+          : monto;
+      mapa[deuda.acreedor.id] = (mapa[deuda.acreedor.id] ?? 0) - convertido;
+      mapa[deuda.deudor.id] = (mapa[deuda.deudor.id] ?? 0) + convertido;
     }
 
     return mapa;

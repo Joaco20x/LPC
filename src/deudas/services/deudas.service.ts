@@ -1,6 +1,21 @@
 import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
 import type { DeudasPendientes, DeudaItem } from "@/deudas/types/deudas";
 
+export async function pagarDeuda(
+  idDeuda: string,
+  idUsuario: string,
+  deudaRepo: IDeudaRepository,
+): Promise<void> {
+  const deuda = await deudaRepo.obtenerPorId(idDeuda);
+  if (!deuda) throw new Error("Deuda no encontrada");
+  if (deuda.idDeudor !== idUsuario)
+    throw new Error("Solo el deudor puede marcar la deuda como pagada");
+  if (deuda.saldada || deuda.estado === "pagada")
+    throw new Error("La deuda ya está pagada");
+
+  await deudaRepo.actualizarEstado(idDeuda, "pagada", new Date());
+}
+
 export async function obtenerDeudasPendientes(
   idUsuario: string,
   deudaRepo: IDeudaRepository,
