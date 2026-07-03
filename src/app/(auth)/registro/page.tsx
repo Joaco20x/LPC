@@ -117,11 +117,6 @@ export default function PaginaRegistro() {
           onClick={() => manejarOAuth("google")}
           cargando={cargando}
         />
-        <BotonOAuth
-          proveedor="apple"
-          onClick={() => manejarOAuth("apple")}
-          cargando={cargando}
-        />
       </div>
 
       <Separador texto="o regístrate con correo" />
