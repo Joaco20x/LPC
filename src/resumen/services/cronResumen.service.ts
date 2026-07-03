@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { IGrupoRepository } from "@/grupos/repositories/IGrupoRepository";
 import { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
 import { IResumenRepository } from "../repositories/IResumenRepository";
-import { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import { INotificacionRepository, DatosCrearNotificacion } from "@/notificaciones/repositories/INotificacionRepository";
 import { calcularEstadisticasRango } from "./estadisticas.service";
 
 export async function generarResumenesMensuales(
@@ -71,7 +71,7 @@ export async function generarResumenesMensuales(
 
     // 7. Distribuir notificaciones a los miembros actuales del grupo (activos)
     if (grupo.miembros.length > 0) {
-      const notificaciones = grupo.miembros.map((m) => ({
+      const notificaciones: DatosCrearNotificacion[] = grupo.miembros.map((m) => ({
         idUsuario: m.idUsuario,
         tipo: "NUEVO_RESUMEN_MENSUAL",
         metadata: {
