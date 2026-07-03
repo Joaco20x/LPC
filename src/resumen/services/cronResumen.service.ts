@@ -2,8 +2,11 @@ import { Prisma } from "@prisma/client";
 import { IGrupoRepository } from "@/grupos/repositories/IGrupoRepository";
 import { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
 import { IResumenRepository } from "../repositories/IResumenRepository";
-import { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
 import { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import {
+  INotificacionRepository,
+  DatosCrearNotificacion,
+} from "@/notificaciones/repositories/INotificacionRepository";
 import { calcularEstadisticasRango } from "./estadisticas.service";
 
 export async function generarResumenesMensuales(
@@ -88,18 +91,20 @@ export async function generarResumenesMensuales(
 
     // 8. Distribuir notificaciones a los miembros actuales del grupo (activos)
     if (grupo.miembros.length > 0) {
-      const notificaciones = grupo.miembros.map((m) => ({
-        idUsuario: m.idUsuario,
-        tipo: "NUEVO_RESUMEN_MENSUAL",
-        metadata: {
-          idGrupo: grupo.id,
-          nombreGrupo: grupo.nombre,
-          idResumen: nuevoResumen.id,
-          mes: mesAnterior,
-          anio: anioAnterior,
-          total: stats.totalGastos,
-        },
-      }));
+      const notificaciones: DatosCrearNotificacion[] = grupo.miembros.map(
+        (m) => ({
+          idUsuario: m.idUsuario,
+          tipo: "NUEVO_RESUMEN_MENSUAL",
+          metadata: {
+            idGrupo: grupo.id,
+            nombreGrupo: grupo.nombre,
+            idResumen: nuevoResumen.id,
+            mes: mesAnterior,
+            anio: anioAnterior,
+            total: stats.totalGastos,
+          },
+        }),
+      );
 
       await notificacionRepo.crearMuchas(notificaciones);
     }

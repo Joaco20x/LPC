@@ -28,10 +28,16 @@ export interface IDeudaRepository {
   obtenerTodasPorGrupoIncluyendoSaldadas(
     idGrupo: string,
   ): Promise<DeudaConRelaciones[]>;
+  obtenerPorId(id: string): Promise<DeudaConRelaciones | null>;
   marcarComoSaldadas(
     idGrupo: string,
     idDeudor: string,
     idAcreedor: string,
     tx?: TransactionClient,
+  ): Promise<void>;
+  actualizarEstado(
+    id: string,
+    estado: string,
+    pagadaEn?: Date | null,
   ): Promise<void>;
 }
