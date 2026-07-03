@@ -96,7 +96,7 @@ export async function actualizarPresupuestoGrupo(
     (m) => m.usuario.id === idUsuarioSolicitante,
   );
 
-  if (!miembroSolicitante || miembroSolicitante.rol !== "admin") {
+  if (miembroSolicitante?.rol !== "admin") {
     throw new Error(
       "Solo el administrador del grupo puede modificar el presupuesto",
     );

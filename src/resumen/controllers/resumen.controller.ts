@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaResumenRepository } from "../repositories/PrismaResumenRepository";
 import { PrismaGrupoRepository } from "@/grupos/repositories/PrismaGrupoRepository";
+import { PrismaMiembroGrupoRepository } from "@/grupos/repositories/PrismaMiembroGrupoRepository";
+import { verificarAccessToken } from "@/auth/services/jwt";
+
+function extraerPayload(req: NextRequest) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return {
+      error: NextResponse.json(
+        { exito: false, mensaje: "No autorizado" },
+        { status: 401 },
+      ),
+    };
+  }
+  try {
+    return { payload: verificarAccessToken(authHeader.split(" ")[1]) };
+  } catch {
+    return {
+      error: NextResponse.json(
+        { exito: false, mensaje: "Token inválido o expirado" },
+        { status: 401 },
+      ),
+    };
+  }
+}
 
 export async function controladorObtenerResumenesPorGrupo(
   req: NextRequest,
@@ -9,6 +33,9 @@ export async function controladorObtenerResumenesPorGrupo(
   const { id } = params;
 
   try {
+    const { payload, error } = extraerPayload(req);
+    if (error) return error;
+
     const grupoRepo = new PrismaGrupoRepository();
     const grupo = await grupoRepo.obtenerDetalle(id);
 
@@ -19,8 +46,16 @@ export async function controladorObtenerResumenesPorGrupo(
       );
     }
 
-    // TODO: Validar que el usuario autenticado pertenece al grupo.
-    // Asumiremos que el middleware / frontend ya protegen esto, o se puede agregar la validación de sesión aquí.
+    const miembroRepo = new PrismaMiembroGrupoRepository();
+    const miembros = await miembroRepo.buscarPorGrupo(id);
+    const esMiembro = miembros.some((m) => m.idUsuario === payload.idUsuario);
+
+    if (!esMiembro) {
+      return NextResponse.json(
+        { exito: false, mensaje: "No perteneces a este grupo" },
+        { status: 403 },
+      );
+    }
 
     const resumenRepo = new PrismaResumenRepository();
     const resumenes = await resumenRepo.obtenerHistorialPorGrupo(id);

@@ -17,7 +17,13 @@ const mockResumenRepo = {
 const mockNotificacionRepo = {
   crearMuchas: jest.fn(),
 };
+const mockMiembroRepo = {
+  buscarPorGrupo: jest.fn(),
+};
 
+jest.mock("@/auth/services/jwt", () => ({
+  verificarAccessToken: jest.fn(),
+}));
 jest.mock("@/grupos/repositories/PrismaGrupoRepository", () => ({
   PrismaGrupoRepository: jest.fn(() => mockGrupoRepo),
 }));
@@ -29,6 +35,9 @@ jest.mock("@/resumen/repositories/PrismaResumenRepository", () => ({
 }));
 jest.mock("@/notificaciones/repositories/PrismaNotificacionRepository", () => ({
   PrismaNotificacionRepository: jest.fn(() => mockNotificacionRepo),
+}));
+jest.mock("@/grupos/repositories/PrismaMiembroGrupoRepository", () => ({
+  PrismaMiembroGrupoRepository: jest.fn(() => mockMiembroRepo),
 }));
 jest.mock("@/resumen/services/cronResumen.service", () => ({
   generarResumenesMensuales: jest.fn(),
@@ -125,8 +134,16 @@ describe("controladorCronResumen", () => {
 });
 
 describe("controladorObtenerResumenesPorGrupo", () => {
+  const { verificarAccessToken } = jest.requireMock("@/auth/services/jwt");
+  const tokenValido = "token-valido";
+
   beforeEach(() => {
     jest.clearAllMocks();
+    verificarAccessToken.mockReturnValue({ idUsuario: "u1" });
+    mockMiembroRepo.buscarPorGrupo.mockResolvedValue([
+      { idUsuario: "u1" },
+      { idUsuario: "u2" },
+    ]);
   });
 
   it("retorna 200 para grupo existente con resúmenes", async () => {
@@ -141,6 +158,7 @@ describe("controladorObtenerResumenesPorGrupo", () => {
 
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/grupos/g1/resumenes",
+      token: tokenValido,
     });
     const respuesta = await controladorObtenerResumenesPorGrupo(req, {
       id: "g1",
@@ -157,6 +175,7 @@ describe("controladorObtenerResumenesPorGrupo", () => {
 
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/grupos/no-existe/resumenes",
+      token: tokenValido,
     });
     const respuesta = await controladorObtenerResumenesPorGrupo(req, {
       id: "no-existe",
@@ -173,6 +192,7 @@ describe("controladorObtenerResumenesPorGrupo", () => {
 
     const req = crearMockNextRequest({
       url: "http://localhost:3000/api/grupos/g1/resumenes",
+      token: tokenValido,
     });
     const respuesta = await controladorObtenerResumenesPorGrupo(req, {
       id: "g1",

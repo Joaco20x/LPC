@@ -11,7 +11,10 @@ import {
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { validarGasto } from "@/gastos/validaciones/gasto";
 import { verificarAccessToken } from "@/auth/services/jwt";
-import { crearDependencias } from "@/shared/di/crearDependencias";
+import {
+  crearDependencias,
+  type Dependencias,
+} from "@/shared/di/crearDependencias";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 function extraerPayload(req: NextRequest) {
@@ -36,6 +39,71 @@ function extraerPayload(req: NextRequest) {
   }
 }
 
+async function manejarNotificacionesDeGasto(
+  nuevoGasto: Awaited<ReturnType<typeof registrarGasto>>,
+  deps: Dependencias,
+) {
+  if (!nuevoGasto || !deps.notificacionRepo) return;
+
+  try {
+    await notificarNuevoGasto(
+      {
+        idGrupo: nuevoGasto.grupo.id,
+        nombreGrupo: nuevoGasto.grupo.nombre,
+        idPagador: nuevoGasto.pagador.id,
+        nombrePagador: nuevoGasto.pagador.nombre,
+        descripcion: nuevoGasto.descripcion,
+        monto: Number(nuevoGasto.monto),
+      },
+      deps.miembroGrupoRepo,
+      deps.notificacionRepo,
+    );
+
+    const grupoCompleto = await deps.grupoRepo.obtenerDetalle(
+      nuevoGasto.grupo.id,
+    );
+
+    if (!grupoCompleto?.presupuestoPorPersona) return;
+
+    const presupuesto = Number(grupoCompleto.presupuestoPorPersona);
+    const umbral = grupoCompleto.umbralAlerta
+      ? Number(grupoCompleto.umbralAlerta)
+      : 100;
+
+    const acumuladoPorUsuario: Record<string, number> = {};
+    for (const g of grupoCompleto.gastos) {
+      for (const div of g.divisiones) {
+        acumuladoPorUsuario[div.idUsuario] =
+          (acumuladoPorUsuario[div.idUsuario] ?? 0) + Number(div.montoAsignado);
+      }
+    }
+
+    const idsAdmin = grupoCompleto.miembros
+      .filter((m) => m.rol === "admin")
+      .map((m) => m.usuario.id);
+
+    const miembrosInvolucrados = (nuevoGasto.divisiones ?? []).map((d) => ({
+      id: d.usuario.id,
+      nombre: d.usuario.nombre,
+    }));
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: grupoCompleto.id,
+        nombreGrupo: grupoCompleto.nombre,
+        presupuestoPorPersona: presupuesto,
+        umbralAlerta: umbral,
+        miembrosInvolucrados,
+        gastoAcumuladoPorUsuario: acumuladoPorUsuario,
+        idsAdmin,
+      },
+      deps.notificacionRepo,
+    );
+  } catch (error_) {
+    console.warn("[Notificaciones] Error no crítico:", error_);
+  }
+}
+
 export async function controladorCrearGasto(req: NextRequest) {
   try {
     const { payload, error } = extraerPayload(req);
@@ -53,7 +121,7 @@ export async function controladorCrearGasto(req: NextRequest) {
 
     const deps = crearDependencias();
     const nuevoGasto = await registrarGasto(
-      { ...cuerpo, idPagador: cuerpo.idPagador || payload!.idUsuario },
+      { ...cuerpo, idPagador: cuerpo.idPagador || payload.idUsuario },
       deps.gastoRepo,
       deps.divisionGastoRepo,
       deps.deudaRepo,
@@ -61,69 +129,7 @@ export async function controladorCrearGasto(req: NextRequest) {
       PrismaDatabaseService,
     );
 
-    // ── Notificaciones (no críticas: errores no rompen el flujo principal) ──
-    if (nuevoGasto && deps.notificacionRepo) {
-      try {
-        await notificarNuevoGasto(
-          {
-            idGrupo: nuevoGasto.grupo.id,
-            nombreGrupo: nuevoGasto.grupo.nombre,
-            idPagador: nuevoGasto.pagador.id,
-            nombrePagador: nuevoGasto.pagador.nombre,
-            descripcion: nuevoGasto.descripcion,
-            monto: Number(nuevoGasto.monto),
-          },
-          deps.miembroGrupoRepo,
-          deps.notificacionRepo,
-        );
-
-        // Verificar presupuesto máximo por persona (si el Admin lo configuró)
-        const grupoCompleto = await deps.grupoRepo.obtenerDetalle(
-          nuevoGasto.grupo.id,
-        );
-
-        if (grupoCompleto?.presupuestoPorPersona) {
-          const presupuesto = Number(grupoCompleto.presupuestoPorPersona);
-          const umbral = grupoCompleto.umbralAlerta
-            ? Number(grupoCompleto.umbralAlerta)
-            : 100;
-
-          // Gasto acumulado por integrante (suma de divisiones en todo el grupo)
-          const acumuladoPorUsuario: Record<string, number> = {};
-          for (const g of grupoCompleto.gastos) {
-            for (const div of g.divisiones) {
-              acumuladoPorUsuario[div.idUsuario] =
-                (acumuladoPorUsuario[div.idUsuario] ?? 0) +
-                Number(div.montoAsignado);
-            }
-          }
-
-          const idsAdmin = grupoCompleto.miembros
-            .filter((m) => m.rol === "admin")
-            .map((m) => m.usuario.id);
-
-          // Solo revisamos a los integrantes cuyo monto cambió con este gasto
-          const miembrosInvolucrados = (nuevoGasto.divisiones ?? []).map(
-            (d) => ({ id: d.usuario.id, nombre: d.usuario.nombre }),
-          );
-
-          await notificarPresupuestoSuperado(
-            {
-              idGrupo: grupoCompleto.id,
-              nombreGrupo: grupoCompleto.nombre,
-              presupuestoPorPersona: presupuesto,
-              umbralAlerta: umbral,
-              miembrosInvolucrados,
-              gastoAcumuladoPorUsuario: acumuladoPorUsuario,
-              idsAdmin,
-            },
-            deps.notificacionRepo,
-          );
-        }
-      } catch (errNotif) {
-        console.warn("[Notificaciones] Error no crítico:", errNotif);
-      }
-    }
+    await manejarNotificacionesDeGasto(nuevoGasto, deps);
 
     return NextResponse.json(
       {
@@ -171,7 +177,7 @@ export async function controladorObtenerOpciones(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const opciones = await obtenerOpcionesFormulario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 
