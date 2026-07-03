@@ -1,17 +1,16 @@
-# AGENTS.md — Configuración para OpenCode
+# AGENTS.md
 
-Este archivo contiene directivas para el agente OpenCode al trabajar en este proyecto.
+Directivas para el agente OpenCode en este proyecto.
 
-## Comandos útiles
+## Comandos
 
-- `npx jest --testPathPatterns="__test__/unit" --no-coverage` — Tests unitarios
-- `npx jest --testPathPatterns="__test__/integration" --no-coverage` — Tests de integración
-- `npm test` — Todos los tests
+- `npm test` — Tests unitarios e integración
 - `npm run lint` — ESLint
 - `npm run build` — Build de Next.js
+- `npx jest --testPathPatterns="__test__/unit" --no-coverage` — Solo unitarios
 
 ## Convenios
 
-- No agregar comentarios en el código a menos que se solicite explícitamente
-- Seguir los patrones existentes del código base
-- Verificar tests y lint después de cualquier modificación
+- No agregar comentarios en código a menos que se solicite
+- Seguir patrones existentes del código base
+- Verificar tests, lint y build después de cambios

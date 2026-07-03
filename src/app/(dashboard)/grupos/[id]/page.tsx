@@ -18,6 +18,15 @@ interface DeudaMin {
   acreedor: { id: string };
 }
 
+interface DivisionGasto {
+  id: string;
+  idUsuario: string;
+  montoAsignado: number;
+  tipoDivision: string;
+  moneda: string;
+  usuario: { id: string; nombre: string };
+}
+
 interface Gasto {
   id: string;
   descripcion: string;
@@ -25,6 +34,7 @@ interface Gasto {
   categoria: string;
   creadoEn: string;
   pagador: { id: string; nombre: string };
+  moneda: string;
   divisiones?: DivisionGasto[];
 }
 
