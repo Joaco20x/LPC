@@ -82,7 +82,7 @@ export async function controladorCrearInvitacion(
     const resultado = await crearInvitacion(
       {
         idGrupo: params.id,
-        idInvitador: payload!.idUsuario,
+        idInvitador: payload.idUsuario,
         tipo,
         correoInvitado,
         expiraHoras,
@@ -101,12 +101,10 @@ export async function controladorCrearInvitacion(
     );
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
-    const estado =
-      mensaje === "Grupo no encontrado"
-        ? 404
-        : mensaje === "Solo los administradores pueden crear invitaciones"
-          ? 403
-          : 500;
+    let estado = 500;
+    if (mensaje === "Grupo no encontrado") estado = 404;
+    else if (mensaje === "Solo los administradores pueden crear invitaciones")
+      estado = 403;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }
@@ -123,7 +121,7 @@ export async function controladorObtenerInvitaciones(
     const deps = crearDependencias();
     const invitaciones = await obtenerInvitacionesGrupo(
       params.id,
-      payload!.idUsuario,
+      payload.idUsuario,
       deps.invitacionRepo,
       deps.grupoRepo,
     );
@@ -134,11 +132,9 @@ export async function controladorObtenerInvitaciones(
     );
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
-    const estado = mensaje.includes("administradores")
-      ? 403
-      : mensaje === "Grupo no encontrado"
-        ? 404
-        : 500;
+    let estado = 500;
+    if (mensaje.includes("administradores")) estado = 403;
+    else if (mensaje === "Grupo no encontrado") estado = 404;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }
@@ -178,7 +174,7 @@ export async function controladorAceptarInvitacion(
     const deps = crearDependencias();
     const resultado = await aceptarInvitacion(
       params.token,
-      payload!.idUsuario,
+      payload.idUsuario,
       deps.invitacionRepo,
       deps.miembroGrupoRepo,
     );
@@ -194,14 +190,11 @@ export async function controladorAceptarInvitacion(
   } catch (err) {
     const mensaje =
       err instanceof Error ? err.message : "Error al aceptar la invitación";
-    const estado =
-      mensaje.includes("expirado") || mensaje.includes("utilizada")
-        ? 410
-        : mensaje.includes("miembro")
-          ? 409
-          : mensaje === "Invitación no encontrada"
-            ? 404
-            : 500;
+    let estado = 500;
+    if (mensaje.includes("expirado") || mensaje.includes("utilizada"))
+      estado = 410;
+    else if (mensaje.includes("miembro")) estado = 409;
+    else if (mensaje === "Invitación no encontrada") estado = 404;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }

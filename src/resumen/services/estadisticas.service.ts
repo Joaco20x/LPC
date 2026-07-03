@@ -8,19 +8,100 @@ export interface DeudaSaldadaInput {
   moneda: string;
 }
 
+interface Integrante {
+  id: string;
+  nombre: string;
+  gastado: number;
+  asignado: number;
+  saldo: number;
+}
+
+type PorIntegrante = Record<string, Integrante>;
+
 export interface EstadisticasMensuales {
   totalGastos: number;
   porCategoria: Record<string, number>;
-  porIntegrante: Record<
-    string,
-    {
-      id: string;
-      nombre: string;
-      gastado: number;
-      asignado: number;
-      saldo: number;
-    }
-  >;
+  porIntegrante: PorIntegrante;
+}
+
+function asegurarIntegrante(
+  porIntegrante: PorIntegrante,
+  id: string,
+  nombre: string,
+): Integrante {
+  if (!porIntegrante[id]) {
+    porIntegrante[id] = { id, nombre, gastado: 0, asignado: 0, saldo: 0 };
+  }
+  return porIntegrante[id];
+}
+
+function procesarGastoEnEstadisticas(
+  gasto: Awaited<
+    ReturnType<IGastoRepository["obtenerPorGrupoYRangoFecha"]>
+  >[number],
+  totalGastos: { value: number },
+  porCategoria: Record<string, number>,
+  porIntegrante: PorIntegrante,
+  monedaBase: string | undefined,
+  convGasto: Record<string, number> | undefined,
+) {
+  const monto = Number(gasto.monto);
+  const tasaGasto =
+    monedaBase && convGasto && gasto.moneda
+      ? (convGasto[gasto.moneda] ?? 1)
+      : 1;
+  const montoEnBase = monto * tasaGasto;
+  totalGastos.value += montoEnBase;
+
+  porCategoria[gasto.categoria] =
+    (porCategoria[gasto.categoria] ?? 0) + montoEnBase;
+
+  const pagador = asegurarIntegrante(
+    porIntegrante,
+    gasto.pagador.id,
+    gasto.pagador.nombre,
+  );
+  pagador.gastado += montoEnBase;
+  pagador.saldo += montoEnBase;
+
+  for (const div of gasto.divisiones) {
+    const montoAsignado = Number(div.montoAsignado);
+    const monedaDiv = div.moneda || gasto.moneda;
+    const tasaDiv =
+      monedaBase && convGasto && monedaDiv ? (convGasto[monedaDiv] ?? 1) : 1;
+    const montoAsignadoEnBase = montoAsignado * tasaDiv;
+
+    const integrante = asegurarIntegrante(
+      porIntegrante,
+      div.usuario.id,
+      div.usuario.nombre,
+    );
+    integrante.asignado += montoAsignadoEnBase;
+    integrante.saldo -= montoAsignadoEnBase;
+  }
+}
+
+function procesarDeudasSaldadas(
+  deudasSaldadas: DeudaSaldadaInput[],
+  porIntegrante: PorIntegrante,
+  monedaBase: string,
+  convDeudas: Record<string, number>,
+) {
+  for (const deuda of deudasSaldadas) {
+    const tasa =
+      deuda.moneda && deuda.moneda !== monedaBase
+        ? (convDeudas[deuda.moneda] ?? 1)
+        : 1;
+    const montoEnBase = deuda.monto * tasa;
+
+    const deudor = asegurarIntegrante(porIntegrante, deuda.idDeudor, "");
+    deudor.gastado += montoEnBase;
+    deudor.saldo += montoEnBase;
+
+    const acreedor = asegurarIntegrante(porIntegrante, deuda.idAcreedor, "");
+    acreedor.gastado -= montoEnBase;
+    acreedor.saldo -= montoEnBase;
+  }
 }
 
 export async function calcularEstadisticasRango(
@@ -37,18 +118,9 @@ export async function calcularEstadisticasRango(
     fin,
   );
 
-  let totalGastos = 0;
+  const totalGastos = { value: 0 };
   const porCategoria: Record<string, number> = {};
-  const porIntegrante: Record<
-    string,
-    {
-      id: string;
-      nombre: string;
-      gastado: number;
-      asignado: number;
-      saldo: number;
-    }
-  > = {};
+  const porIntegrante: PorIntegrante = {};
 
   const monedasGasto = gastos.map((g) => g.moneda).filter(Boolean);
   const monedasDivision = gastos.flatMap((g) =>
@@ -62,87 +134,25 @@ export async function calcularEstadisticasRango(
     : undefined;
 
   for (const gasto of gastos) {
-    const monto = Number(gasto.monto);
-    const tasaGasto =
-      monedaBase && convGasto && gasto.moneda
-        ? (convGasto[gasto.moneda] ?? 1)
-        : 1;
-    const montoEnBase = monto * tasaGasto;
-    totalGastos += montoEnBase;
-
-    if (!porCategoria[gasto.categoria]) {
-      porCategoria[gasto.categoria] = 0;
-    }
-    porCategoria[gasto.categoria] += montoEnBase;
-
-    if (!porIntegrante[gasto.pagador.id]) {
-      porIntegrante[gasto.pagador.id] = {
-        id: gasto.pagador.id,
-        nombre: gasto.pagador.nombre,
-        gastado: 0,
-        asignado: 0,
-        saldo: 0,
-      };
-    }
-    porIntegrante[gasto.pagador.id].gastado += montoEnBase;
-    porIntegrante[gasto.pagador.id].saldo += montoEnBase;
-
-    for (const div of gasto.divisiones) {
-      const montoAsignado = Number(div.montoAsignado);
-      const monedaDiv = div.moneda || gasto.moneda;
-      const tasaDiv =
-        monedaBase && convGasto && monedaDiv ? (convGasto[monedaDiv] ?? 1) : 1;
-      const montoAsignadoEnBase = montoAsignado * tasaDiv;
-
-      if (!porIntegrante[div.usuario.id]) {
-        porIntegrante[div.usuario.id] = {
-          id: div.usuario.id,
-          nombre: div.usuario.nombre,
-          gastado: 0,
-          asignado: 0,
-          saldo: 0,
-        };
-      }
-
-      porIntegrante[div.usuario.id].asignado += montoAsignadoEnBase;
-      porIntegrante[div.usuario.id].saldo -= montoAsignadoEnBase;
-    }
+    procesarGastoEnEstadisticas(
+      gasto,
+      totalGastos,
+      porCategoria,
+      porIntegrante,
+      monedaBase,
+      convGasto,
+    );
   }
 
   if (monedaBase && deudasSaldadas && deudasSaldadas.length > 0) {
     const monedasDeudas = deudasSaldadas.map((d) => d.moneda).filter(Boolean);
     const convDeudas = await crearConversorMoneda(monedaBase, monedasDeudas);
-    for (const deuda of deudasSaldadas) {
-      const tasa =
-        deuda.moneda && deuda.moneda !== monedaBase
-          ? (convDeudas[deuda.moneda] ?? 1)
-          : 1;
-      const montoEnBase = deuda.monto * tasa;
-
-      if (!porIntegrante[deuda.idDeudor]) {
-        porIntegrante[deuda.idDeudor] = {
-          id: deuda.idDeudor,
-          nombre: "",
-          gastado: 0,
-          asignado: 0,
-          saldo: 0,
-        };
-      }
-      porIntegrante[deuda.idDeudor].gastado += montoEnBase;
-      porIntegrante[deuda.idDeudor].saldo += montoEnBase;
-
-      if (!porIntegrante[deuda.idAcreedor]) {
-        porIntegrante[deuda.idAcreedor] = {
-          id: deuda.idAcreedor,
-          nombre: "",
-          gastado: 0,
-          asignado: 0,
-          saldo: 0,
-        };
-      }
-      porIntegrante[deuda.idAcreedor].gastado -= montoEnBase;
-      porIntegrante[deuda.idAcreedor].saldo -= montoEnBase;
-    }
+    procesarDeudasSaldadas(
+      deudasSaldadas,
+      porIntegrante,
+      monedaBase,
+      convDeudas,
+    );
   }
 
   for (const key in porIntegrante) {
@@ -150,7 +160,7 @@ export async function calcularEstadisticasRango(
   }
 
   return {
-    totalGastos,
+    totalGastos: totalGastos.value,
     porCategoria,
     porIntegrante,
   };

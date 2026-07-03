@@ -22,7 +22,7 @@ export class ComprobanteService {
       throw new Error("Solo el deudor puede subir un comprobante");
     if (deuda.saldada) throw new Error("La deuda ya está saldada");
 
-    const rutLimpio = rut.replace(/\./g, "");
+    const rutLimpio = rut.replaceAll(".", "");
     if (!validarRut(rutLimpio)) throw new Error("RUT inválido");
 
     return this.comprobanteRepo.crear({

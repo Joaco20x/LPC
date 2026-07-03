@@ -97,14 +97,10 @@ export async function controladorPagarDeuda(
   } catch (error) {
     const mensaje =
       error instanceof Error ? error.message : "Error en el servidor";
-    const estado =
-      mensaje === "Deuda no encontrada"
-        ? 404
-        : mensaje.includes("Solo el deudor")
-          ? 403
-          : mensaje.includes("ya está pagada")
-            ? 409
-            : 500;
+    let estado = 500;
+    if (mensaje === "Deuda no encontrada") estado = 404;
+    else if (mensaje.includes("Solo el deudor")) estado = 403;
+    else if (mensaje.includes("ya está pagada")) estado = 409;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }

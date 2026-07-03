@@ -57,7 +57,7 @@ export async function controladorCrearVotacion(req: NextRequest) {
     const resultado = await crearVotacion(
       idGrupo,
       idDeuda,
-      payload!.idUsuario,
+      payload.idUsuario,
       tipo,
       deps.votacionRepo,
       deps.miembroGrupoRepo,
@@ -69,12 +69,9 @@ export async function controladorCrearVotacion(req: NextRequest) {
     );
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
-    const estado =
-      mensaje === "No eres miembro de este grupo"
-        ? 403
-        : mensaje.includes("activa")
-          ? 409
-          : 500;
+    let estado = 500;
+    if (mensaje === "No eres miembro de este grupo") estado = 403;
+    else if (mensaje.includes("activa")) estado = 409;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }
@@ -96,7 +93,7 @@ export async function controladorObtenerVotaciones(req: NextRequest) {
     const deps = crearDependencias();
     const votaciones = await obtenerVotacionesGrupo(
       idGrupo,
-      payload!.idUsuario,
+      payload.idUsuario,
       deps.votacionRepo,
       deps.miembroGrupoRepo,
     );
@@ -123,7 +120,7 @@ export async function controladorObtenerVotacion(
     const deps = crearDependencias();
     const votacion = await obtenerVotacion(
       params.id,
-      payload!.idUsuario,
+      payload.idUsuario,
       deps.votacionRepo,
       deps.miembroGrupoRepo,
     );
@@ -159,7 +156,7 @@ export async function controladorEmitirVoto(
     const deps = crearDependencias();
     const votacion = await emitirVoto(
       params.id,
-      payload!.idUsuario,
+      payload.idUsuario,
       decision,
       deps.votacionRepo,
       deps.miembroGrupoRepo,
@@ -176,12 +173,10 @@ export async function controladorEmitirVoto(
     );
   } catch (err) {
     const mensaje = err instanceof Error ? err.message : "Error interno";
-    const estado =
-      mensaje === "Votación no encontrada"
-        ? 404
-        : mensaje.includes("resuelta") || mensaje.includes("emitiste")
-          ? 409
-          : 403;
+    let estado = 403;
+    if (mensaje === "Votación no encontrada") estado = 404;
+    else if (mensaje.includes("resuelta") || mensaje.includes("emitiste"))
+      estado = 409;
     return NextResponse.json({ exito: false, mensaje }, { status: estado });
   }
 }

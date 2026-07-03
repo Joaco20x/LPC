@@ -2,16 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { verificarAccessToken } from "@/auth/services/jwt";
 import { ComprobanteService } from "@/deudas/services/comprobante.service";
 import { crearDependencias } from "@/shared/di/crearDependencias";
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { randomUUID } from "crypto";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 
-const MIMETYPES_PERMITIDOS = [
+const MIMETYPES_PERMITIDOS = new Set([
   "image/jpeg",
   "image/png",
   "image/webp",
   "application/pdf",
-];
+]);
 
 function crearComprobanteService() {
   const { comprobanteRepo, deudaRepo } = crearDependencias();
@@ -45,7 +45,7 @@ export async function controladorSubirComprobante(
         { exito: false, mensaje: "RUT requerido" },
         { status: 400 },
       );
-    if (!MIMETYPES_PERMITIDOS.includes(archivo.type))
+    if (!MIMETYPES_PERMITIDOS.has(archivo.type))
       return NextResponse.json(
         { exito: false, mensaje: "Tipo de archivo no permitido" },
         { status: 400 },

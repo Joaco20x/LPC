@@ -1,6 +1,6 @@
 // src/invitaciones/services/invitacion.service.ts
 
-import crypto from "crypto";
+import crypto from "node:crypto";
 import type { IInvitacionRepository } from "@/invitaciones/repositories/IInvitacionRepository";
 import type {
   DatosCrearInvitacion,

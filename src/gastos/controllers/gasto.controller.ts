@@ -40,6 +40,51 @@ function extraerPayload(req: NextRequest) {
   }
 }
 
+async function calcularAcumulado(
+  grupoCompleto: Awaited<
+    ReturnType<Dependencias["grupoRepo"]["obtenerDetalle"]>
+  >,
+  monedaBase: string,
+  deps: Dependencias,
+): Promise<Record<string, number>> {
+  const monedasDivisiones = grupoCompleto!.gastos.flatMap((g) =>
+    g.divisiones.map((d) => d.moneda || g.moneda).filter(Boolean),
+  );
+  const conversor = await crearConversorMoneda(monedaBase, monedasDivisiones);
+
+  const acumuladoPorUsuario: Record<string, number> = {};
+  for (const g of grupoCompleto!.gastos) {
+    for (const div of g.divisiones) {
+      const monto = Number(div.montoAsignado);
+      const moneda = div.moneda || g.moneda;
+      const tasa =
+        moneda && moneda !== monedaBase ? (conversor[moneda] ?? 1) : 1;
+      acumuladoPorUsuario[div.idUsuario] =
+        (acumuladoPorUsuario[div.idUsuario] ?? 0) + monto * tasa;
+    }
+  }
+
+  const deudas = await deps.deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(
+    grupoCompleto!.id,
+  );
+  const monedasDeudas = deudas.map((d) => d.moneda).filter(Boolean);
+  const convDeudas = await crearConversorMoneda(monedaBase, monedasDeudas);
+  for (const deuda of deudas) {
+    if (!deuda.saldada) continue;
+    const monto = Number(deuda.monto);
+    const moneda = deuda.moneda;
+    const tasa =
+      moneda && moneda !== monedaBase ? (convDeudas[moneda] ?? 1) : 1;
+    const montoEnBase = monto * tasa;
+    acumuladoPorUsuario[deuda.idDeudor] =
+      (acumuladoPorUsuario[deuda.idDeudor] ?? 0) + montoEnBase;
+    acumuladoPorUsuario[deuda.idAcreedor] =
+      (acumuladoPorUsuario[deuda.idAcreedor] ?? 0) - montoEnBase;
+  }
+
+  return acumuladoPorUsuario;
+}
+
 async function manejarNotificacionesDeGasto(
   nuevoGasto: Awaited<ReturnType<typeof registrarGasto>>,
   deps: Dependencias,
@@ -71,42 +116,11 @@ async function manejarNotificacionesDeGasto(
       ? Number(grupoCompleto.umbralAlerta)
       : 100;
 
-    const monedaBase = grupoCompleto.monedaBase;
-
-    const monedasDivisiones = grupoCompleto.gastos.flatMap((g) =>
-      g.divisiones.map((d) => d.moneda || g.moneda).filter(Boolean),
+    const acumuladoPorUsuario = await calcularAcumulado(
+      grupoCompleto,
+      grupoCompleto.monedaBase,
+      deps,
     );
-    const conversor = await crearConversorMoneda(monedaBase, monedasDivisiones);
-
-    const acumuladoPorUsuario: Record<string, number> = {};
-    for (const g of grupoCompleto.gastos) {
-      for (const div of g.divisiones) {
-        const monto = Number(div.montoAsignado);
-        const moneda = div.moneda || g.moneda;
-        const tasa =
-          moneda && moneda !== monedaBase ? (conversor[moneda] ?? 1) : 1;
-        acumuladoPorUsuario[div.idUsuario] =
-          (acumuladoPorUsuario[div.idUsuario] ?? 0) + monto * tasa;
-      }
-    }
-
-    const deudas = await deps.deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(
-      nuevoGasto.grupo.id,
-    );
-    const monedasDeudas = deudas.map((d) => d.moneda).filter(Boolean);
-    const convDeudas = await crearConversorMoneda(monedaBase, monedasDeudas);
-    for (const deuda of deudas) {
-      if (!deuda.saldada) continue;
-      const monto = Number(deuda.monto);
-      const moneda = deuda.moneda;
-      const tasa =
-        moneda && moneda !== monedaBase ? (convDeudas[moneda] ?? 1) : 1;
-      const montoEnBase = monto * tasa;
-      acumuladoPorUsuario[deuda.idDeudor] =
-        (acumuladoPorUsuario[deuda.idDeudor] ?? 0) + montoEnBase;
-      acumuladoPorUsuario[deuda.idAcreedor] =
-        (acumuladoPorUsuario[deuda.idAcreedor] ?? 0) - montoEnBase;
-    }
 
     const idsAdmin = grupoCompleto.miembros
       .filter((m) => m.rol === "admin")

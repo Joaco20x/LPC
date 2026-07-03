@@ -2,5 +2,5 @@ projectKey=LPC
 serverUrl=https://sonarqube.inf.uct.cl
 serverVersion=26.6.0.123539
 dashboardUrl=https://sonarqube.inf.uct.cl/dashboard?id=LPC
-ceTaskId=21a04ed8-bfc7-4886-a190-a890620f4e5f
-ceTaskUrl=https://sonarqube.inf.uct.cl/api/ce/task?id=21a04ed8-bfc7-4886-a190-a890620f4e5f
+ceTaskId=cdc7d586-8850-4f3e-b76c-77a7e64129c3
+ceTaskUrl=https://sonarqube.inf.uct.cl/api/ce/task?id=cdc7d586-8850-4f3e-b76c-77a7e64129c3
