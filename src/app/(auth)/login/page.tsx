@@ -1,23 +1,30 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useFormulario } from '@/auth/validaciones/useFormulario';
-import { validarInicioSesion } from '@/auth/validaciones/autenticacion';
-import { iniciarSesion } from '@/auth/validaciones/servicioAuth';
-import CampoEntrada from '@/auth/components/CampoEntrada';
-import BotonOAuth from '@/auth/components/BotonOAuth';
-import Separador from '@/auth/components/Separador';
-import type { DatosInicioSesion, ProveedorOAuth } from '@/auth/types/autenticacion';
-import { guardarAccessToken, guardarDatosUsuario } from '@/shared/servicios/almacenamientoTokens';
-import '@/app/(auth)/auth.css';
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useFormulario } from "@/auth/validaciones/useFormulario";
+import { validarInicioSesion } from "@/auth/validaciones/autenticacion";
+import { iniciarSesion } from "@/auth/validaciones/servicioAuth";
+import CampoEntrada from "@/auth/components/CampoEntrada";
+import BotonOAuth from "@/auth/components/BotonOAuth";
+import Separador from "@/auth/components/Separador";
+import type {
+  DatosInicioSesion,
+  ProveedorOAuth,
+} from "@/auth/types/autenticacion";
+import {
+  guardarAccessToken,
+  guardarDatosUsuario,
+} from "@/shared/servicios/almacenamientoTokens";
+import "@/app/(auth)/auth.css";
 
-const VALORES_INICIALES: DatosInicioSesion = { correo: '', contrasena: '' };
+const VALORES_INICIALES: DatosInicioSesion = { correo: "", contrasena: "" };
 
 export default function PaginaInicioSesion() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [estado, acciones] = useFormulario<DatosInicioSesion>(VALORES_INICIALES);
+  const [estado, acciones] =
+    useFormulario<DatosInicioSesion>(VALORES_INICIALES);
   const { datos, errores, cargando } = estado;
 
   const manejarEnvio = async (e: React.FormEvent) => {
@@ -41,19 +48,20 @@ export default function PaginaInicioSesion() {
         guardarDatosUsuario(respuesta.datos.usuario);
       }
 
-      const redirect = searchParams.get('redirect');
-      router.push(redirect || '/dashboard');
+      const redirect = searchParams.get("redirect");
+      router.push(redirect || "/dashboard");
     } catch (error) {
-      const mensaje = error instanceof Error ? error.message : 'Error al iniciar sesión';
-      acciones.establecerErrores([{ campo: 'contrasena', mensaje }]);
+      const mensaje =
+        error instanceof Error ? error.message : "Error al iniciar sesión";
+      acciones.establecerErrores([{ campo: "contrasena", mensaje }]);
     } finally {
       acciones.establecerCargando(false);
     }
   };
 
   const manejarOAuth = (proveedor: ProveedorOAuth) => {
-    if (proveedor === 'google') {
-      window.location.href = '/api/auth/google/iniciar';
+    if (proveedor === "google") {
+      window.location.href = "/api/auth/google/iniciar";
     }
   };
 
@@ -66,8 +74,16 @@ export default function PaginaInicioSesion() {
       </header>
 
       <div className="auth-oauth-grupo">
-        <BotonOAuth proveedor="google" onClick={() => manejarOAuth('google')} cargando={cargando} />
-        <BotonOAuth proveedor="apple" onClick={() => manejarOAuth('apple')} cargando={cargando} />
+        <BotonOAuth
+          proveedor="google"
+          onClick={() => manejarOAuth("google")}
+          cargando={cargando}
+        />
+        <BotonOAuth
+          proveedor="apple"
+          onClick={() => manejarOAuth("apple")}
+          cargando={cargando}
+        />
       </div>
 
       <Separador texto="o continúa con correo" />
@@ -81,7 +97,7 @@ export default function PaginaInicioSesion() {
           error={errores.correo}
           placeholder="tu@correo.com"
           autoComplete="email"
-          onChange={(valor) => acciones.actualizarCampo('correo', valor)}
+          onChange={(valor) => acciones.actualizarCampo("correo", valor)}
         />
 
         <div>
@@ -93,7 +109,7 @@ export default function PaginaInicioSesion() {
             error={errores.contrasena}
             placeholder="••••••••"
             autoComplete="current-password"
-            onChange={(valor) => acciones.actualizarCampo('contrasena', valor)}
+            onChange={(valor) => acciones.actualizarCampo("contrasena", valor)}
           />
           <Link href="/recuperar-contrasena" className="auth-link-contrasena">
             ¿Olvidaste tu contraseña?
@@ -103,15 +119,14 @@ export default function PaginaInicioSesion() {
         <button
           type="submit"
           disabled={cargando}
-          className={`boton-primario${cargando ? ' boton-primario--cargando' : ''}`}
+          className={`boton-primario${cargando ? " boton-primario--cargando" : ""}`}
         >
-          {cargando ? '' : 'Ingresar'}
+          {cargando ? "" : "Ingresar"}
         </button>
       </form>
 
       <p className="auth-enlace-alternativo">
-        ¿No tienes cuenta?{' '}
-        <Link href="/registro">Crear cuenta</Link>
+        ¿No tienes cuenta? <Link href="/registro">Crear cuenta</Link>
       </p>
     </>
   );

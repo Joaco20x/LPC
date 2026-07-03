@@ -1,7 +1,7 @@
 // src/invitaciones/types/invitacion.ts
 
-export type TipoInvitacion = 'correo' | 'enlace' | 'qr';
-export type EstadoInvitacion = 'pendiente' | 'aceptada' | 'expirada';
+export type TipoInvitacion = "correo" | "enlace" | "qr";
+export type EstadoInvitacion = "pendiente" | "aceptada" | "expirada";
 
 export interface DatosCrearInvitacion {
   idGrupo: string;

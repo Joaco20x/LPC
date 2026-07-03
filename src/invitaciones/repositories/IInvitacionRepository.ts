@@ -1,6 +1,9 @@
 // src/invitaciones/repositories/IInvitacionRepository.ts
 
-import type { InvitacionConEstado, TipoInvitacion } from '@/invitaciones/types/invitacion';
+import type {
+  InvitacionConEstado,
+  TipoInvitacion,
+} from "@/invitaciones/types/invitacion";
 
 export interface DatosCrearInvitacionRepo {
   idGrupo: string;

@@ -1,6 +1,11 @@
-import { prisma } from '@/shared/libs/prisma';
-import type { IVotacionRepository } from './IVotacionRepository';
-import type { VotacionConDetalle, DatosCrearVotacion, DecisionVoto, ResultadoVotacion } from '@/votaciones/types/votacion';
+import { prisma } from "@/shared/libs/prisma";
+import type { IVotacionRepository } from "./IVotacionRepository";
+import type {
+  VotacionConDetalle,
+  DatosCrearVotacion,
+  DecisionVoto,
+  ResultadoVotacion,
+} from "@/votaciones/types/votacion";
 
 const includeVotos = {
   votos: {
@@ -19,8 +24,12 @@ const includeVotos = {
 
 function mapear(v: any): VotacionConDetalle {
   const totalMiembros = v.deuda?.grupo?.miembros?.length ?? 0;
-  const aprobaciones = v.votos.filter((vt: any) => vt.decision === 'aprobar').length;
-  const rechazos = v.votos.filter((vt: any) => vt.decision === 'rechazar').length;
+  const aprobaciones = v.votos.filter(
+    (vt: any) => vt.decision === "aprobar",
+  ).length;
+  const rechazos = v.votos.filter(
+    (vt: any) => vt.decision === "rechazar",
+  ).length;
   return {
     id: v.id,
     idGrupo: v.idGrupo,
@@ -57,7 +66,10 @@ export class PrismaVotacionRepository implements IVotacionRepository {
   }
 
   async buscarPorId(id: string): Promise<VotacionConDetalle | null> {
-    const v = await (prisma as any).votacion.findUnique({ where: { id }, include: includeVotos });
+    const v = await (prisma as any).votacion.findUnique({
+      where: { id },
+      include: includeVotos,
+    });
     return v ? mapear(v) : null;
   }
 
@@ -65,29 +77,36 @@ export class PrismaVotacionRepository implements IVotacionRepository {
     const vs = await (prisma as any).votacion.findMany({
       where: { idGrupo },
       include: includeVotos,
-      orderBy: { creadoEn: 'desc' },
+      orderBy: { creadoEn: "desc" },
     });
     return vs.map(mapear);
   }
 
   async buscarPorDeuda(idDeuda: string): Promise<VotacionConDetalle | null> {
     const v = await (prisma as any).votacion.findFirst({
-      where: { idDeuda, estado: 'activa' },
+      where: { idDeuda, estado: "activa" },
       include: includeVotos,
     });
     return v ? mapear(v) : null;
   }
 
-  async registrarVoto(idVotacion: string, idUsuario: string, decision: DecisionVoto): Promise<void> {
+  async registrarVoto(
+    idVotacion: string,
+    idUsuario: string,
+    decision: DecisionVoto,
+  ): Promise<void> {
     await (prisma as any).votoIndividual.create({
       data: { idVotacion, idUsuario, decision },
     });
   }
 
-  async resolver(idVotacion: string, resultado: ResultadoVotacion): Promise<void> {
+  async resolver(
+    idVotacion: string,
+    resultado: ResultadoVotacion,
+  ): Promise<void> {
     await (prisma as any).votacion.update({
       where: { id: idVotacion },
-      data: { estado: 'resuelta', resultado, resueltaEn: new Date() },
+      data: { estado: "resuelta", resultado, resueltaEn: new Date() },
     });
   }
 }

@@ -1,7 +1,11 @@
-import type { IVotacionRepository } from '@/votaciones/repositories/IVotacionRepository';
-import type { IMiembroGrupoRepository } from '@/grupos/repositories/IMiembroGrupoRepository';
-import type { IDeudaRepository } from '@/deudas/repositories/IDeudaRepository';
-import type { VotacionConDetalle, TipoVotacion, DecisionVoto } from '@/votaciones/types/votacion';
+import type { IVotacionRepository } from "@/votaciones/repositories/IVotacionRepository";
+import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
+import type { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import type {
+  VotacionConDetalle,
+  TipoVotacion,
+  DecisionVoto,
+} from "@/votaciones/types/votacion";
 
 // ── Crear votación ────────────────────────────────────────
 export async function crearVotacion(
@@ -15,11 +19,12 @@ export async function crearVotacion(
   // Verificar que el creador es miembro del grupo
   const miembros = await miembroRepo.buscarPorGrupo(idGrupo);
   const esMiembro = miembros.some((m) => m.idUsuario === idCreador);
-  if (!esMiembro) throw new Error('No eres miembro de este grupo');
+  if (!esMiembro) throw new Error("No eres miembro de este grupo");
 
   // Verificar que no hay votación activa para esta deuda
   const existente = await votacionRepo.buscarPorDeuda(idDeuda);
-  if (existente) throw new Error('Ya existe una votación activa para esta deuda');
+  if (existente)
+    throw new Error("Ya existe una votación activa para esta deuda");
 
   return votacionRepo.crear({ idGrupo, idDeuda, idCreador, tipo });
 }
@@ -33,17 +38,18 @@ export async function emitirVoto(
   miembroRepo: IMiembroGrupoRepository,
 ): Promise<VotacionConDetalle> {
   const votacion = await votacionRepo.buscarPorId(idVotacion);
-  if (!votacion) throw new Error('Votación no encontrada');
-  if (votacion.estado === 'resuelta') throw new Error('Esta votación ya fue resuelta');
+  if (!votacion) throw new Error("Votación no encontrada");
+  if (votacion.estado === "resuelta")
+    throw new Error("Esta votación ya fue resuelta");
 
   // Verificar que es miembro
   const miembros = await miembroRepo.buscarPorGrupo(votacion.idGrupo);
   const esMiembro = miembros.some((m) => m.idUsuario === idUsuario);
-  if (!esMiembro) throw new Error('No eres miembro de este grupo');
+  if (!esMiembro) throw new Error("No eres miembro de este grupo");
 
   // Verificar que no ha votado antes
   const yaVoto = votacion.votos.some((v) => v.idUsuario === idUsuario);
-  if (yaVoto) throw new Error('Ya emitiste tu voto en esta votación');
+  if (yaVoto) throw new Error("Ya emitiste tu voto en esta votación");
 
   await votacionRepo.registrarVoto(idVotacion, idUsuario, decision);
 
@@ -54,12 +60,12 @@ export async function emitirVoto(
   const mayoria = Math.floor(actualizada.totalMiembros / 2) + 1;
 
   if (actualizada.aprobaciones >= mayoria) {
-    await votacionRepo.resolver(idVotacion, 'aprobada');
+    await votacionRepo.resolver(idVotacion, "aprobada");
     return (await votacionRepo.buscarPorId(idVotacion))!;
   }
 
   if (actualizada.rechazos >= mayoria) {
-    await votacionRepo.resolver(idVotacion, 'rechazada');
+    await votacionRepo.resolver(idVotacion, "rechazada");
     return (await votacionRepo.buscarPorId(idVotacion))!;
   }
 
@@ -75,7 +81,7 @@ export async function obtenerVotacionesGrupo(
 ): Promise<VotacionConDetalle[]> {
   const miembros = await miembroRepo.buscarPorGrupo(idGrupo);
   const esMiembro = miembros.some((m) => m.idUsuario === idUsuario);
-  if (!esMiembro) throw new Error('No eres miembro de este grupo');
+  if (!esMiembro) throw new Error("No eres miembro de este grupo");
   return votacionRepo.buscarPorGrupo(idGrupo);
 }
 
@@ -87,11 +93,11 @@ export async function obtenerVotacion(
   miembroRepo: IMiembroGrupoRepository,
 ): Promise<VotacionConDetalle> {
   const votacion = await votacionRepo.buscarPorId(idVotacion);
-  if (!votacion) throw new Error('Votación no encontrada');
+  if (!votacion) throw new Error("Votación no encontrada");
 
   const miembros = await miembroRepo.buscarPorGrupo(votacion.idGrupo);
   const esMiembro = miembros.some((m) => m.idUsuario === idUsuario);
-  if (!esMiembro) throw new Error('No eres miembro de este grupo');
+  if (!esMiembro) throw new Error("No eres miembro de este grupo");
 
   return votacion;
 }
