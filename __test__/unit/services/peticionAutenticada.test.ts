@@ -1,28 +1,9 @@
-const store: Record<string, string> = {};
-const localStorageMock = {
-  getItem: jest.fn((key: string) => store[key] ?? null),
-  setItem: jest.fn((key: string, value: string) => {
-    store[key] = value;
-  }),
-  removeItem: jest.fn((key: string) => {
-    delete store[key];
-  }),
-  clear: jest.fn(() => {
-    Object.keys(store).forEach((k) => delete store[k]);
-  }),
-};
-Object.defineProperty(global, "localStorage", { value: localStorageMock });
-Object.defineProperty(global, "window", {
-  value: { localStorage: localStorageMock, location: { href: "" } },
-  writable: true,
-});
-
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
   mockFetch.mockReset();
-  localStorageMock.clear();
+  localStorage.clear();
   jest.clearAllMocks();
 });
 

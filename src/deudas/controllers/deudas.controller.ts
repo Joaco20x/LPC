@@ -3,21 +3,22 @@ import { verificarAccessToken } from "@/auth/services/jwt";
 import { obtenerDeudasPendientes } from "@/deudas/services/deudas.service";
 import { crearDependencias } from "@/shared/di/crearDependencias";
 
+function autorizar(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  return verificarAccessToken(authHeader.split(" ")[1]);
+}
+
 export async function controladorDeudas(req: NextRequest) {
   try {
-    const authHeader = req.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    const payload = autorizar(req);
+    if (!payload)
       return NextResponse.json(
         { exito: false, mensaje: "No autorizado" },
         { status: 401 },
       );
-    }
 
-    const token = authHeader.split(" ")[1];
-    const payload = verificarAccessToken(token);
     const idGrupo = req.nextUrl.searchParams.get("grupo") || undefined;
-
     const { deudaRepo } = crearDependencias();
     const deudas = await obtenerDeudasPendientes(
       payload.idUsuario,
@@ -27,6 +28,41 @@ export async function controladorDeudas(req: NextRequest) {
 
     return NextResponse.json(
       { exito: true, mensaje: "Deudas pendientes obtenidas", datos: deudas },
+      { status: 200 },
+    );
+  } catch (error) {
+    const mensaje =
+      error instanceof Error ? error.message : "Error en el servidor";
+    return NextResponse.json({ exito: false, mensaje }, { status: 500 });
+  }
+}
+
+export async function controladorObtenerDeuda(
+  _req: NextRequest,
+  params: { id: string },
+) {
+  try {
+    const { deudaRepo } = crearDependencias();
+    const deuda = await deudaRepo.obtenerPorId(params.id);
+    if (!deuda)
+      return NextResponse.json(
+        { exito: false, mensaje: "Deuda no encontrada" },
+        { status: 404 },
+      );
+
+    const deudaItem = {
+      id: deuda.id,
+      monto: Number(deuda.monto),
+      estado: deuda.estado,
+      saldada: deuda.saldada,
+      actualizadoEn: deuda.actualizadoEn,
+      grupo: deuda.grupo,
+      deudor: deuda.deudor,
+      acreedor: deuda.acreedor,
+    };
+
+    return NextResponse.json(
+      { exito: true, datos: deudaItem },
       { status: 200 },
     );
   } catch (error) {

@@ -1,11 +1,8 @@
 "use client";
 
-// Página de inicio de sesión — FR-01
-// Guarda el accessToken en memoria (variable de módulo) para evitar XSS
-// El refreshToken llega automáticamente como cookie httpOnly desde el servidor
-
+import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useFormulario } from "@/auth/validaciones/useFormulario";
 import { validarInicioSesion } from "@/auth/validaciones/autenticacion";
 import { iniciarSesion } from "@/auth/validaciones/servicioAuth";
@@ -25,7 +22,16 @@ import "@/app/(auth)/auth.css";
 const VALORES_INICIALES: DatosInicioSesion = { correo: "", contrasena: "" };
 
 export default function PaginaInicioSesion() {
+  return (
+    <Suspense fallback={<div className="auth-cargando">Cargando...</div>}>
+      <InicioSesionForm />
+    </Suspense>
+  );
+}
+
+function InicioSesionForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [estado, acciones] =
     useFormulario<DatosInicioSesion>(VALORES_INICIALES);
   const { datos, errores, cargando } = estado;
@@ -44,7 +50,6 @@ export default function PaginaInicioSesion() {
     try {
       const respuesta = await iniciarSesion(datos);
 
-      // Guardar tokens usando el servicio centralizado
       if (respuesta.datos?.accessToken) {
         guardarAccessToken(respuesta.datos.accessToken);
       }
@@ -52,12 +57,11 @@ export default function PaginaInicioSesion() {
         guardarDatosUsuario(respuesta.datos.usuario);
       }
 
-      // Redirigir al dashboard tras login exitoso
-      router.push("/dashboard");
+      const redirect = searchParams.get("redirect");
+      router.push(redirect || "/dashboard");
     } catch (error) {
       const mensaje =
         error instanceof Error ? error.message : "Error al iniciar sesión";
-      // Mostrar mensaje genérico para no revelar si el correo existe
       acciones.establecerErrores([{ campo: "contrasena", mensaje }]);
     } finally {
       acciones.establecerCargando(false);
@@ -133,11 +137,6 @@ export default function PaginaInicioSesion() {
       <p className="auth-enlace-alternativo">
         ¿No tienes cuenta? <Link href="/registro">Crear cuenta</Link>
       </p>
-
-      <p
-        className="auth-enlace-alternativo"
-        style={{ marginTop: "0.5rem" }}
-      ></p>
     </>
   );
 }

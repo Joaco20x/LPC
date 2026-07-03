@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
 
 // ── Tipos locales (reflejo de shared/types/deudas.ts) ────────────────────────
@@ -57,50 +58,69 @@ function TarjetaDeuda({
     : { background: "#edf4f1", color: "var(--color-acento)" };
 
   return (
-    <div className="dashboard-tarjeta">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-        }}
-      >
-        <span className="dashboard-tarjeta__etiqueta" style={etiquetaEstilo}>
-          {esDebo ? "Debo a" : "Me debe"}
-        </span>
-        <span
-          style={{ fontSize: "1.125rem", fontWeight: 600, color: colorMonto }}
+    <Link
+      href={`/deudas/${deuda.id}`}
+      style={{ textDecoration: "none", color: "inherit" }}
+    >
+      <div className="dashboard-tarjeta">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+          }}
         >
-          {formatearMonto(deuda.monto)}
-        </span>
-      </div>
+          <span className="dashboard-tarjeta__etiqueta" style={etiquetaEstilo}>
+            {esDebo ? "Debo a" : "Me debe"}
+          </span>
+          <span
+            style={{ fontSize: "1.125rem", fontWeight: 600, color: colorMonto }}
+          >
+            {formatearMonto(deuda.monto)}
+          </span>
+        </div>
 
-      <div className="dashboard-tarjeta__contenido">
-        <p className="dashboard-tarjeta__nombre">{deuda.contraparte.nombre}</p>
-        <p className="dashboard-tarjeta__descripcion">
-          {deuda.contraparte.correo}
-        </p>
-        <p
-          style={{
-            fontSize: "0.8125rem",
-            color: "var(--color-texto-suave)",
-            marginTop: "0.5rem",
-            fontWeight: 300,
-          }}
-        >
-          Grupo: {deuda.grupo.nombre}
-        </p>
-        <p
-          style={{
-            fontSize: "0.8125rem",
-            color: "var(--color-texto-suave)",
-            fontWeight: 300,
-          }}
-        >
-          Actualizado: {formatearFecha(deuda.actualizadoEn)}
-        </p>
+        <div className="dashboard-tarjeta__contenido">
+          <p className="dashboard-tarjeta__nombre">
+            {deuda.contraparte.nombre}
+          </p>
+          <p className="dashboard-tarjeta__descripcion">
+            {deuda.contraparte.correo}
+          </p>
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-texto-suave)",
+              marginTop: "0.5rem",
+              fontWeight: 300,
+            }}
+          >
+            Grupo: {deuda.grupo.nombre}
+          </p>
+          <p
+            style={{
+              fontSize: "0.8125rem",
+              color: "var(--color-texto-suave)",
+              fontWeight: 300,
+            }}
+          >
+            Actualizado: {formatearFecha(deuda.actualizadoEn)}
+          </p>
+          {esDebo && (
+            <p
+              style={{
+                fontSize: "0.8125rem",
+                color: "var(--color-acento)",
+                marginTop: "0.5rem",
+                fontWeight: 500,
+              }}
+            >
+              Marcar como pagado →
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

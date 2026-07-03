@@ -6,8 +6,11 @@ import type { ISesionRepository } from "@/auth/repositories/ISesionRepository";
 import type { ITokenRecuperacionRepository } from "@/auth/repositories/ITokenRecuperacionRepository";
 import type { IDivisionGastoRepository } from "@/gastos/repositories/IDivisionGastoRepository";
 import type { IMiembroGrupoRepository } from "@/grupos/repositories/IMiembroGrupoRepository";
-import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
+import type { IInvitacionRepository } from "@/invitaciones/repositories/IInvitacionRepository";
+import type { IVotacionRepository } from "@/votaciones/repositories/IVotacionRepository";
 import type { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import type { IComprobanteRepository } from "@/deudas/repositories/IComprobanteRepository";
+import type { IDatabaseService } from "@/shared/libs/IDatabaseService";
 
 import { PrismaUsuarioRepository } from "@/auth/repositories/PrismaUsuarioRepository";
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
@@ -17,7 +20,10 @@ import { PrismaSesionRepository } from "@/auth/repositories/PrismaSesionReposito
 import { PrismaTokenRecuperacionRepository } from "@/auth/repositories/PrismaTokenRecuperacionRepository";
 import { PrismaDivisionGastoRepository } from "@/gastos/repositories/PrismaDivisionGastoRepository";
 import { PrismaMiembroGrupoRepository } from "@/grupos/repositories/PrismaMiembroGrupoRepository";
+import { PrismaInvitacionRepository } from "@/invitaciones/repositories/PrismaInvitacionRepository";
+import { PrismaVotacionRepository } from "@/votaciones/repositories/PrismaVotacionRepository";
 import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
+import { PrismaComprobanteRepository } from "@/deudas/repositories/PrismaComprobanteRepository";
 import { PrismaDatabaseService } from "@/shared/libs/prismaDatabaseService";
 
 export interface Dependencias {
@@ -29,7 +35,10 @@ export interface Dependencias {
   tokenRecuperacionRepo: ITokenRecuperacionRepository;
   divisionGastoRepo: IDivisionGastoRepository;
   miembroGrupoRepo: IMiembroGrupoRepository;
+  invitacionRepo: IInvitacionRepository;
+  votacionRepo: IVotacionRepository;
   notificacionRepo: INotificacionRepository; // ← NUEVO
+  comprobanteRepo: IComprobanteRepository;
   db: IDatabaseService;
 }
 
@@ -47,7 +56,10 @@ export function crearDependencias(): Dependencias {
     tokenRecuperacionRepo: new PrismaTokenRecuperacionRepository(),
     divisionGastoRepo: new PrismaDivisionGastoRepository(),
     miembroGrupoRepo: new PrismaMiembroGrupoRepository(),
+    invitacionRepo: new PrismaInvitacionRepository(),
+    votacionRepo: new PrismaVotacionRepository(),
     notificacionRepo: new PrismaNotificacionRepository(), // ← NUEVO
+    comprobanteRepo: new PrismaComprobanteRepository(),
     db: PrismaDatabaseService,
   };
 

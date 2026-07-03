@@ -4,6 +4,7 @@ import { PrismaGrupoRepository } from "@/grupos/repositories/PrismaGrupoReposito
 import { PrismaGastoRepository } from "@/gastos/repositories/PrismaGastoRepository";
 import { PrismaResumenRepository } from "../repositories/PrismaResumenRepository";
 import { PrismaNotificacionRepository } from "@/notificaciones/repositories/PrismaNotificacionRepository";
+import { PrismaDeudaRepository } from "@/deudas/repositories/PrismaDeudaRepository";
 
 export async function controladorCronResumen(req: NextRequest) {
   // Opcional: Proteger con un token secreto (ej: Vercel Cron Secret)
@@ -23,12 +24,14 @@ export async function controladorCronResumen(req: NextRequest) {
     const gastoRepo = new PrismaGastoRepository();
     const resumenRepo = new PrismaResumenRepository();
     const notificacionRepo = new PrismaNotificacionRepository();
+    const deudaRepo = new PrismaDeudaRepository();
 
     const resultado = await generarResumenesMensuales(
       grupoRepo,
       gastoRepo,
       resumenRepo,
       notificacionRepo,
+      deudaRepo,
     );
 
     return NextResponse.json({

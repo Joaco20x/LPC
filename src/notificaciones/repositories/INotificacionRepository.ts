@@ -11,7 +11,7 @@ export type TipoNotificacion =
 
 export interface DatosCrearNotificacion {
   idUsuario: string;
-  tipo: TipoNotificacion | string;
+  tipo: TipoNotificacion;
   metadata: Record<string, unknown>;
 }
 

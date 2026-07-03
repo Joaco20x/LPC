@@ -1,13 +1,16 @@
-Detectar reconexión y sincronizar los datos registrados offline, informando el resultado al usuario.
+# AGENTS.md
 
-Criterios de aceptación
+Directivas para el agente OpenCode en este proyecto.
 
-Detectar cambios de estado de red con navigator.onLine
+## Comandos
 
-Encolar operaciones offline (crear, editar, eliminar gastos)
+- `npm test` — Tests unitarios e integración
+- `npm run lint` — ESLint
+- `npm run build` — Build de Next.js
+- `npx jest --testPathPatterns="__test__/unit" --no-coverage` — Solo unitarios
 
-Al recuperar conexión, ejecutar la cola en orden
+## Convenios
 
-Mostrar indicador visual online/offline en la UI
-
-Notificar cuántos registros se sincronizaron o si hubo errores
+- No agregar comentarios en código a menos que se solicite
+- Seguir patrones existentes del código base
+- Verificar tests, lint y build después de cambios

@@ -94,6 +94,7 @@ export function useGastoForm() {
   ) => {
     const { name, value } = e.target;
     setFormulario((f) => {
+      if (f[name as keyof FormularioGasto] === value) return f;
       const actualizado = { ...f, [name]: value };
       if (name === "idGrupo") {
         const grupo = grupos.find((g) => g.id === value);
@@ -191,6 +192,7 @@ export function useGastoForm() {
 
       if (data.exito) {
         setMensajeExito("¡Gasto registrado correctamente!");
+        window.dispatchEvent(new CustomEvent("gastoRegistrado"));
         setTimeout(() => Router.push("/dashboard"), 2000);
         setFormulario({ ...FORMULARIO_VACIO, idGrupo: formulario.idGrupo });
         setTimeout(() => setMensajeExito(""), 4000);

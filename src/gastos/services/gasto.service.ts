@@ -70,6 +70,7 @@ export async function registrarGasto(
               idDeudor,
               idAcreedor,
               monto: montoPorAcreedor,
+              moneda,
               saldada: false,
             })),
           );

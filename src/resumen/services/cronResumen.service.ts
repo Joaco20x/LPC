@@ -2,7 +2,11 @@ import { Prisma } from "@prisma/client";
 import { IGrupoRepository } from "@/grupos/repositories/IGrupoRepository";
 import { IGastoRepository } from "@/gastos/repositories/IGastoRepository";
 import { IResumenRepository } from "../repositories/IResumenRepository";
-import { INotificacionRepository } from "@/notificaciones/repositories/INotificacionRepository";
+import { IDeudaRepository } from "@/deudas/repositories/IDeudaRepository";
+import {
+  INotificacionRepository,
+  DatosCrearNotificacion,
+} from "@/notificaciones/repositories/INotificacionRepository";
 import { calcularEstadisticasRango } from "./estadisticas.service";
 
 export async function generarResumenesMensuales(
@@ -10,6 +14,7 @@ export async function generarResumenesMensuales(
   gastoRepo: IGastoRepository,
   resumenRepo: IResumenRepository,
   notificacionRepo: INotificacionRepository,
+  deudaRepo: IDeudaRepository,
 ) {
   // 1. Determinar el mes anterior
   const ahora = new Date();
@@ -45,20 +50,35 @@ export async function generarResumenesMensuales(
       continue; // Ya se generó, lo saltamos
     }
 
-    // 4. Calcular estadísticas para el mes anterior
+    // 4. Obtener deudas saldadas en el período
+    const deudasGrupo = await deudaRepo.obtenerTodasPorGrupoIncluyendoSaldadas(
+      grupo.id,
+    );
+    const deudasSaldadas = deudasGrupo
+      .filter((d) => d.saldada)
+      .map((d) => ({
+        idDeudor: d.idDeudor,
+        idAcreedor: d.idAcreedor,
+        monto: Number(d.monto),
+        moneda: d.moneda,
+      }));
+
+    // 5. Calcular estadísticas para el mes anterior
     const stats = await calcularEstadisticasRango(
       grupo.id,
       inicioMesAnterior,
       finMesAnterior,
       gastoRepo,
+      grupo.monedaBase,
+      deudasSaldadas,
     );
 
-    // 5. Criterio: No generar si no hubo gastos
+    // 6. Criterio: No generar si no hubo gastos
     if (stats.totalGastos <= 0) {
       continue;
     }
 
-    // 6. Generar y guardar resumen
+    // 7. Generar y guardar resumen
     const nuevoResumen = await resumenRepo.crear({
       idGrupo: grupo.id,
       mes: mesAnterior,
@@ -69,20 +89,22 @@ export async function generarResumenesMensuales(
 
     generados++;
 
-    // 7. Distribuir notificaciones a los miembros actuales del grupo (activos)
+    // 8. Distribuir notificaciones a los miembros actuales del grupo (activos)
     if (grupo.miembros.length > 0) {
-      const notificaciones = grupo.miembros.map((m) => ({
-        idUsuario: m.idUsuario,
-        tipo: "NUEVO_RESUMEN_MENSUAL",
-        metadata: {
-          idGrupo: grupo.id,
-          nombreGrupo: grupo.nombre,
-          idResumen: nuevoResumen.id,
-          mes: mesAnterior,
-          anio: anioAnterior,
-          total: stats.totalGastos,
-        },
-      }));
+      const notificaciones: DatosCrearNotificacion[] = grupo.miembros.map(
+        (m) => ({
+          idUsuario: m.idUsuario,
+          tipo: "NUEVO_RESUMEN_MENSUAL",
+          metadata: {
+            idGrupo: grupo.id,
+            nombreGrupo: grupo.nombre,
+            idResumen: nuevoResumen.id,
+            mes: mesAnterior,
+            anio: anioAnterior,
+            total: stats.totalGastos,
+          },
+        }),
+      );
 
       await notificacionRepo.crearMuchas(notificaciones);
     }

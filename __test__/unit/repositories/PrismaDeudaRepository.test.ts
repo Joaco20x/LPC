@@ -3,6 +3,8 @@ const mockPrisma = {
     createMany: jest.fn(),
     findMany: jest.fn(),
     updateMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
   },
 };
 
@@ -101,5 +103,48 @@ describe("PrismaDeudaRepository", () => {
     await repo.marcarComoSaldadas("g1", "u1", "u2", tx as any);
     expect(tx.deuda.updateMany).toHaveBeenCalled();
     expect(mockPrisma.deuda.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("obtenerPorId retorna deuda si existe", async () => {
+    const deuda = {
+      id: "d1",
+      idDeudor: "u1",
+      idAcreedor: "u2",
+      monto: 100,
+      saldada: false,
+      grupo: { id: "g1", nombre: "G1" },
+      deudor: { id: "u1", nombre: "U1", correo: "u1@t.com" },
+      acreedor: { id: "u2", nombre: "U2", correo: "u2@t.com" },
+    };
+    mockPrisma.deuda.findUnique.mockResolvedValue(deuda);
+    const result = await repo.obtenerPorId("d1");
+    expect(result?.id).toBe("d1");
+    expect(mockPrisma.deuda.findUnique).toHaveBeenCalledWith({
+      where: { id: "d1" },
+      include: expect.any(Object),
+    });
+  });
+
+  it("obtenerPorId retorna null si no existe", async () => {
+    mockPrisma.deuda.findUnique.mockResolvedValue(null);
+    const result = await repo.obtenerPorId("no-existe");
+    expect(result).toBeNull();
+  });
+
+  it("actualizarEstado solo estado sin pagadaEn", async () => {
+    await repo.actualizarEstado("d1", "pagada");
+    expect(mockPrisma.deuda.update).toHaveBeenCalledWith({
+      where: { id: "d1" },
+      data: { estado: "pagada" },
+    });
+  });
+
+  it("actualizarEstado con estado y pagadaEn", async () => {
+    const ahora = new Date();
+    await repo.actualizarEstado("d1", "pagada", ahora);
+    expect(mockPrisma.deuda.update).toHaveBeenCalledWith({
+      where: { id: "d1" },
+      data: { estado: "pagada", pagadaEn: ahora },
+    });
   });
 });

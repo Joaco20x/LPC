@@ -6,8 +6,9 @@
 // - Para todos: indicador visual del % de presupuesto usado por integrante,
 //   calculado en tiempo real a partir de las divisiones de cada gasto.
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { peticionAutenticada } from "@/shared/servicios/peticionAutenticada";
+import { obtenerAccessToken } from "@/shared/servicios/almacenamientoTokens";
 import "./presupuesto.css";
 
 interface DivisionGastoMin {
@@ -15,7 +16,18 @@ interface DivisionGastoMin {
   montoAsignado: number | string;
 }
 
+interface DeudaMin {
+  id: string;
+  monto: number;
+  saldada: boolean;
+  deudor: { id: string };
+  acreedor: { id: string };
+}
+
 interface GastoMin {
+  pagador: { id: string };
+  monto: number | string;
+  moneda?: string | null;
   divisiones: DivisionGastoMin[];
 }
 
@@ -31,6 +43,7 @@ interface Props {
   umbralAlerta: number | null;
   miembros: IntegranteMin[];
   gastos: GastoMin[];
+  deudas: DeudaMin[];
   esAdmin: boolean;
   onActualizado?: (datos: {
     presupuestoPorPersona: number | null;
@@ -109,6 +122,7 @@ export default function PresupuestoGrupo({
   umbralAlerta,
   miembros,
   gastos,
+  deudas,
   esAdmin,
   onActualizado,
 }: Props) {
@@ -122,17 +136,71 @@ export default function PresupuestoGrupo({
     umbralAlerta !== null ? String(umbralAlerta) : "80",
   );
 
-  // ── Gasto acumulado por integrante (calculado en tiempo real) ──
+  // ── Tasas de cambio para monedas distintas a la base ──
+  const [tasas, setTasas] = useState<Map<string, number>>(new Map());
+
+  useEffect(() => {
+    const monedasUnicas = [
+      ...new Set(
+        gastos
+          .map((g) => g.moneda)
+          .filter((m): m is string => Boolean(m) && m !== monedaBase),
+      ),
+    ];
+    if (monedasUnicas.length === 0) return;
+
+    const token = obtenerAccessToken();
+    let cancelado = false;
+
+    async function cargarTasas() {
+      const entradas = await Promise.all(
+        monedasUnicas.map(async (from) => {
+          try {
+            const res = await fetch(
+              `/api/tasas-cambio?from=${from}&to=${monedaBase}`,
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            if (!res.ok) return [from, 1] as const;
+            const data = await res.json();
+            return [from, data.datos?.tasa ?? 1] as const;
+          } catch {
+            return [from, 1] as const;
+          }
+        }),
+      );
+      if (!cancelado) setTasas(new Map(entradas));
+    }
+
+    cargarTasas();
+    return () => {
+      cancelado = true;
+    };
+  }, [gastos, monedaBase]);
+
+  // ── Gasto acumulado por integrante (flujo de caja real) ──
   const acumuladoPorUsuario = useMemo(() => {
     const mapa: Record<string, number> = {};
+
+    // Lo que cada persona pagó de su bolsillo (convertido a moneda base)
     for (const gasto of gastos) {
-      for (const div of gasto.divisiones) {
-        mapa[div.idUsuario] =
-          (mapa[div.idUsuario] ?? 0) + Number(div.montoAsignado);
-      }
+      const monto = Number(gasto.monto);
+      const convertido =
+        gasto.moneda && gasto.moneda !== monedaBase
+          ? monto * (tasas.get(gasto.moneda) ?? 1)
+          : monto;
+      mapa[gasto.pagador.id] = (mapa[gasto.pagador.id] ?? 0) + convertido;
     }
+
+    // Ajuste por deudas saldadas (pagadas)
+    for (const deuda of deudas) {
+      if (!deuda.saldada) continue;
+      const monto = Number(deuda.monto);
+      mapa[deuda.acreedor.id] = (mapa[deuda.acreedor.id] ?? 0) - monto;
+      mapa[deuda.deudor.id] = (mapa[deuda.deudor.id] ?? 0) + monto;
+    }
+
     return mapa;
-  }, [gastos]);
+  }, [gastos, deudas, monedaBase, tasas]);
 
   async function guardar() {
     setError(null);

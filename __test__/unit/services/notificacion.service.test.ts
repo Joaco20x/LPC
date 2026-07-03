@@ -220,6 +220,198 @@ describe("notificarIntegranteAnadido", () => {
   });
 });
 
+describe("notificarPresupuestoSuperado — nuevo path (por persona)", () => {
+  it("notifica al miembro que supera el umbral y a los admins", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        umbralAlerta: 80,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: { u1: 9000 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ idUsuario: "u1" }),
+        expect.objectContaining({ idUsuario: "admin1" }),
+      ]),
+    );
+    expect(notifRepo.crearMuchas).toHaveBeenCalledTimes(1);
+  });
+
+  it("no notifica si el gasto acumulado no supera el umbral", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        umbralAlerta: 80,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: { u1: 5000 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).not.toHaveBeenCalled();
+  });
+
+  it("notifica a múltiples miembros que superan el umbral", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        miembrosInvolucrados: [
+          { id: "u1", nombre: "Juan" },
+          { id: "u2", nombre: "Ana" },
+          { id: "u3", nombre: "Luis" },
+        ],
+        gastoAcumuladoPorUsuario: { u1: 11000, u2: 5000, u3: 12000 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    const idsNotificados = notifRepo.crearMuchas.mock.calls[0][0].map(
+      (n: any) => n.idUsuario,
+    );
+    expect(idsNotificados).toContain("u1");
+    expect(idsNotificados).toContain("u3");
+    expect(idsNotificados).not.toContain("u2");
+  });
+
+  it("no duplica notificación si el admin es el mismo miembro", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        miembrosInvolucrados: [{ id: "admin1", nombre: "Admin" }],
+        gastoAcumuladoPorUsuario: { admin1: 15000 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas.mock.calls[0][0]).toHaveLength(1);
+  });
+
+  it("retorna temprano si presupuestoPorPersona <= 0", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 0,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: { u1: 100 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).not.toHaveBeenCalled();
+  });
+
+  it("no hace nada si miembrosInvolucrados está vacío", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        miembrosInvolucrados: [],
+        gastoAcumuladoPorUsuario: {},
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).not.toHaveBeenCalled();
+  });
+
+  it("usa umbral 100% por defecto si no se provee umbralAlerta", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: { u1: 10000 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).toHaveBeenCalled();
+  });
+
+  it("no notifica si el miembro no tiene gasto acumulado registrado", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: {},
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    expect(notifRepo.crearMuchas).not.toHaveBeenCalled();
+  });
+
+  it("incluye metadata correcta en la notificación", async () => {
+    const notifRepo = crearMockNotificacionRepo();
+
+    await notificarPresupuestoSuperado(
+      {
+        idGrupo: "g1",
+        nombreGrupo: "Viaje",
+        presupuestoPorPersona: 10000,
+        umbralAlerta: 80,
+        miembrosInvolucrados: [{ id: "u1", nombre: "Juan" }],
+        gastoAcumuladoPorUsuario: { u1: 8500 },
+        idsAdmin: ["admin1"],
+      },
+      notifRepo,
+    );
+
+    const llamada = notifRepo.crearMuchas.mock.calls[0][0];
+    const notifMiembro = llamada.find((n: any) => n.idUsuario === "u1");
+    expect(notifMiembro.tipo).toBe("presupuesto_superado");
+    expect(notifMiembro.metadata).toEqual({
+      idGrupo: "g1",
+      nombreGrupo: "Viaje",
+      nombreIntegrante: "Juan",
+      gastoAcumulado: 8500,
+      presupuestoPorPersona: 10000,
+      porcentajeUsado: 85,
+    });
+  });
+});
+
 describe("notificarPagoDeuda", () => {
   it("crea una notificacion para el acreedor", async () => {
     const notifRepo = crearMockNotificacionRepo();

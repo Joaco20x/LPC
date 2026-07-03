@@ -43,7 +43,7 @@ export async function controladorCrearGrupo(req: NextRequest) {
     if (error) return error;
 
     const cuerpo = await req.json();
-    const datosCompletos = { ...cuerpo, idCreador: payload!.idUsuario };
+    const datosCompletos = { ...cuerpo, idCreador: payload.idUsuario };
     const errores = validarCreacionGrupo(datosCompletos);
 
     if (errores.length > 0) {
@@ -93,7 +93,7 @@ export async function controladorObtenerGrupos(req: NextRequest) {
 
     const { miembroGrupoRepo } = crearDependencias();
     const grupos = await obtenerGruposDelUsuario(
-      payload!.idUsuario,
+      payload.idUsuario,
       miembroGrupoRepo,
     );
 
@@ -116,8 +116,8 @@ export async function controladorObtenerDetalleGrupo(
     const { error } = extraerPayload(req);
     if (error) return error;
 
-    const { grupoRepo } = crearDependencias();
-    const grupo = await obtenerDetalleGrupo(params.id, grupoRepo);
+    const { grupoRepo, deudaRepo } = crearDependencias();
+    const grupo = await obtenerDetalleGrupo(params.id, grupoRepo, deudaRepo);
 
     return NextResponse.json(
       { exito: true, datos: { grupo } },
@@ -161,7 +161,7 @@ export async function controladorActualizarPresupuesto(
     const { grupoRepo } = crearDependencias();
     const resultado = await actualizarPresupuestoGrupo(
       params.id,
-      payload!.idUsuario,
+      payload.idUsuario,
       { presupuestoPorPersona, umbralAlerta },
       grupoRepo,
     );
@@ -181,9 +181,14 @@ export async function controladorActualizarPresupuesto(
         : "Error al actualizar el presupuesto";
     const esPermiso = mensaje.includes("administrador");
     const esNoEncontrado = mensaje === "Grupo no encontrado";
-    return NextResponse.json(
-      { exito: false, mensaje },
-      { status: esPermiso ? 403 : esNoEncontrado ? 404 : 400 },
-    );
+    let status: number;
+    if (esPermiso) {
+      status = 403;
+    } else if (esNoEncontrado) {
+      status = 404;
+    } else {
+      status = 400;
+    }
+    return NextResponse.json({ exito: false, mensaje }, { status });
   }
 }

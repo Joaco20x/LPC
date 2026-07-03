@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["jest", "node"]
   },
-  "include": ["__test__/**/*.ts"]
+  "include": ["__test__/**/*.ts", "__test__/**/*.tsx"]
 }
