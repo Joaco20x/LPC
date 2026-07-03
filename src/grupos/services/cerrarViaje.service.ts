@@ -37,7 +37,17 @@ interface CerrarViajeParams {
 export async function cerrarViaje(
   params: CerrarViajeParams,
 ): Promise<CerrarViajeResultado> {
-  const { idGrupo, idUsuario, forzar, grupoRepo, deudaRepo, gastoRepo, resumenRepo, miembroRepo, notificacionRepo } = params;
+  const {
+    idGrupo,
+    idUsuario,
+    forzar,
+    grupoRepo,
+    deudaRepo,
+    gastoRepo,
+    resumenRepo,
+    miembroRepo,
+    notificacionRepo,
+  } = params;
 
   const grupo = await grupoRepo.obtenerDetalle(idGrupo);
   if (!grupo) throw new Error("Grupo no encontrado");
